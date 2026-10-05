@@ -1,0 +1,2071 @@
+/*!******************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[6].rules[0].oneOf[0].use[1]!./node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[6].rules[0].oneOf[0].use[2]!./node_modules/resolve-url-loader/index.js??ruleSet[1].rules[6].rules[1].use[0]!./node_modules/sass-loader/dist/cjs.js??ruleSet[1].rules[6].rules[1].use[1]!./src/theme/variables.scss ***!
+  \******************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
+/** Ionic CSS Variables **/
+:root {
+  /** primary **/
+  --ion-color-primary: #ff5e00;
+}
+/*!*********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[6].rules[0].oneOf[0].use[1]!./node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[6].rules[0].oneOf[0].use[2]!./node_modules/resolve-url-loader/index.js??ruleSet[1].rules[6].rules[1].use[0]!./node_modules/sass-loader/dist/cjs.js??ruleSet[1].rules[6].rules[1].use[1]!./src/global.scss ***!
+  \*********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
+@charset "UTF-8";
+/*
+ * App Global CSS
+ * ----------------------------------------------------------------------------
+ * Put style rules here that you want to apply globally. These styles are for
+ * the entire app and not just one component. Additionally, this file can be
+ * used as an entry point to import other CSS/Sass files to be included in the
+ * output CSS.
+ * For more information on global stylesheets, visit the documentation:
+ * https://ionicframework.com/docs/layout/global-stylesheets
+ * Core CSS required for Ionic components to work properly */
+html.ios {
+  --ion-default-font: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Roboto", sans-serif;
+}
+html.md {
+  --ion-default-font: "Roboto", "Helvetica Neue", sans-serif;
+}
+html {
+  --ion-font-family: var(--ion-default-font);
+}
+body {
+  background: var(--ion-background-color);
+}
+body.backdrop-no-scroll {
+  overflow: hidden;
+}
+/**
+ * Card style modal needs additional padding on the
+ * top of the header. We accomplish this by targeting
+ * the first toolbar in the header.
+ * Footer also needs this. We do not adjust the bottom
+ * padding though because of the safe area.
+ */
+html.ios ion-modal.modal-card ion-header ion-toolbar:first-of-type,
+html.ios ion-modal.modal-sheet ion-header ion-toolbar:first-of-type,
+html.ios ion-modal ion-footer ion-toolbar:first-of-type {
+  padding-top: 6px;
+}
+/**
+* Card style modal needs additional padding on the
+* bottom of the header. We accomplish this by targeting
+* the last toolbar in the header.
+*/
+html.ios ion-modal.modal-card ion-header ion-toolbar:last-of-type,
+html.ios ion-modal.modal-sheet ion-header ion-toolbar:last-of-type {
+  padding-bottom: 6px;
+}
+/**
+* Add padding on the left and right
+* of toolbars while accounting for
+* safe area values when in landscape.
+*/
+html.ios ion-modal ion-toolbar {
+  padding-right: calc(var(--ion-safe-area-right) + 8px);
+  padding-left: calc(var(--ion-safe-area-left) + 8px);
+}
+/**
+ * Card style modal on iPadOS
+ * should only have backdrop on first instance.
+ */
+@media screen and (min-width: 768px) {
+  html.ios ion-modal.modal-card:first-of-type {
+    --backdrop-opacity: 0.18;
+  }
+}
+/**
+ * Subsequent modals should not have a backdrop/box shadow
+ * as it will cause the screen to appear to get progressively
+ * darker. With Ionic 6, declarative modals made it
+ * possible to have multiple non-presented modals in the DOM,
+ * so we could no longer rely on ion-modal:first-of-type.
+ * Here we disable the opacity/box-shadow for every modal
+ * that comes after the first presented modal.
+ *
+ * Note: ion-modal:not(.overlay-hidden):first-of-type
+ * does not match the first modal to not have
+ * the .overlay-hidden class, it will match the
+ * first modal in general only if it does not
+ * have the .overlay-hidden class.
+ * The :nth-child() pseudo-class has support
+ * for selectors which would help us here. At the
+ * time of writing it does not have great cross browser
+ * support.
+ *
+ * Note 2: This should only apply to non-card and
+ * non-sheet modals. Card and sheet modals have their
+ * own criteria for displaying backdrops/box shadows.
+ */
+ion-modal.modal-default:not(.overlay-hidden) ~ ion-modal.modal-default {
+  --backdrop-opacity: 0;
+  --box-shadow: none;
+}
+/**
+ * This works around a bug in WebKit where the
+ * content will overflow outside of the bottom border
+ * radius when re-painting. As long as a single
+ * border radius value is set on .ion-page, this
+ * issue does not happen. We set the top left radius
+ * here because the top left corner will always have a
+ * radius no matter the platform.
+ * This behavior only applies to card modals.
+ */
+html.ios ion-modal.modal-card .ion-page {
+  border-top-left-radius: var(--border-radius);
+}
+.ion-color-primary {
+  --ion-color-base: var(--ion-color-primary, #3880ff) !important;
+  --ion-color-base-rgb: var(--ion-color-primary-rgb, 56, 128, 255) !important;
+  --ion-color-contrast: var(--ion-color-primary-contrast, #fff) !important;
+  --ion-color-contrast-rgb: var(--ion-color-primary-contrast-rgb, 255, 255, 255) !important;
+  --ion-color-shade: var(--ion-color-primary-shade, #3171e0) !important;
+  --ion-color-tint: var(--ion-color-primary-tint, #4c8dff) !important;
+}
+.ion-color-secondary {
+  --ion-color-base: var(--ion-color-secondary, #3dc2ff) !important;
+  --ion-color-base-rgb: var(--ion-color-secondary-rgb, 61, 194, 255) !important;
+  --ion-color-contrast: var(--ion-color-secondary-contrast, #fff) !important;
+  --ion-color-contrast-rgb: var(--ion-color-secondary-contrast-rgb, 255, 255, 255) !important;
+  --ion-color-shade: var(--ion-color-secondary-shade, #36abe0) !important;
+  --ion-color-tint: var(--ion-color-secondary-tint, #50c8ff) !important;
+}
+.ion-color-tertiary {
+  --ion-color-base: var(--ion-color-tertiary, #5260ff) !important;
+  --ion-color-base-rgb: var(--ion-color-tertiary-rgb, 82, 96, 255) !important;
+  --ion-color-contrast: var(--ion-color-tertiary-contrast, #fff) !important;
+  --ion-color-contrast-rgb: var(--ion-color-tertiary-contrast-rgb, 255, 255, 255) !important;
+  --ion-color-shade: var(--ion-color-tertiary-shade, #4854e0) !important;
+  --ion-color-tint: var(--ion-color-tertiary-tint, #6370ff) !important;
+}
+.ion-color-success {
+  --ion-color-base: var(--ion-color-success, #2dd36f) !important;
+  --ion-color-base-rgb: var(--ion-color-success-rgb, 45, 211, 111) !important;
+  --ion-color-contrast: var(--ion-color-success-contrast, #fff) !important;
+  --ion-color-contrast-rgb: var(--ion-color-success-contrast-rgb, 255, 255, 255) !important;
+  --ion-color-shade: var(--ion-color-success-shade, #28ba62) !important;
+  --ion-color-tint: var(--ion-color-success-tint, #42d77d) !important;
+}
+.ion-color-warning {
+  --ion-color-base: var(--ion-color-warning, #ffc409) !important;
+  --ion-color-base-rgb: var(--ion-color-warning-rgb, 255, 196, 9) !important;
+  --ion-color-contrast: var(--ion-color-warning-contrast, #000) !important;
+  --ion-color-contrast-rgb: var(--ion-color-warning-contrast-rgb, 0, 0, 0) !important;
+  --ion-color-shade: var(--ion-color-warning-shade, #e0ac08) !important;
+  --ion-color-tint: var(--ion-color-warning-tint, #ffca22) !important;
+}
+.ion-color-danger {
+  --ion-color-base: var(--ion-color-danger, #eb445a) !important;
+  --ion-color-base-rgb: var(--ion-color-danger-rgb, 235, 68, 90) !important;
+  --ion-color-contrast: var(--ion-color-danger-contrast, #fff) !important;
+  --ion-color-contrast-rgb: var(--ion-color-danger-contrast-rgb, 255, 255, 255) !important;
+  --ion-color-shade: var(--ion-color-danger-shade, #cf3c4f) !important;
+  --ion-color-tint: var(--ion-color-danger-tint, #ed576b) !important;
+}
+.ion-color-light {
+  --ion-color-base: var(--ion-color-light, #f4f5f8) !important;
+  --ion-color-base-rgb: var(--ion-color-light-rgb, 244, 245, 248) !important;
+  --ion-color-contrast: var(--ion-color-light-contrast, #000) !important;
+  --ion-color-contrast-rgb: var(--ion-color-light-contrast-rgb, 0, 0, 0) !important;
+  --ion-color-shade: var(--ion-color-light-shade, #d7d8da) !important;
+  --ion-color-tint: var(--ion-color-light-tint, #f5f6f9) !important;
+}
+.ion-color-medium {
+  --ion-color-base: var(--ion-color-medium, #92949c) !important;
+  --ion-color-base-rgb: var(--ion-color-medium-rgb, 146, 148, 156) !important;
+  --ion-color-contrast: var(--ion-color-medium-contrast, #fff) !important;
+  --ion-color-contrast-rgb: var(--ion-color-medium-contrast-rgb, 255, 255, 255) !important;
+  --ion-color-shade: var(--ion-color-medium-shade, #808289) !important;
+  --ion-color-tint: var(--ion-color-medium-tint, #9d9fa6) !important;
+}
+.ion-color-dark {
+  --ion-color-base: var(--ion-color-dark, #222428) !important;
+  --ion-color-base-rgb: var(--ion-color-dark-rgb, 34, 36, 40) !important;
+  --ion-color-contrast: var(--ion-color-dark-contrast, #fff) !important;
+  --ion-color-contrast-rgb: var(--ion-color-dark-contrast-rgb, 255, 255, 255) !important;
+  --ion-color-shade: var(--ion-color-dark-shade, #1e2023) !important;
+  --ion-color-tint: var(--ion-color-dark-tint, #383a3e) !important;
+}
+.ion-page {
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  position: absolute;
+  flex-direction: column;
+  justify-content: space-between;
+  contain: layout size style;
+  overflow: hidden;
+  z-index: 0;
+}
+.split-pane-visible > .ion-page.split-pane-main {
+  position: relative;
+}
+ion-route,
+ion-route-redirect,
+ion-router,
+ion-select-option,
+ion-nav-controller,
+ion-menu-controller,
+ion-action-sheet-controller,
+ion-alert-controller,
+ion-loading-controller,
+ion-modal-controller,
+ion-picker-controller,
+ion-popover-controller,
+ion-toast-controller,
+.ion-page-hidden,
+[hidden] {
+  /* stylelint-disable-next-line declaration-no-important */
+  display: none !important;
+}
+.ion-page-invisible {
+  opacity: 0;
+}
+.can-go-back > ion-header ion-back-button {
+  display: block;
+}
+html.plt-ios.plt-hybrid, html.plt-ios.plt-pwa {
+  --ion-statusbar-padding: 20px;
+}
+@supports (padding-top: 20px) {
+  html {
+    --ion-safe-area-top: var(--ion-statusbar-padding);
+  }
+}
+@supports (padding-top: constant(safe-area-inset-top)) {
+  html {
+    --ion-safe-area-top: constant(safe-area-inset-top);
+    --ion-safe-area-bottom: constant(safe-area-inset-bottom);
+    --ion-safe-area-left: constant(safe-area-inset-left);
+    --ion-safe-area-right: constant(safe-area-inset-right);
+  }
+}
+@supports (padding-top: env(safe-area-inset-top)) {
+  html {
+    --ion-safe-area-top: env(safe-area-inset-top);
+    --ion-safe-area-bottom: env(safe-area-inset-bottom);
+    --ion-safe-area-left: env(safe-area-inset-left);
+    --ion-safe-area-right: env(safe-area-inset-right);
+  }
+}
+ion-card.ion-color .ion-inherit-color,
+ion-card-header.ion-color .ion-inherit-color {
+  color: inherit;
+}
+.menu-content {
+  transform: translate3d(0,  0,  0);
+}
+.menu-content-open {
+  cursor: pointer;
+  touch-action: manipulation;
+  pointer-events: none;
+}
+.ios .menu-content-reveal {
+  box-shadow: -8px 0 42px rgba(0, 0, 0, 0.08);
+}
+[dir=rtl].ios .menu-content-reveal {
+  box-shadow: 8px 0 42px rgba(0, 0, 0, 0.08);
+}
+.md .menu-content-reveal {
+  box-shadow: 4px 0px 16px rgba(0, 0, 0, 0.18);
+}
+.md .menu-content-push {
+  box-shadow: 4px 0px 16px rgba(0, 0, 0, 0.18);
+}
+ion-accordion-group.accordion-group-expand-inset > ion-accordion:first-of-type {
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+ion-accordion-group.accordion-group-expand-inset > ion-accordion:last-of-type {
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+ion-accordion-group > ion-accordion:last-of-type ion-item[slot=header] {
+  --border-width: 0px;
+}
+ion-accordion.accordion-animated > [slot=header] .ion-accordion-toggle-icon {
+  transition: 300ms transform cubic-bezier(0.25, 0.8, 0.5, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  ion-accordion .ion-accordion-toggle-icon {
+    /* stylelint-disable declaration-no-important */
+    transition: none !important;
+  }
+}
+/**
+ * The > [slot="header"] selector ensures that we do
+ * not modify toggle icons for any nested accordions. The state
+ * of one accordion should not affect any accordions inside
+ * of a nested accordion group.
+ */
+ion-accordion.accordion-expanding > [slot=header] .ion-accordion-toggle-icon,
+ion-accordion.accordion-expanded > [slot=header] .ion-accordion-toggle-icon {
+  transform: rotate(180deg);
+}
+ion-accordion-group.accordion-group-expand-inset.md > ion-accordion.accordion-previous ion-item[slot=header] {
+  --border-width: 0px;
+  --inner-border-width: 0px;
+}
+ion-accordion-group.accordion-group-expand-inset.md > ion-accordion.accordion-expanding:first-of-type,
+ion-accordion-group.accordion-group-expand-inset.md > ion-accordion.accordion-expanded:first-of-type {
+  margin-top: 0;
+}
+ion-input input::-webkit-date-and-time-value {
+  text-align: start;
+}
+/* Basic CSS for apps built with Ionic */
+audio,
+canvas,
+progress,
+video {
+  vertical-align: baseline;
+}
+audio:not([controls]) {
+  display: none;
+  height: 0;
+}
+b,
+strong {
+  font-weight: bold;
+}
+img {
+  max-width: 100%;
+  border: 0;
+}
+svg:not(:root) {
+  overflow: hidden;
+}
+figure {
+  margin: 1em 40px;
+}
+hr {
+  height: 1px;
+  border-width: 0;
+  box-sizing: content-box;
+}
+pre {
+  overflow: auto;
+}
+code,
+kbd,
+pre,
+samp {
+  font-family: monospace, monospace;
+  font-size: 1em;
+}
+label,
+input,
+select,
+textarea {
+  font-family: inherit;
+  line-height: normal;
+}
+textarea {
+  overflow: auto;
+  height: auto;
+  font: inherit;
+  color: inherit;
+}
+textarea::placeholder {
+  padding-left: 2px;
+}
+form,
+input,
+optgroup,
+select {
+  margin: 0;
+  font: inherit;
+  color: inherit;
+}
+html input[type=button],
+input[type=reset],
+input[type=submit] {
+  cursor: pointer;
+  -webkit-appearance: button;
+}
+a,
+a div,
+a span,
+a ion-icon,
+a ion-label,
+button,
+button div,
+button span,
+button ion-icon,
+button ion-label,
+.ion-tappable,
+[tappable],
+[tappable] div,
+[tappable] span,
+[tappable] ion-icon,
+[tappable] ion-label,
+input,
+textarea {
+  touch-action: manipulation;
+}
+a ion-label,
+button ion-label {
+  pointer-events: none;
+}
+button {
+  border: 0;
+  border-radius: 0;
+  font-family: inherit;
+  font-style: inherit;
+  font-feature-settings: inherit;
+  font-variant: inherit;
+  line-height: 1;
+  text-transform: none;
+  cursor: pointer;
+  -webkit-appearance: button;
+}
+[tappable] {
+  cursor: pointer;
+}
+a[disabled],
+button[disabled],
+html input[disabled] {
+  cursor: default;
+}
+button::-moz-focus-inner,
+input::-moz-focus-inner {
+  padding: 0;
+  border: 0;
+}
+input[type=checkbox],
+input[type=radio] {
+  padding: 0;
+  box-sizing: border-box;
+}
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  height: auto;
+}
+input[type=search]::-webkit-search-cancel-button,
+input[type=search]::-webkit-search-decoration {
+  -webkit-appearance: none;
+}
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+td,
+th {
+  padding: 0;
+}
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+html {
+  width: 100%;
+  height: 100%;
+  -webkit-text-size-adjust: 100%;
+          text-size-adjust: 100%;
+}
+html:not(.hydrated) body {
+  display: none;
+}
+html.ion-ce body {
+  display: block;
+}
+html.plt-pwa {
+  height: 100vh;
+}
+body {
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+  margin-left: 0;
+  margin-right: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+  padding-left: 0;
+  padding-right: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  position: fixed;
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  max-height: 100%;
+  /**
+   * Because body has position: fixed,
+   * it should be promoted to its own
+   * layer.
+   *
+   * WebKit does not always promote
+   * the body to its own layer on page
+   * load in Ionic apps. Once scrolling on
+   * ion-content starts, WebKit will promote
+   * body. Unfortunately, this causes a re-paint
+   * which results in scrolling being halted
+   * until the next user gesture.
+   *
+   * This impacts the Custom Elements build.
+   * The lazy loaded build causes the browser to
+   * re-paint during hydration which causes WebKit
+   * to promote body to its own layer.
+   * In the CE Build, this hydration does not
+   * happen, so the additional re-paint does not occur.
+   */
+  transform: translateZ(0);
+  text-rendering: optimizeLegibility;
+  overflow: hidden;
+  touch-action: manipulation;
+  -webkit-user-drag: none;
+  -ms-content-zooming: none;
+  word-wrap: break-word;
+  overscroll-behavior-y: none;
+  -webkit-text-size-adjust: none;
+          text-size-adjust: none;
+}
+html {
+  font-family: var(--ion-font-family);
+}
+a {
+  background-color: transparent;
+  color: var(--ion-color-primary, #3880ff);
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin-top: 16px;
+  margin-bottom: 10px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+h1 {
+  margin-top: 20px;
+  font-size: 26px;
+}
+h2 {
+  margin-top: 18px;
+  font-size: 24px;
+}
+h3 {
+  font-size: 22px;
+}
+h4 {
+  font-size: 20px;
+}
+h5 {
+  font-size: 18px;
+}
+h6 {
+  font-size: 16px;
+}
+small {
+  font-size: 75%;
+}
+sub,
+sup {
+  position: relative;
+  font-size: 75%;
+  line-height: 0;
+  vertical-align: baseline;
+}
+sup {
+  top: -0.5em;
+}
+sub {
+  bottom: -0.25em;
+}
+.ion-hide {
+  display: none !important;
+}
+.ion-hide-up {
+  display: none !important;
+}
+.ion-hide-down {
+  display: none !important;
+}
+@media (min-width: 576px) {
+  .ion-hide-sm-up {
+    display: none !important;
+  }
+}
+@media (max-width: 575.98px) {
+  .ion-hide-sm-down {
+    display: none !important;
+  }
+}
+@media (min-width: 768px) {
+  .ion-hide-md-up {
+    display: none !important;
+  }
+}
+@media (max-width: 767.98px) {
+  .ion-hide-md-down {
+    display: none !important;
+  }
+}
+@media (min-width: 992px) {
+  .ion-hide-lg-up {
+    display: none !important;
+  }
+}
+@media (max-width: 991.98px) {
+  .ion-hide-lg-down {
+    display: none !important;
+  }
+}
+@media (min-width: 1200px) {
+  .ion-hide-xl-up {
+    display: none !important;
+  }
+}
+@media (max-width: 1199.98px) {
+  .ion-hide-xl-down {
+    display: none !important;
+  }
+}
+/* Optional CSS utils that can be commented out */
+.ion-no-padding {
+  --padding-start: 0;
+  --padding-end: 0;
+  --padding-top: 0;
+  --padding-bottom: 0;
+  padding-left: 0;
+  padding-right: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+.ion-padding {
+  --padding-start: var(--ion-padding, 16px);
+  --padding-end: var(--ion-padding, 16px);
+  --padding-top: var(--ion-padding, 16px);
+  --padding-bottom: var(--ion-padding, 16px);
+  padding-left: var(--ion-padding, 16px);
+  padding-right: var(--ion-padding, 16px);
+  padding-top: var(--ion-padding, 16px);
+  padding-bottom: var(--ion-padding, 16px);
+}
+@supports (margin-inline-start: 0) or (-webkit-margin-start: 0) {
+  .ion-padding {
+    padding-left: unset;
+    padding-right: unset;
+    padding-inline-start: var(--ion-padding, 16px);
+    padding-inline-end: var(--ion-padding, 16px);
+  }
+}
+.ion-padding-top {
+  --padding-top: var(--ion-padding, 16px);
+  padding-top: var(--ion-padding, 16px);
+}
+.ion-padding-start {
+  --padding-start: var(--ion-padding, 16px);
+  padding-left: var(--ion-padding, 16px);
+}
+@supports (margin-inline-start: 0) or (-webkit-margin-start: 0) {
+  .ion-padding-start {
+    padding-left: unset;
+    padding-inline-start: var(--ion-padding, 16px);
+  }
+}
+.ion-padding-end {
+  --padding-end: var(--ion-padding, 16px);
+  padding-right: var(--ion-padding, 16px);
+}
+@supports (margin-inline-start: 0) or (-webkit-margin-start: 0) {
+  .ion-padding-end {
+    padding-right: unset;
+    padding-inline-end: var(--ion-padding, 16px);
+  }
+}
+.ion-padding-bottom {
+  --padding-bottom: var(--ion-padding, 16px);
+  padding-bottom: var(--ion-padding, 16px);
+}
+.ion-padding-vertical {
+  --padding-top: var(--ion-padding, 16px);
+  --padding-bottom: var(--ion-padding, 16px);
+  padding-top: var(--ion-padding, 16px);
+  padding-bottom: var(--ion-padding, 16px);
+}
+.ion-padding-horizontal {
+  --padding-start: var(--ion-padding, 16px);
+  --padding-end: var(--ion-padding, 16px);
+  padding-left: var(--ion-padding, 16px);
+  padding-right: var(--ion-padding, 16px);
+}
+@supports (margin-inline-start: 0) or (-webkit-margin-start: 0) {
+  .ion-padding-horizontal {
+    padding-left: unset;
+    padding-right: unset;
+    padding-inline-start: var(--ion-padding, 16px);
+    padding-inline-end: var(--ion-padding, 16px);
+  }
+}
+.ion-no-margin {
+  --margin-start: 0;
+  --margin-end: 0;
+  --margin-top: 0;
+  --margin-bottom: 0;
+  margin-left: 0;
+  margin-right: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+.ion-margin {
+  --margin-start: var(--ion-margin, 16px);
+  --margin-end: var(--ion-margin, 16px);
+  --margin-top: var(--ion-margin, 16px);
+  --margin-bottom: var(--ion-margin, 16px);
+  margin-left: var(--ion-margin, 16px);
+  margin-right: var(--ion-margin, 16px);
+  margin-top: var(--ion-margin, 16px);
+  margin-bottom: var(--ion-margin, 16px);
+}
+@supports (margin-inline-start: 0) or (-webkit-margin-start: 0) {
+  .ion-margin {
+    margin-left: unset;
+    margin-right: unset;
+    margin-inline-start: var(--ion-margin, 16px);
+    margin-inline-end: var(--ion-margin, 16px);
+  }
+}
+.ion-margin-top {
+  --margin-top: var(--ion-margin, 16px);
+  margin-top: var(--ion-margin, 16px);
+}
+.ion-margin-start {
+  --margin-start: var(--ion-margin, 16px);
+  margin-left: var(--ion-margin, 16px);
+}
+@supports (margin-inline-start: 0) or (-webkit-margin-start: 0) {
+  .ion-margin-start {
+    margin-left: unset;
+    margin-inline-start: var(--ion-margin, 16px);
+  }
+}
+.ion-margin-end {
+  --margin-end: var(--ion-margin, 16px);
+  margin-right: var(--ion-margin, 16px);
+}
+@supports (margin-inline-start: 0) or (-webkit-margin-start: 0) {
+  .ion-margin-end {
+    margin-right: unset;
+    margin-inline-end: var(--ion-margin, 16px);
+  }
+}
+.ion-margin-bottom {
+  --margin-bottom: var(--ion-margin, 16px);
+  margin-bottom: var(--ion-margin, 16px);
+}
+.ion-margin-vertical {
+  --margin-top: var(--ion-margin, 16px);
+  --margin-bottom: var(--ion-margin, 16px);
+  margin-top: var(--ion-margin, 16px);
+  margin-bottom: var(--ion-margin, 16px);
+}
+.ion-margin-horizontal {
+  --margin-start: var(--ion-margin, 16px);
+  --margin-end: var(--ion-margin, 16px);
+  margin-left: var(--ion-margin, 16px);
+  margin-right: var(--ion-margin, 16px);
+}
+@supports (margin-inline-start: 0) or (-webkit-margin-start: 0) {
+  .ion-margin-horizontal {
+    margin-left: unset;
+    margin-right: unset;
+    margin-inline-start: var(--ion-margin, 16px);
+    margin-inline-end: var(--ion-margin, 16px);
+  }
+}
+.ion-float-left {
+  float: left !important;
+}
+.ion-float-right {
+  float: right !important;
+}
+.ion-float-start {
+  float: left !important;
+}
+[dir=rtl] .ion-float-start, :host-context([dir=rtl]) .ion-float-start {
+  float: right !important;
+}
+.ion-float-end {
+  float: right !important;
+}
+[dir=rtl] .ion-float-end, :host-context([dir=rtl]) .ion-float-end {
+  float: left !important;
+}
+@media (min-width: 576px) {
+  .ion-float-sm-left {
+    float: left !important;
+  }
+
+  .ion-float-sm-right {
+    float: right !important;
+  }
+
+  .ion-float-sm-start {
+    float: left !important;
+  }
+  [dir=rtl] .ion-float-sm-start, :host-context([dir=rtl]) .ion-float-sm-start {
+    float: right !important;
+  }
+
+  .ion-float-sm-end {
+    float: right !important;
+  }
+  [dir=rtl] .ion-float-sm-end, :host-context([dir=rtl]) .ion-float-sm-end {
+    float: left !important;
+  }
+}
+@media (min-width: 768px) {
+  .ion-float-md-left {
+    float: left !important;
+  }
+
+  .ion-float-md-right {
+    float: right !important;
+  }
+
+  .ion-float-md-start {
+    float: left !important;
+  }
+  [dir=rtl] .ion-float-md-start, :host-context([dir=rtl]) .ion-float-md-start {
+    float: right !important;
+  }
+
+  .ion-float-md-end {
+    float: right !important;
+  }
+  [dir=rtl] .ion-float-md-end, :host-context([dir=rtl]) .ion-float-md-end {
+    float: left !important;
+  }
+}
+@media (min-width: 992px) {
+  .ion-float-lg-left {
+    float: left !important;
+  }
+
+  .ion-float-lg-right {
+    float: right !important;
+  }
+
+  .ion-float-lg-start {
+    float: left !important;
+  }
+  [dir=rtl] .ion-float-lg-start, :host-context([dir=rtl]) .ion-float-lg-start {
+    float: right !important;
+  }
+
+  .ion-float-lg-end {
+    float: right !important;
+  }
+  [dir=rtl] .ion-float-lg-end, :host-context([dir=rtl]) .ion-float-lg-end {
+    float: left !important;
+  }
+}
+@media (min-width: 1200px) {
+  .ion-float-xl-left {
+    float: left !important;
+  }
+
+  .ion-float-xl-right {
+    float: right !important;
+  }
+
+  .ion-float-xl-start {
+    float: left !important;
+  }
+  [dir=rtl] .ion-float-xl-start, :host-context([dir=rtl]) .ion-float-xl-start {
+    float: right !important;
+  }
+
+  .ion-float-xl-end {
+    float: right !important;
+  }
+  [dir=rtl] .ion-float-xl-end, :host-context([dir=rtl]) .ion-float-xl-end {
+    float: left !important;
+  }
+}
+.ion-text-center {
+  text-align: center !important;
+}
+.ion-text-justify {
+  text-align: justify !important;
+}
+.ion-text-start {
+  text-align: start !important;
+}
+.ion-text-end {
+  text-align: end !important;
+}
+.ion-text-left {
+  text-align: left !important;
+}
+.ion-text-right {
+  text-align: right !important;
+}
+.ion-text-nowrap {
+  white-space: nowrap !important;
+}
+.ion-text-wrap {
+  white-space: normal !important;
+}
+@media (min-width: 576px) {
+  .ion-text-sm-center {
+    text-align: center !important;
+  }
+
+  .ion-text-sm-justify {
+    text-align: justify !important;
+  }
+
+  .ion-text-sm-start {
+    text-align: start !important;
+  }
+
+  .ion-text-sm-end {
+    text-align: end !important;
+  }
+
+  .ion-text-sm-left {
+    text-align: left !important;
+  }
+
+  .ion-text-sm-right {
+    text-align: right !important;
+  }
+
+  .ion-text-sm-nowrap {
+    white-space: nowrap !important;
+  }
+
+  .ion-text-sm-wrap {
+    white-space: normal !important;
+  }
+}
+@media (min-width: 768px) {
+  .ion-text-md-center {
+    text-align: center !important;
+  }
+
+  .ion-text-md-justify {
+    text-align: justify !important;
+  }
+
+  .ion-text-md-start {
+    text-align: start !important;
+  }
+
+  .ion-text-md-end {
+    text-align: end !important;
+  }
+
+  .ion-text-md-left {
+    text-align: left !important;
+  }
+
+  .ion-text-md-right {
+    text-align: right !important;
+  }
+
+  .ion-text-md-nowrap {
+    white-space: nowrap !important;
+  }
+
+  .ion-text-md-wrap {
+    white-space: normal !important;
+  }
+}
+@media (min-width: 992px) {
+  .ion-text-lg-center {
+    text-align: center !important;
+  }
+
+  .ion-text-lg-justify {
+    text-align: justify !important;
+  }
+
+  .ion-text-lg-start {
+    text-align: start !important;
+  }
+
+  .ion-text-lg-end {
+    text-align: end !important;
+  }
+
+  .ion-text-lg-left {
+    text-align: left !important;
+  }
+
+  .ion-text-lg-right {
+    text-align: right !important;
+  }
+
+  .ion-text-lg-nowrap {
+    white-space: nowrap !important;
+  }
+
+  .ion-text-lg-wrap {
+    white-space: normal !important;
+  }
+}
+@media (min-width: 1200px) {
+  .ion-text-xl-center {
+    text-align: center !important;
+  }
+
+  .ion-text-xl-justify {
+    text-align: justify !important;
+  }
+
+  .ion-text-xl-start {
+    text-align: start !important;
+  }
+
+  .ion-text-xl-end {
+    text-align: end !important;
+  }
+
+  .ion-text-xl-left {
+    text-align: left !important;
+  }
+
+  .ion-text-xl-right {
+    text-align: right !important;
+  }
+
+  .ion-text-xl-nowrap {
+    white-space: nowrap !important;
+  }
+
+  .ion-text-xl-wrap {
+    white-space: normal !important;
+  }
+}
+.ion-text-uppercase {
+  /* stylelint-disable-next-line declaration-no-important */
+  text-transform: uppercase !important;
+}
+.ion-text-lowercase {
+  /* stylelint-disable-next-line declaration-no-important */
+  text-transform: lowercase !important;
+}
+.ion-text-capitalize {
+  /* stylelint-disable-next-line declaration-no-important */
+  text-transform: capitalize !important;
+}
+@media (min-width: 576px) {
+  .ion-text-sm-uppercase {
+    /* stylelint-disable-next-line declaration-no-important */
+    text-transform: uppercase !important;
+  }
+
+  .ion-text-sm-lowercase {
+    /* stylelint-disable-next-line declaration-no-important */
+    text-transform: lowercase !important;
+  }
+
+  .ion-text-sm-capitalize {
+    /* stylelint-disable-next-line declaration-no-important */
+    text-transform: capitalize !important;
+  }
+}
+@media (min-width: 768px) {
+  .ion-text-md-uppercase {
+    /* stylelint-disable-next-line declaration-no-important */
+    text-transform: uppercase !important;
+  }
+
+  .ion-text-md-lowercase {
+    /* stylelint-disable-next-line declaration-no-important */
+    text-transform: lowercase !important;
+  }
+
+  .ion-text-md-capitalize {
+    /* stylelint-disable-next-line declaration-no-important */
+    text-transform: capitalize !important;
+  }
+}
+@media (min-width: 992px) {
+  .ion-text-lg-uppercase {
+    /* stylelint-disable-next-line declaration-no-important */
+    text-transform: uppercase !important;
+  }
+
+  .ion-text-lg-lowercase {
+    /* stylelint-disable-next-line declaration-no-important */
+    text-transform: lowercase !important;
+  }
+
+  .ion-text-lg-capitalize {
+    /* stylelint-disable-next-line declaration-no-important */
+    text-transform: capitalize !important;
+  }
+}
+@media (min-width: 1200px) {
+  .ion-text-xl-uppercase {
+    /* stylelint-disable-next-line declaration-no-important */
+    text-transform: uppercase !important;
+  }
+
+  .ion-text-xl-lowercase {
+    /* stylelint-disable-next-line declaration-no-important */
+    text-transform: lowercase !important;
+  }
+
+  .ion-text-xl-capitalize {
+    /* stylelint-disable-next-line declaration-no-important */
+    text-transform: capitalize !important;
+  }
+}
+.ion-align-self-start {
+  align-self: flex-start !important;
+}
+.ion-align-self-end {
+  align-self: flex-end !important;
+}
+.ion-align-self-center {
+  align-self: center !important;
+}
+.ion-align-self-stretch {
+  align-self: stretch !important;
+}
+.ion-align-self-baseline {
+  align-self: baseline !important;
+}
+.ion-align-self-auto {
+  align-self: auto !important;
+}
+.ion-wrap {
+  flex-wrap: wrap !important;
+}
+.ion-nowrap {
+  flex-wrap: nowrap !important;
+}
+.ion-wrap-reverse {
+  flex-wrap: wrap-reverse !important;
+}
+.ion-justify-content-start {
+  justify-content: flex-start !important;
+}
+.ion-justify-content-center {
+  justify-content: center !important;
+}
+.ion-justify-content-end {
+  justify-content: flex-end !important;
+}
+.ion-justify-content-around {
+  justify-content: space-around !important;
+}
+.ion-justify-content-between {
+  justify-content: space-between !important;
+}
+.ion-justify-content-evenly {
+  justify-content: space-evenly !important;
+}
+.ion-align-items-start {
+  align-items: flex-start !important;
+}
+.ion-align-items-center {
+  align-items: center !important;
+}
+.ion-align-items-end {
+  align-items: flex-end !important;
+}
+.ion-align-items-stretch {
+  align-items: stretch !important;
+}
+.ion-align-items-baseline {
+  align-items: baseline !important;
+}
+/*!
+ * animate.css - https://animate.style/
+ * Version - 4.1.1
+ * Licensed under the MIT license - http://opensource.org/licenses/MIT
+ *
+ * Copyright (c) 2020 Animate.css
+ */
+:root{--animate-duration:1s;--animate-delay:1s;--animate-repeat:1}
+.animate__animated{animation-duration:1s;animation-duration:var(--animate-duration);animation-fill-mode:both}
+.animate__animated.animate__infinite{animation-iteration-count:infinite}
+.animate__animated.animate__repeat-1{animation-iteration-count:1;animation-iteration-count:var(--animate-repeat)}
+.animate__animated.animate__repeat-2{animation-iteration-count:2;animation-iteration-count:calc(var(--animate-repeat)*2)}
+.animate__animated.animate__repeat-3{animation-iteration-count:3;animation-iteration-count:calc(var(--animate-repeat)*3)}
+.animate__animated.animate__delay-1s{animation-delay:1s;animation-delay:var(--animate-delay)}
+.animate__animated.animate__delay-2s{animation-delay:2s;animation-delay:calc(var(--animate-delay)*2)}
+.animate__animated.animate__delay-3s{animation-delay:3s;animation-delay:calc(var(--animate-delay)*3)}
+.animate__animated.animate__delay-4s{animation-delay:4s;animation-delay:calc(var(--animate-delay)*4)}
+.animate__animated.animate__delay-5s{animation-delay:5s;animation-delay:calc(var(--animate-delay)*5)}
+.animate__animated.animate__faster{animation-duration:.5s;animation-duration:calc(var(--animate-duration)/2)}
+.animate__animated.animate__fast{animation-duration:.8s;animation-duration:calc(var(--animate-duration)*0.8)}
+.animate__animated.animate__slow{animation-duration:2s;animation-duration:calc(var(--animate-duration)*2)}
+.animate__animated.animate__slower{animation-duration:3s;animation-duration:calc(var(--animate-duration)*3)}
+@media (prefers-reduced-motion:reduce), print{.animate__animated{animation-duration:1ms!important;transition-duration:1ms!important;animation-iteration-count:1!important}.animate__animated[class*=Out]{opacity:0}}
+@keyframes bounce{0%,20%,53%,to{animation-timing-function:cubic-bezier(.215,.61,.355,1);transform:translateZ(0)}40%,43%{animation-timing-function:cubic-bezier(.755,.05,.855,.06);transform:translate3d(0,-30px,0) scaleY(1.1)}70%{animation-timing-function:cubic-bezier(.755,.05,.855,.06);transform:translate3d(0,-15px,0) scaleY(1.05)}80%{transition-timing-function:cubic-bezier(.215,.61,.355,1);transform:translateZ(0) scaleY(.95)}90%{transform:translate3d(0,-4px,0) scaleY(1.02)}}
+.animate__bounce{animation-name:bounce;transform-origin:center bottom}
+@keyframes flash{0%,50%,to{opacity:1}25%,75%{opacity:0}}
+.animate__flash{animation-name:flash}
+@keyframes pulse{0%{transform:scaleX(1)}50%{transform:scale3d(1.05,1.05,1.05)}to{transform:scaleX(1)}}
+.animate__pulse{animation-name:pulse;animation-timing-function:ease-in-out}
+@keyframes rubberBand{0%{transform:scaleX(1)}30%{transform:scale3d(1.25,.75,1)}40%{transform:scale3d(.75,1.25,1)}50%{transform:scale3d(1.15,.85,1)}65%{transform:scale3d(.95,1.05,1)}75%{transform:scale3d(1.05,.95,1)}to{transform:scaleX(1)}}
+.animate__rubberBand{animation-name:rubberBand}
+@keyframes shakeX{0%,to{transform:translateZ(0)}10%,30%,50%,70%,90%{transform:translate3d(-10px,0,0)}20%,40%,60%,80%{transform:translate3d(10px,0,0)}}
+.animate__shakeX{animation-name:shakeX}
+@keyframes shakeY{0%,to{transform:translateZ(0)}10%,30%,50%,70%,90%{transform:translate3d(0,-10px,0)}20%,40%,60%,80%{transform:translate3d(0,10px,0)}}
+.animate__shakeY{animation-name:shakeY}
+@keyframes headShake{0%{transform:translateX(0)}6.5%{transform:translateX(-6px) rotateY(-9deg)}18.5%{transform:translateX(5px) rotateY(7deg)}31.5%{transform:translateX(-3px) rotateY(-5deg)}43.5%{transform:translateX(2px) rotateY(3deg)}50%{transform:translateX(0)}}
+.animate__headShake{animation-timing-function:ease-in-out;animation-name:headShake}
+@keyframes swing{20%{transform:rotate(15deg)}40%{transform:rotate(-10deg)}60%{transform:rotate(5deg)}80%{transform:rotate(-5deg)}to{transform:rotate(0deg)}}
+.animate__swing{transform-origin:top center;animation-name:swing}
+@keyframes tada{0%{transform:scaleX(1)}10%,20%{transform:scale3d(.9,.9,.9) rotate(-3deg)}30%,50%,70%,90%{transform:scale3d(1.1,1.1,1.1) rotate(3deg)}40%,60%,80%{transform:scale3d(1.1,1.1,1.1) rotate(-3deg)}to{transform:scaleX(1)}}
+.animate__tada{animation-name:tada}
+@keyframes wobble{0%{transform:translateZ(0)}15%{transform:translate3d(-25%,0,0) rotate(-5deg)}30%{transform:translate3d(20%,0,0) rotate(3deg)}45%{transform:translate3d(-15%,0,0) rotate(-3deg)}60%{transform:translate3d(10%,0,0) rotate(2deg)}75%{transform:translate3d(-5%,0,0) rotate(-1deg)}to{transform:translateZ(0)}}
+.animate__wobble{animation-name:wobble}
+@keyframes jello{0%,11.1%,to{transform:translateZ(0)}22.2%{transform:skewX(-12.5deg) skewY(-12.5deg)}33.3%{transform:skewX(6.25deg) skewY(6.25deg)}44.4%{transform:skewX(-3.125deg) skewY(-3.125deg)}55.5%{transform:skewX(1.5625deg) skewY(1.5625deg)}66.6%{transform:skewX(-.78125deg) skewY(-.78125deg)}77.7%{transform:skewX(.390625deg) skewY(.390625deg)}88.8%{transform:skewX(-.1953125deg) skewY(-.1953125deg)}}
+.animate__jello{animation-name:jello;transform-origin:center}
+@keyframes heartBeat{0%{transform:scale(1)}14%{transform:scale(1.3)}28%{transform:scale(1)}42%{transform:scale(1.3)}70%{transform:scale(1)}}
+.animate__heartBeat{animation-name:heartBeat;animation-duration:1.3s;animation-duration:calc(var(--animate-duration)*1.3);animation-timing-function:ease-in-out}
+@keyframes backInDown{0%{transform:translateY(-1200px) scale(.7);opacity:.7}80%{transform:translateY(0) scale(.7);opacity:.7}to{transform:scale(1);opacity:1}}
+.animate__backInDown{animation-name:backInDown}
+@keyframes backInLeft{0%{transform:translateX(-2000px) scale(.7);opacity:.7}80%{transform:translateX(0) scale(.7);opacity:.7}to{transform:scale(1);opacity:1}}
+.animate__backInLeft{animation-name:backInLeft}
+@keyframes backInRight{0%{transform:translateX(2000px) scale(.7);opacity:.7}80%{transform:translateX(0) scale(.7);opacity:.7}to{transform:scale(1);opacity:1}}
+.animate__backInRight{animation-name:backInRight}
+@keyframes backInUp{0%{transform:translateY(1200px) scale(.7);opacity:.7}80%{transform:translateY(0) scale(.7);opacity:.7}to{transform:scale(1);opacity:1}}
+.animate__backInUp{animation-name:backInUp}
+@keyframes backOutDown{0%{transform:scale(1);opacity:1}20%{transform:translateY(0) scale(.7);opacity:.7}to{transform:translateY(700px) scale(.7);opacity:.7}}
+.animate__backOutDown{animation-name:backOutDown}
+@keyframes backOutLeft{0%{transform:scale(1);opacity:1}20%{transform:translateX(0) scale(.7);opacity:.7}to{transform:translateX(-2000px) scale(.7);opacity:.7}}
+.animate__backOutLeft{animation-name:backOutLeft}
+@keyframes backOutRight{0%{transform:scale(1);opacity:1}20%{transform:translateX(0) scale(.7);opacity:.7}to{transform:translateX(2000px) scale(.7);opacity:.7}}
+.animate__backOutRight{animation-name:backOutRight}
+@keyframes backOutUp{0%{transform:scale(1);opacity:1}20%{transform:translateY(0) scale(.7);opacity:.7}to{transform:translateY(-700px) scale(.7);opacity:.7}}
+.animate__backOutUp{animation-name:backOutUp}
+@keyframes bounceIn{0%,20%,40%,60%,80%,to{animation-timing-function:cubic-bezier(.215,.61,.355,1)}0%{opacity:0;transform:scale3d(.3,.3,.3)}20%{transform:scale3d(1.1,1.1,1.1)}40%{transform:scale3d(.9,.9,.9)}60%{opacity:1;transform:scale3d(1.03,1.03,1.03)}80%{transform:scale3d(.97,.97,.97)}to{opacity:1;transform:scaleX(1)}}
+.animate__bounceIn{animation-duration:.75s;animation-duration:calc(var(--animate-duration)*0.75);animation-name:bounceIn}
+@keyframes bounceInDown{0%,60%,75%,90%,to{animation-timing-function:cubic-bezier(.215,.61,.355,1)}0%{opacity:0;transform:translate3d(0,-3000px,0) scaleY(3)}60%{opacity:1;transform:translate3d(0,25px,0) scaleY(.9)}75%{transform:translate3d(0,-10px,0) scaleY(.95)}90%{transform:translate3d(0,5px,0) scaleY(.985)}to{transform:translateZ(0)}}
+.animate__bounceInDown{animation-name:bounceInDown}
+@keyframes bounceInLeft{0%,60%,75%,90%,to{animation-timing-function:cubic-bezier(.215,.61,.355,1)}0%{opacity:0;transform:translate3d(-3000px,0,0) scaleX(3)}60%{opacity:1;transform:translate3d(25px,0,0) scaleX(1)}75%{transform:translate3d(-10px,0,0) scaleX(.98)}90%{transform:translate3d(5px,0,0) scaleX(.995)}to{transform:translateZ(0)}}
+.animate__bounceInLeft{animation-name:bounceInLeft}
+@keyframes bounceInRight{0%,60%,75%,90%,to{animation-timing-function:cubic-bezier(.215,.61,.355,1)}0%{opacity:0;transform:translate3d(3000px,0,0) scaleX(3)}60%{opacity:1;transform:translate3d(-25px,0,0) scaleX(1)}75%{transform:translate3d(10px,0,0) scaleX(.98)}90%{transform:translate3d(-5px,0,0) scaleX(.995)}to{transform:translateZ(0)}}
+.animate__bounceInRight{animation-name:bounceInRight}
+@keyframes bounceInUp{0%,60%,75%,90%,to{animation-timing-function:cubic-bezier(.215,.61,.355,1)}0%{opacity:0;transform:translate3d(0,3000px,0) scaleY(5)}60%{opacity:1;transform:translate3d(0,-20px,0) scaleY(.9)}75%{transform:translate3d(0,10px,0) scaleY(.95)}90%{transform:translate3d(0,-5px,0) scaleY(.985)}to{transform:translateZ(0)}}
+.animate__bounceInUp{animation-name:bounceInUp}
+@keyframes bounceOut{20%{transform:scale3d(.9,.9,.9)}50%,55%{opacity:1;transform:scale3d(1.1,1.1,1.1)}to{opacity:0;transform:scale3d(.3,.3,.3)}}
+.animate__bounceOut{animation-duration:.75s;animation-duration:calc(var(--animate-duration)*0.75);animation-name:bounceOut}
+@keyframes bounceOutDown{20%{transform:translate3d(0,10px,0) scaleY(.985)}40%,45%{opacity:1;transform:translate3d(0,-20px,0) scaleY(.9)}to{opacity:0;transform:translate3d(0,2000px,0) scaleY(3)}}
+.animate__bounceOutDown{animation-name:bounceOutDown}
+@keyframes bounceOutLeft{20%{opacity:1;transform:translate3d(20px,0,0) scaleX(.9)}to{opacity:0;transform:translate3d(-2000px,0,0) scaleX(2)}}
+.animate__bounceOutLeft{animation-name:bounceOutLeft}
+@keyframes bounceOutRight{20%{opacity:1;transform:translate3d(-20px,0,0) scaleX(.9)}to{opacity:0;transform:translate3d(2000px,0,0) scaleX(2)}}
+.animate__bounceOutRight{animation-name:bounceOutRight}
+@keyframes bounceOutUp{20%{transform:translate3d(0,-10px,0) scaleY(.985)}40%,45%{opacity:1;transform:translate3d(0,20px,0) scaleY(.9)}to{opacity:0;transform:translate3d(0,-2000px,0) scaleY(3)}}
+.animate__bounceOutUp{animation-name:bounceOutUp}
+@keyframes fadeIn{0%{opacity:0}to{opacity:1}}
+.animate__fadeIn{animation-name:fadeIn}
+@keyframes fadeInDown{0%{opacity:0;transform:translate3d(0,-100%,0)}to{opacity:1;transform:translateZ(0)}}
+.animate__fadeInDown{animation-name:fadeInDown}
+@keyframes fadeInDownBig{0%{opacity:0;transform:translate3d(0,-2000px,0)}to{opacity:1;transform:translateZ(0)}}
+.animate__fadeInDownBig{animation-name:fadeInDownBig}
+@keyframes fadeInLeft{0%{opacity:0;transform:translate3d(-100%,0,0)}to{opacity:1;transform:translateZ(0)}}
+.animate__fadeInLeft{animation-name:fadeInLeft}
+@keyframes fadeInLeftBig{0%{opacity:0;transform:translate3d(-2000px,0,0)}to{opacity:1;transform:translateZ(0)}}
+.animate__fadeInLeftBig{animation-name:fadeInLeftBig}
+@keyframes fadeInRight{0%{opacity:0;transform:translate3d(100%,0,0)}to{opacity:1;transform:translateZ(0)}}
+.animate__fadeInRight{animation-name:fadeInRight}
+@keyframes fadeInRightBig{0%{opacity:0;transform:translate3d(2000px,0,0)}to{opacity:1;transform:translateZ(0)}}
+.animate__fadeInRightBig{animation-name:fadeInRightBig}
+@keyframes fadeInUp{0%{opacity:0;transform:translate3d(0,100%,0)}to{opacity:1;transform:translateZ(0)}}
+.animate__fadeInUp{animation-name:fadeInUp}
+@keyframes fadeInUpBig{0%{opacity:0;transform:translate3d(0,2000px,0)}to{opacity:1;transform:translateZ(0)}}
+.animate__fadeInUpBig{animation-name:fadeInUpBig}
+@keyframes fadeInTopLeft{0%{opacity:0;transform:translate3d(-100%,-100%,0)}to{opacity:1;transform:translateZ(0)}}
+.animate__fadeInTopLeft{animation-name:fadeInTopLeft}
+@keyframes fadeInTopRight{0%{opacity:0;transform:translate3d(100%,-100%,0)}to{opacity:1;transform:translateZ(0)}}
+.animate__fadeInTopRight{animation-name:fadeInTopRight}
+@keyframes fadeInBottomLeft{0%{opacity:0;transform:translate3d(-100%,100%,0)}to{opacity:1;transform:translateZ(0)}}
+.animate__fadeInBottomLeft{animation-name:fadeInBottomLeft}
+@keyframes fadeInBottomRight{0%{opacity:0;transform:translate3d(100%,100%,0)}to{opacity:1;transform:translateZ(0)}}
+.animate__fadeInBottomRight{animation-name:fadeInBottomRight}
+@keyframes fadeOut{0%{opacity:1}to{opacity:0}}
+.animate__fadeOut{animation-name:fadeOut}
+@keyframes fadeOutDown{0%{opacity:1}to{opacity:0;transform:translate3d(0,100%,0)}}
+.animate__fadeOutDown{animation-name:fadeOutDown}
+@keyframes fadeOutDownBig{0%{opacity:1}to{opacity:0;transform:translate3d(0,2000px,0)}}
+.animate__fadeOutDownBig{animation-name:fadeOutDownBig}
+@keyframes fadeOutLeft{0%{opacity:1}to{opacity:0;transform:translate3d(-100%,0,0)}}
+.animate__fadeOutLeft{animation-name:fadeOutLeft}
+@keyframes fadeOutLeftBig{0%{opacity:1}to{opacity:0;transform:translate3d(-2000px,0,0)}}
+.animate__fadeOutLeftBig{animation-name:fadeOutLeftBig}
+@keyframes fadeOutRight{0%{opacity:1}to{opacity:0;transform:translate3d(100%,0,0)}}
+.animate__fadeOutRight{animation-name:fadeOutRight}
+@keyframes fadeOutRightBig{0%{opacity:1}to{opacity:0;transform:translate3d(2000px,0,0)}}
+.animate__fadeOutRightBig{animation-name:fadeOutRightBig}
+@keyframes fadeOutUp{0%{opacity:1}to{opacity:0;transform:translate3d(0,-100%,0)}}
+.animate__fadeOutUp{animation-name:fadeOutUp}
+@keyframes fadeOutUpBig{0%{opacity:1}to{opacity:0;transform:translate3d(0,-2000px,0)}}
+.animate__fadeOutUpBig{animation-name:fadeOutUpBig}
+@keyframes fadeOutTopLeft{0%{opacity:1;transform:translateZ(0)}to{opacity:0;transform:translate3d(-100%,-100%,0)}}
+.animate__fadeOutTopLeft{animation-name:fadeOutTopLeft}
+@keyframes fadeOutTopRight{0%{opacity:1;transform:translateZ(0)}to{opacity:0;transform:translate3d(100%,-100%,0)}}
+.animate__fadeOutTopRight{animation-name:fadeOutTopRight}
+@keyframes fadeOutBottomRight{0%{opacity:1;transform:translateZ(0)}to{opacity:0;transform:translate3d(100%,100%,0)}}
+.animate__fadeOutBottomRight{animation-name:fadeOutBottomRight}
+@keyframes fadeOutBottomLeft{0%{opacity:1;transform:translateZ(0)}to{opacity:0;transform:translate3d(-100%,100%,0)}}
+.animate__fadeOutBottomLeft{animation-name:fadeOutBottomLeft}
+@keyframes flip{0%{transform:perspective(400px) scaleX(1) translateZ(0) rotateY(-1turn);animation-timing-function:ease-out}40%{transform:perspective(400px) scaleX(1) translateZ(150px) rotateY(-190deg);animation-timing-function:ease-out}50%{transform:perspective(400px) scaleX(1) translateZ(150px) rotateY(-170deg);animation-timing-function:ease-in}80%{transform:perspective(400px) scale3d(.95,.95,.95) translateZ(0) rotateY(0deg);animation-timing-function:ease-in}to{transform:perspective(400px) scaleX(1) translateZ(0) rotateY(0deg);animation-timing-function:ease-in}}
+.animate__animated.animate__flip{-webkit-backface-visibility:visible;backface-visibility:visible;animation-name:flip}
+@keyframes flipInX{0%{transform:perspective(400px) rotateX(90deg);animation-timing-function:ease-in;opacity:0}40%{transform:perspective(400px) rotateX(-20deg);animation-timing-function:ease-in}60%{transform:perspective(400px) rotateX(10deg);opacity:1}80%{transform:perspective(400px) rotateX(-5deg)}to{transform:perspective(400px)}}
+.animate__flipInX{-webkit-backface-visibility:visible!important;backface-visibility:visible!important;animation-name:flipInX}
+@keyframes flipInY{0%{transform:perspective(400px) rotateY(90deg);animation-timing-function:ease-in;opacity:0}40%{transform:perspective(400px) rotateY(-20deg);animation-timing-function:ease-in}60%{transform:perspective(400px) rotateY(10deg);opacity:1}80%{transform:perspective(400px) rotateY(-5deg)}to{transform:perspective(400px)}}
+.animate__flipInY{-webkit-backface-visibility:visible!important;backface-visibility:visible!important;animation-name:flipInY}
+@keyframes flipOutX{0%{transform:perspective(400px)}30%{transform:perspective(400px) rotateX(-20deg);opacity:1}to{transform:perspective(400px) rotateX(90deg);opacity:0}}
+.animate__flipOutX{animation-duration:.75s;animation-duration:calc(var(--animate-duration)*0.75);animation-name:flipOutX;-webkit-backface-visibility:visible!important;backface-visibility:visible!important}
+@keyframes flipOutY{0%{transform:perspective(400px)}30%{transform:perspective(400px) rotateY(-15deg);opacity:1}to{transform:perspective(400px) rotateY(90deg);opacity:0}}
+.animate__flipOutY{animation-duration:.75s;animation-duration:calc(var(--animate-duration)*0.75);-webkit-backface-visibility:visible!important;backface-visibility:visible!important;animation-name:flipOutY}
+@keyframes lightSpeedInRight{0%{transform:translate3d(100%,0,0) skewX(-30deg);opacity:0}60%{transform:skewX(20deg);opacity:1}80%{transform:skewX(-5deg)}to{transform:translateZ(0)}}
+.animate__lightSpeedInRight{animation-name:lightSpeedInRight;animation-timing-function:ease-out}
+@keyframes lightSpeedInLeft{0%{transform:translate3d(-100%,0,0) skewX(30deg);opacity:0}60%{transform:skewX(-20deg);opacity:1}80%{transform:skewX(5deg)}to{transform:translateZ(0)}}
+.animate__lightSpeedInLeft{animation-name:lightSpeedInLeft;animation-timing-function:ease-out}
+@keyframes lightSpeedOutRight{0%{opacity:1}to{transform:translate3d(100%,0,0) skewX(30deg);opacity:0}}
+.animate__lightSpeedOutRight{animation-name:lightSpeedOutRight;animation-timing-function:ease-in}
+@keyframes lightSpeedOutLeft{0%{opacity:1}to{transform:translate3d(-100%,0,0) skewX(-30deg);opacity:0}}
+.animate__lightSpeedOutLeft{animation-name:lightSpeedOutLeft;animation-timing-function:ease-in}
+@keyframes rotateIn{0%{transform:rotate(-200deg);opacity:0}to{transform:translateZ(0);opacity:1}}
+.animate__rotateIn{animation-name:rotateIn;transform-origin:center}
+@keyframes rotateInDownLeft{0%{transform:rotate(-45deg);opacity:0}to{transform:translateZ(0);opacity:1}}
+.animate__rotateInDownLeft{animation-name:rotateInDownLeft;transform-origin:left bottom}
+@keyframes rotateInDownRight{0%{transform:rotate(45deg);opacity:0}to{transform:translateZ(0);opacity:1}}
+.animate__rotateInDownRight{animation-name:rotateInDownRight;transform-origin:right bottom}
+@keyframes rotateInUpLeft{0%{transform:rotate(45deg);opacity:0}to{transform:translateZ(0);opacity:1}}
+.animate__rotateInUpLeft{animation-name:rotateInUpLeft;transform-origin:left bottom}
+@keyframes rotateInUpRight{0%{transform:rotate(-90deg);opacity:0}to{transform:translateZ(0);opacity:1}}
+.animate__rotateInUpRight{animation-name:rotateInUpRight;transform-origin:right bottom}
+@keyframes rotateOut{0%{opacity:1}to{transform:rotate(200deg);opacity:0}}
+.animate__rotateOut{animation-name:rotateOut;transform-origin:center}
+@keyframes rotateOutDownLeft{0%{opacity:1}to{transform:rotate(45deg);opacity:0}}
+.animate__rotateOutDownLeft{animation-name:rotateOutDownLeft;transform-origin:left bottom}
+@keyframes rotateOutDownRight{0%{opacity:1}to{transform:rotate(-45deg);opacity:0}}
+.animate__rotateOutDownRight{animation-name:rotateOutDownRight;transform-origin:right bottom}
+@keyframes rotateOutUpLeft{0%{opacity:1}to{transform:rotate(-45deg);opacity:0}}
+.animate__rotateOutUpLeft{animation-name:rotateOutUpLeft;transform-origin:left bottom}
+@keyframes rotateOutUpRight{0%{opacity:1}to{transform:rotate(90deg);opacity:0}}
+.animate__rotateOutUpRight{animation-name:rotateOutUpRight;transform-origin:right bottom}
+@keyframes hinge{0%{animation-timing-function:ease-in-out}20%,60%{transform:rotate(80deg);animation-timing-function:ease-in-out}40%,80%{transform:rotate(60deg);animation-timing-function:ease-in-out;opacity:1}to{transform:translate3d(0,700px,0);opacity:0}}
+.animate__hinge{animation-duration:2s;animation-duration:calc(var(--animate-duration)*2);animation-name:hinge;transform-origin:top left}
+@keyframes jackInTheBox{0%{opacity:0;transform:scale(.1) rotate(30deg);transform-origin:center bottom}50%{transform:rotate(-10deg)}70%{transform:rotate(3deg)}to{opacity:1;transform:scale(1)}}
+.animate__jackInTheBox{animation-name:jackInTheBox}
+@keyframes rollIn{0%{opacity:0;transform:translate3d(-100%,0,0) rotate(-120deg)}to{opacity:1;transform:translateZ(0)}}
+.animate__rollIn{animation-name:rollIn}
+@keyframes rollOut{0%{opacity:1}to{opacity:0;transform:translate3d(100%,0,0) rotate(120deg)}}
+.animate__rollOut{animation-name:rollOut}
+@keyframes zoomIn{0%{opacity:0;transform:scale3d(.3,.3,.3)}50%{opacity:1}}
+.animate__zoomIn{animation-name:zoomIn}
+@keyframes zoomInDown{0%{opacity:0;transform:scale3d(.1,.1,.1) translate3d(0,-1000px,0);animation-timing-function:cubic-bezier(.55,.055,.675,.19)}60%{opacity:1;transform:scale3d(.475,.475,.475) translate3d(0,60px,0);animation-timing-function:cubic-bezier(.175,.885,.32,1)}}
+.animate__zoomInDown{animation-name:zoomInDown}
+@keyframes zoomInLeft{0%{opacity:0;transform:scale3d(.1,.1,.1) translate3d(-1000px,0,0);animation-timing-function:cubic-bezier(.55,.055,.675,.19)}60%{opacity:1;transform:scale3d(.475,.475,.475) translate3d(10px,0,0);animation-timing-function:cubic-bezier(.175,.885,.32,1)}}
+.animate__zoomInLeft{animation-name:zoomInLeft}
+@keyframes zoomInRight{0%{opacity:0;transform:scale3d(.1,.1,.1) translate3d(1000px,0,0);animation-timing-function:cubic-bezier(.55,.055,.675,.19)}60%{opacity:1;transform:scale3d(.475,.475,.475) translate3d(-10px,0,0);animation-timing-function:cubic-bezier(.175,.885,.32,1)}}
+.animate__zoomInRight{animation-name:zoomInRight}
+@keyframes zoomInUp{0%{opacity:0;transform:scale3d(.1,.1,.1) translate3d(0,1000px,0);animation-timing-function:cubic-bezier(.55,.055,.675,.19)}60%{opacity:1;transform:scale3d(.475,.475,.475) translate3d(0,-60px,0);animation-timing-function:cubic-bezier(.175,.885,.32,1)}}
+.animate__zoomInUp{animation-name:zoomInUp}
+@keyframes zoomOut{0%{opacity:1}50%{opacity:0;transform:scale3d(.3,.3,.3)}to{opacity:0}}
+.animate__zoomOut{animation-name:zoomOut}
+@keyframes zoomOutDown{40%{opacity:1;transform:scale3d(.475,.475,.475) translate3d(0,-60px,0);animation-timing-function:cubic-bezier(.55,.055,.675,.19)}to{opacity:0;transform:scale3d(.1,.1,.1) translate3d(0,2000px,0);animation-timing-function:cubic-bezier(.175,.885,.32,1)}}
+.animate__zoomOutDown{animation-name:zoomOutDown;transform-origin:center bottom}
+@keyframes zoomOutLeft{40%{opacity:1;transform:scale3d(.475,.475,.475) translate3d(42px,0,0)}to{opacity:0;transform:scale(.1) translate3d(-2000px,0,0)}}
+.animate__zoomOutLeft{animation-name:zoomOutLeft;transform-origin:left center}
+@keyframes zoomOutRight{40%{opacity:1;transform:scale3d(.475,.475,.475) translate3d(-42px,0,0)}to{opacity:0;transform:scale(.1) translate3d(2000px,0,0)}}
+.animate__zoomOutRight{animation-name:zoomOutRight;transform-origin:right center}
+@keyframes zoomOutUp{40%{opacity:1;transform:scale3d(.475,.475,.475) translate3d(0,60px,0);animation-timing-function:cubic-bezier(.55,.055,.675,.19)}to{opacity:0;transform:scale3d(.1,.1,.1) translate3d(0,-2000px,0);animation-timing-function:cubic-bezier(.175,.885,.32,1)}}
+.animate__zoomOutUp{animation-name:zoomOutUp;transform-origin:center bottom}
+@keyframes slideInDown{0%{transform:translate3d(0,-100%,0);visibility:visible}to{transform:translateZ(0)}}
+.animate__slideInDown{animation-name:slideInDown}
+@keyframes slideInLeft{0%{transform:translate3d(-100%,0,0);visibility:visible}to{transform:translateZ(0)}}
+.animate__slideInLeft{animation-name:slideInLeft}
+@keyframes slideInRight{0%{transform:translate3d(100%,0,0);visibility:visible}to{transform:translateZ(0)}}
+.animate__slideInRight{animation-name:slideInRight}
+@keyframes slideInUp{0%{transform:translate3d(0,100%,0);visibility:visible}to{transform:translateZ(0)}}
+.animate__slideInUp{animation-name:slideInUp}
+@keyframes slideOutDown{0%{transform:translateZ(0)}to{visibility:hidden;transform:translate3d(0,100%,0)}}
+.animate__slideOutDown{animation-name:slideOutDown}
+@keyframes slideOutLeft{0%{transform:translateZ(0)}to{visibility:hidden;transform:translate3d(-100%,0,0)}}
+.animate__slideOutLeft{animation-name:slideOutLeft}
+@keyframes slideOutRight{0%{transform:translateZ(0)}to{visibility:hidden;transform:translate3d(100%,0,0)}}
+.animate__slideOutRight{animation-name:slideOutRight}
+@keyframes slideOutUp{0%{transform:translateZ(0)}to{visibility:hidden;transform:translate3d(0,-100%,0)}}
+.animate__slideOutUp{animation-name:slideOutUp}
+:root {
+  --white: #fff;
+  --primary: #ff6803;
+  --bg-color: #f4eeea;
+  --bg-dark: #2b3f50;
+  --bg-white: #fff;
+  --transparent: rgba(0, 0, 0, 0);
+  --text-light: #697070;
+  --text-light2: #979799;
+  --text-light3: #484d4d;
+  --text-dark: #2b2c30;
+  --text-black: #000;
+  --red-color: #e62424;
+  --yellow-color: #fabd39;
+  --border-line-color: #ebebeb;
+  --white_gradient: linear-gradient(0deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 1) 90%);
+}
+.bg_color {
+  --background: var(--bg-color);
+}
+.bg_white {
+  --background: var(--bg-white);
+}
+img {
+  display: inline-block;
+}
+img.lightThemeImg {
+  display: block;
+}
+img.darkThemeImg {
+  display: none;
+}
+.d-flex {
+  display: flex !important;
+  align-items: center;
+  width: 100%;
+}
+.d-flex .end {
+  margin-left: auto !important;
+  margin-right: 0 !important;
+  display: block;
+}
+.center_img {
+  position: relative;
+  overflow: hidden;
+}
+.center_img img.crop_img {
+  position: absolute;
+  min-width: 100%;
+  min-height: 100%;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  margin: auto;
+}
+.button.btn {
+  width: 100%;
+  font-size: 1rem;
+  font-weight: 500;
+  height: 53px;
+  --background: #FF7110;
+  text-transform: none;
+  color: var(--white);
+  margin: 0;
+  --box-shadow: none;
+  letter-spacing: 0.5px;
+}
+.button.btn ion-icon {
+  font-size: 1.4rem;
+}
+.button.btn:hover:not(.disable-hover) {
+  --background: var(--primary);
+}
+.button.btn.button-outline {
+  --background: var(--transparent);
+  color: var(--white);
+  --border-color: var(--primary);
+  --border-width: 1px;
+}
+.button.btn.button-outline:hover:not(.disable-hover) {
+  --background: var(--transparent);
+}
+.button.btn.button-round {
+  --border-radius: 50px !important;
+}
+.button.btn.button-block {
+  --border-radius: 8px !important;
+}
+.button.btn.btn-dark {
+  --background: var(--dark-btn-bg);
+}
+.button.btn.btn-dark:hover:not(.disable-hover) {
+  --background: var(--dark-btn-bg);
+}
+ion-header {
+  z-index: 999;
+  background: var(--bg-white);
+}
+ion-header::after {
+  display: none !important;
+}
+ion-header ion-toolbar {
+  --background: var(--bg-white);
+  display: flex;
+  align-items: center;
+  min-height: 70px !important;
+  height: auto;
+  overflow: visible !important;
+  --border-width: 0 !important;
+  padding: 0 8px;
+}
+ion-header ion-toolbar ion-buttons {
+  position: relative !important;
+  margin: 0;
+  --padding-end: 0 !important;
+  --padding-start: 0 !important;
+  --color: var(--text-dark) !important;
+}
+ion-header ion-toolbar ion-buttons .button-inner ion-icon {
+  font-size: 1.8rem;
+  padding-left: 0px;
+  color: var(--text-dark);
+}
+ion-header ion-toolbar ion-buttons ion-back-button {
+  --color: var(--text-dark) !important;
+  color: var(--text-dark) !important;
+}
+ion-header ion-toolbar ion-buttons ion-menu-button {
+  --color: var(--text-dark) !important;
+  --padding-end: 0 !important;
+  font-size: 1.85rem !important;
+}
+ion-header ion-toolbar ion-buttons ion-menu-button.ios {
+  font-size: 1.85rem !important;
+}
+ion-header ion-toolbar ion-buttons ion-back-button .button-native {
+  padding: 0 !important;
+}
+ion-header ion-toolbar ion-buttons.ios {
+  padding: 0 10px !important;
+}
+ion-header ion-toolbar ion-title {
+  color: var(--text-dark);
+  text-align: justify;
+  font-size: 1.45rem;
+  font-weight: 600;
+  overflow: visible !important;
+  line-height: 70px;
+  position: absolute !important;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  padding: 0 15px !important;
+  top: -6px;
+}
+ion-header.bg_transparent {
+  z-index: 999;
+  width: 100%;
+  height: auto;
+}
+ion-header.bg_transparent ion-toolbar {
+  --background: var(--transparent);
+  --ion-color-base: var(--transparent) !important;
+}
+ion-header .header_text {
+  width: 100%;
+  padding: 0 20px;
+  min-height: 100px;
+}
+ion-header .header_text h1 {
+  margin: 0;
+  color: var(--text-dark);
+  font-weight: 600;
+  font-size: 1.4rem;
+  padding-bottom: 10px;
+  width: 100%;
+}
+ion-header .header_text h2 {
+  margin: 0;
+  color: var(--text-light);
+  font-size: 1.05rem;
+  width: 100%;
+}
+.form {
+  display: block;
+  overflow: visible;
+  position: relative;
+  margin: 0 auto;
+  width: calc(100% - 40px);
+}
+.form ion-list {
+  margin: 0;
+  overflow: hidden !important;
+  background: none;
+  width: 100%;
+  padding: 0;
+}
+.form ion-item {
+  padding: 0;
+  min-height: unset !important;
+  margin: 0;
+  --background: var(--transparent);
+  --inner-padding-end: 0px;
+  --inner-min-height: unset !important;
+  --padding-start: 0;
+  --highligh-color-focused: var(--transparent) !important;
+  --background-hover: var(--transparent) !important;
+  --background-focused: var(--transparent) !important;
+  --ripple-color: var(--transparent) !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+  margin-bottom: 30px;
+}
+.form ion-item ion-label {
+  color: var(--text-light3) !important;
+  margin: 0;
+  font-size: 1rem !important;
+  letter-spacing: 0;
+  font-weight: 500;
+  max-width: 100% !important;
+  width: 100% !important;
+  flex: unset !important;
+  padding-bottom: 10px;
+}
+.form ion-item .item_inner {
+  width: 100%;
+}
+.form ion-item .item_inner .input_box {
+  width: 100%;
+  border: 2px solid var(--border-line-color);
+  border-radius: 8px;
+  padding: 0 16px;
+}
+.form ion-item ion-icon {
+  color: var(--primary);
+  font-size: 1.2rem;
+  min-width: 25px;
+  padding: 0 3px;
+}
+.form ion-item ion-textarea,
+.form ion-item ion-input {
+  --padding: 0 !important;
+  font-size: 1rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0;
+  --padding-start: 0 !important;
+  --padding-end: 0px !important;
+  --padding-top: 13px !important;
+  --padding-bottom: 13px !important;
+  color: var(--text-dark);
+  --placeholder-color: var(--text-light2) !important;
+  --placeholder-opacity: 1;
+  --placeholder-font-weight: 500 !important;
+  position: relative;
+  flex: unset !important;
+}
+.form ion-item ion-textarea input,
+.form ion-item ion-input input {
+  --padding: var(--no-padding);
+}
+.form ion-item ion-textarea input.native-input,
+.form ion-item ion-input input.native-input {
+  --padding: var(--no-padding);
+}
+.form ion-item.item-select ion-select {
+  padding: 12px 0;
+  font-size: 1rem !important;
+  font-weight: 500 !important;
+  display: flex;
+  letter-spacing: 0;
+  align-items: center;
+  width: 100%;
+  max-width: 100%;
+  color: var(--text-dark);
+  --placeholder-color: var(--text-light2) !important;
+  --placeholder-opacity: 1;
+}
+.form ion-item.item-select ion-select::part(icon) {
+  display: none !important;
+}
+.form ion-item.item-select ion-icon.zmdi-caret-down {
+  font-size: 2rem;
+  color: var(--text-black);
+  line-height: normal;
+  height: 35px;
+  min-width: -moz-fit-content;
+  min-width: fit-content;
+}
+.form ion-item.item-datetime ion-datetime {
+  padding: 15px 0;
+  font-size: 1.1rem !important;
+  font-weight: 500 !important;
+  --placeholder-color: var(--text-light) !important;
+}
+.form ion-row {
+  margin: 0 -5px;
+}
+ion-modal {
+  --background: rgb(0 0 0 / 18%) !important;
+  -webkit-backdrop-filter: saturate(180%) blur(5px);
+          backdrop-filter: saturate(180%) blur(5px);
+  --width: 100%;
+  --height: 100%;
+}
+ion-spinner {
+  --spinner-color: var(--primary);
+}
+ion-loading {
+  --spinner-color: var(--primary);
+}
+ion-select-popover ion-radio {
+  --color-checked: var(--primary);
+}
+ion-item {
+  --ripple-color: var(--transparent) !important;
+}
+ion-segment ion-segment-button {
+  --indicator-box-shadow: none !important;
+  --indicator-color: var(--transparent) !important;
+  --indicator-height: 0px !important;
+}
+ion-searchbar .searchbar-input-container input {
+  box-shadow: none !important;
+  padding: 0 !important;
+  font-weight: 500 !important;
+  font-size: 0.95rem !important;
+}
+ion-backdrop {
+  --ion-background-color: var(--transparent) !important;
+  background: rgba(0, 0, 0, 0.43);
+  -webkit-backdrop-filter: blur(5px);
+          backdrop-filter: blur(5px);
+  opacity: 1 !important;
+}
+.swiper-slide img {
+  max-height: unset;
+}
+.picker-wrapper {
+  border: 0 !important;
+}
+.picker-wrapper .picker-toolbar {
+  border: none;
+  height: 48px;
+  padding: 3px;
+}
+.picker-wrapper .picker-toolbar .picker-toolbar-button .picker-button {
+  font-size: 1.1rem;
+  font-weight: 400 !important;
+  letter-spacing: 0.6px !important;
+  height: 40px;
+  background: var(--primary);
+  text-transform: none;
+  color: var(--white);
+  margin: 0;
+  --box-shadow: none;
+  width: -moz-fit-content;
+  width: fit-content;
+  min-width: 106px;
+  border-radius: 5px;
+}
+.picker-wrapper .picker-columns .picker-above-highlight {
+  border: none;
+}
+.picker-wrapper .picker-columns .picker-below-highlight {
+  border: none;
+}
+.picker-wrapper .picker-columns .picker-opts .picker-opt {
+  font-size: 1.4rem;
+  font-weight: 500;
+  color: var(--text-black);
+}
+.alert-wrapper {
+  border-radius: 13px !important;
+  min-width: calc(100% - 58px) !important;
+  max-height: 484px !important;
+  height: auto;
+}
+.alert-wrapper .alert-head {
+  background: var(--white);
+  padding: 20px 23px 16px 23px;
+}
+.alert-wrapper .alert-head h2 {
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 1.2rem;
+  color: var(--text-black);
+}
+.alert-wrapper .alert-radio-group {
+  max-height: 290px !important;
+  border-top: none !important;
+}
+.alert-wrapper .alert-radio-group .alert-radio-button .alert-button-inner .alert-radio-label {
+  font-size: 1.2rem;
+  color: var(--text-black);
+}
+.alert-wrapper .alert-button-group {
+  padding: 0;
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+.alert-wrapper .alert-button-group::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 1.5px;
+  height: 100%;
+  background-color: var(--white);
+  z-index: 9999;
+  margin: 0 auto;
+}
+.alert-wrapper .alert-button-group .alert-button {
+  color: var(--white);
+  background: var(--primary);
+  height: 50px;
+  text-align: center;
+  margin: 0;
+  width: 50%;
+}
+.alert-wrapper .alert-button-group .alert-button .alert-button-inner {
+  width: 100%;
+  display: block;
+  height: -moz-fit-content;
+  height: fit-content;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+}
+.animate__animated {
+  --animate-duration: 0s;
+}
+.animate__animated:nth-child(1) {
+  --animate-duration: 0.15s;
+}
+.animate__animated:nth-child(2) {
+  --animate-duration: 0.2s;
+}
+.animate__animated:nth-child(3) {
+  --animate-duration: 0.25s;
+}
+.animate__animated:nth-child(4) {
+  --animate-duration: 0.3s;
+}
+.animate__animated:nth-child(5) {
+  --animate-duration: 0.35s;
+}
+.animate__animated:nth-child(6) {
+  --animate-duration: 0.4s;
+}
+.animate__animated:nth-child(7) {
+  --animate-duration: 0.45s;
+}
+.animate__animated:nth-child(8) {
+  --animate-duration: 0.5s;
+}
+.animate__animated:nth-child(9) {
+  --animate-duration: 0.55s;
+}
+.animate__animated:nth-child(10) {
+  --animate-duration: 0.6s;
+}
+.animate__animated:nth-child(11) {
+  --animate-duration: 0.65s;
+}
+.animate__animated:nth-child(12) {
+  --animate-duration: 0.7s;
+}
+.animate__animated:nth-child(13) {
+  --animate-duration: 0.5s;
+}
+.animate__animated:nth-child(14) {
+  --animate-duration: 0.5s;
+}
+.animate__animated:nth-child(15) {
+  --animate-duration: 0.5s;
+}
+app-terms-conditions.ion-page.can-go-back ion-header ion-toolbar ion-buttons ion-menu-button {
+  display: none !important;
+}
+app-add-check-in.ion-page {
+  background: var(--bg-color);
+}
+ion-app[dir=rtl] ion-header ion-toolbar ion-back-button {
+  transform: rotate(180deg) !important;
+}
+ion-app[dir=rtl] ion-header ion-toolbar ion-title {
+  padding-right: 0 !important;
+  padding-left: 15px !important;
+}
+ion-app[dir=rtl] .d-flex .end {
+  margin-left: 0 !important;
+  margin-right: auto !important;
+}
+ion-app[dir=rtl] app-sign-in .or_continue_with ion-row ion-col .button.btn.button-outline img {
+  left: unset !important;
+  right: -15px !important;
+}
+ion-app[dir=rtl] app-my-profile ion-header .header_text .img_container ion-icon {
+  right: unset !important;
+  left: -12px !important;
+}
+ion-app[dir=rtl] app-add-check-in ion-header .banner {
+  padding-left: 0px !important;
+  padding-right: 20px !important;
+}
+ion-app[dir=rtl] app-add-check-in ion-header .banner img {
+  transform: scaleX(-1) !important;
+}
+ion-app[dir=rtl] app-filter .form ion-list ion-radio-group.connection_type ion-row ion-col ion-item .item_inner img {
+  transform: scaleX(-1) !important;
+  right: unset !important;
+  left: -5px !important;
+}
+ion-app[dir=rtl] app-filter .form ion-list .speeds ion-item .item_inner ion-checkbox {
+  margin-right: 0 !important;
+  margin-left: 25px !important;
+}
+ion-app[dir=rtl] app-filter .form ion-list .amenities ion-row ion-col ion-item .item_inner ion-checkbox {
+  margin-right: auto !important;
+  margin-left: 0 !important;
+}
+ion-app[dir=rtl] app-home ion-header .add_destination .dotts {
+  left: unset !important;
+  right: 23px !important;
+}
+ion-app[dir=rtl] app-home ion-header .add_destination::after {
+  left: 0 !important;
+  right: unset !important;
+}
+ion-app[dir=rtl] app-home ion-list ion-item .item_inner .item_img img {
+  transform: scaleX(-1) !important;
+}
+ion-app[dir=rtl] app-home ion-list ion-item .item_inner .item_img .spot_status {
+  border-radius: 0 0 0px 15px !important;
+}
+ion-app[dir=rtl] app-home ion-list ion-item .item_inner .itme_text .facility ion-row ion-col h2 img {
+  margin-right: 0 !important;
+  margin-left: 13px !important;
+}
+ion-app[dir=rtl] app-home .spots_slider .closedSpotsSlider {
+  right: unset !important;
+  left: 2px !important;
+}
+ion-app[dir=rtl] app-charge-spot-info .form ion-list ion-radio-group.connection_type ion-row ion-col ion-item .item_inner img {
+  transform: scaleX(-1) !important;
+  right: unset !important;
+  left: -5px !important;
+}
+ion-app[dir=rtl] app-charge-spot-info .amenities .scroll_box .amenities_box:first-child {
+  margin-left: 8px !important;
+  margin-right: 20px !important;
+}
+ion-app[dir=rtl] app-charge-spot-info .amenities .scroll_box .amenities_box:last-child {
+  margin-left: 20px !important;
+  margin-right: 8px !important;
+}
+ion-app[dir=rtl] app-charge-spot-info .form.recent_check_ins ion-list ion-item .item-inner .item_header .img_box {
+  margin-right: 0 !important;
+  margin-left: 11px !important;
+}
+.dark-theme {
+  --bg-white: #000;
+  --bg-color: #000;
+  --bg-color2: #232926;
+  --text-black: #fff;
+  --text-light: #484d4d;
+  --text-light2: #bababa;
+  --bg-black: #fff;
+  --text-dark: #fff;
+  --bg-secondary: #242725;
+  --border-line-color: #363636;
+  --white_gradient: linear-gradient(0deg, rgba(255, 255, 255, 0) 0%, rgb(0, 0, 0)95%);
+}
+.dark-theme ion-header ion-toolbar ion-buttons ion-back-button {
+  --color: var(--white) !important;
+}
+.dark-theme ion-header ion-toolbar ion-title {
+  color: var(--white);
+  font-weight: 500;
+}
+.dark-theme img.lightThemeImg {
+  display: none;
+}
+.dark-theme img.darkThemeImg {
+  display: block;
+}
+.dark-theme .form ion-item .item_inner .input_box {
+  background: var(--bg-secondary) !important;
+  border-color: var(--bg-secondary) !important;
+}
+.dark-theme .alert-wrapper {
+  background: var(--bg-secondary);
+}
+.dark-theme .alert-wrapper .alert-head {
+  background: var(--bg-secondary);
+}
+.dark-theme .picker-wrapper {
+  background: var(--bg-secondary) !important;
+}
+.dark-theme .picker-wrapper .picker-above-highlight.sc-ion-picker-ios {
+  background: linear-gradient(356deg, rgba(0, 0, 0, 0) 0%, #212121 100%) !important;
+}
+.dark-theme .picker-wrapper .picker-below-highlight.sc-ion-picker-ios {
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, #212121 73%) !important;
+}
+.dark-theme app-faqs ion-list ion-item {
+  background: var(--bg-secondary) !important;
+}
+.dark-theme ion-menu ion-header,
+.dark-theme ion-menu ion-footer,
+.dark-theme ion-menu ion-content {
+  background: rgba(33, 32, 32, 0.77) !important;
+}
+.dark-theme ion-menu ion-header .developed_by,
+.dark-theme ion-menu ion-footer .developed_by,
+.dark-theme ion-menu ion-content .developed_by {
+  background: var(--bg-secondary) !important;
+}
+.dark-theme app-add-check-in.ion-page {
+  background: var(--bg-color2) !important;
+}
+.dark-theme app-add-check-in.ion-page ion-header {
+  background: var(--bg-color2) !important;
+}
+.dark-theme app-add-check-in.ion-page ion-header ion-toolbar {
+  --background: var(--bg-color2) !important;
+}
+.dark-theme app-filter .form ion-list ion-radio-group.connection_type ion-row ion-col ion-item {
+  background: var(--bg-color2) !important;
+}
+.dark-theme app-filter .form ion-list ion-radio-group.connection_type ion-row ion-col ion-item .item_inner ion-label {
+  font-weight: 500 !important;
+}
+.dark-theme app-filter .form ion-list .amenities ion-row ion-col ion-item .item_inner img {
+  filter: brightness(0) invert(1);
+}
+.dark-theme app-home ion-content.bg_color {
+  --background: var(--bg-secondary) !important;
+}
+.dark-theme app-home ion-header .search_box {
+  background: var(--bg-secondary) !important;
+}
+.dark-theme app-home ion-header .add_destination {
+  background: var(--bg-secondary) !important;
+}
+.dark-theme app-home ion-list ion-item .item_inner .itme_text .facility ion-row ion-col h2 img {
+  filter: brightness(0) invert(1);
+}
+.dark-theme app-home ion-footer ion-segment ion-segment-button {
+  color: var(--text-light) !important;
+}
+.dark-theme app-home ion-footer ion-segment ion-segment-button.segment-button-checked {
+  color: var(--white) !important;
+}
+.dark-theme app-charge-spot-info .form ion-list ion-radio-group.connection_type ion-row ion-col ion-item {
+  background: var(--bg-color2) !important;
+}
+.dark-theme app-charge-spot-info .form ion-list ion-radio-group.connection_type ion-row ion-col ion-item .item_inner ion-label {
+  font-weight: 500 !important;
+}
+.dark-theme app-charge-spot-info .amenities .scroll_box .amenities_box img {
+  filter: brightness(0) invert(1);
+}
+.dark-theme app-charge-spot-info ion-footer ion-row ion-col .button.btn.add_check_in {
+  --background: var(--bg-secondary) !important;
+}
+
+/*# sourceMappingURL=styles.css.map*/
