@@ -29,7 +29,7 @@
     const LOGO_SRC = 'assets/images/logo_vault360.png';
     const LOGO_ASPECT = 572 / 1874;   // the mark's own height / width
     const LOGO_WIDTH = 118;           // points, printed bottom-left of the masthead
-    const ORANGE = [250, 108, 0];
+    const ORANGE = [255, 113, 16];
     const BODY_TOP = 138;     // first line below the masthead band
 
     // Read the brand mark once, as a data URL, for every document these pages turn out.
@@ -163,7 +163,7 @@
                 doc.rect(MARGIN, y - 4, contentWidth, caption ? 46 : 42, 'F');
                 doc.setFont('helvetica', 'bold');
                 doc.setFontSize(12);
-                doc.setTextColor(250, 108, 0);
+                doc.setTextColor(255, 113, 16);
                 doc.text(heading, MARGIN + 14, y + 20);
                 y += caption ? 56 : 52;
                 if (caption) {

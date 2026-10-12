@@ -157,7 +157,7 @@ ion-header ion-toolbar ion-title {
   margin: 0 auto 15px auto;
   padding: 20px;
   border-radius: 16px;
-  background: linear-gradient(135deg, var(--primary) 0%, #fa6c00 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, #FF7110 100%);
   box-shadow: 0 15px 12px -8px rgba(0, 0, 0, 0.25);
 }
 .visits_hero h2 {
@@ -216,7 +216,7 @@ ion-header ion-toolbar ion-title {
   height: 46px;
   margin-right: 12px;
   border-radius: 12px;
-  background: rgba(250, 108, 0, 0.1);
+  background: rgba(255, 113, 16, 0.1);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -259,7 +259,7 @@ ion-header ion-toolbar ion-title {
   padding: 4px 9px;
   border: 1px solid var(--border-line-color);
   border-radius: 20px;
-  background: rgba(250, 108, 0, 0.08);
+  background: rgba(255, 113, 16, 0.08);
   color: var(--text-light2);
   font-size: 0.68rem !important;
   font-weight: 600;

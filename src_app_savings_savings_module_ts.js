@@ -252,8 +252,8 @@ const styles = `.sav_content {
 }
 .hero_card {
   border: 0;
-  background: #fa6c00;
-  box-shadow: 0 10px 24px rgba(250, 108, 0, 0.3);
+  background: #FF7110;
+  box-shadow: 0 10px 24px rgba(255, 113, 16, 0.3);
 }
 .hero_card h2 {
   margin: 0;
@@ -338,10 +338,10 @@ const styles = `.sav_content {
   justify-content: center;
   margin-top: 14px;
   padding: 14px;
-  border: 1px dashed #fa6c00;
+  border: 1px dashed #FF7110;
   border-radius: 14px;
   background: #fff8f0;
-  color: #fa6c00;
+  color: #FF7110;
   font-size: 0.84rem;
   font-weight: 600;
   cursor: pointer;
@@ -349,7 +349,7 @@ const styles = `.sav_content {
 .upload_btn.busy {
   border-style: solid;
   background: #fdf1e3;
-  color: #fa6c00;
+  color: #FF7110;
 }
 .upload_btn ion-icon {
   margin-right: 8px;
@@ -368,7 +368,7 @@ const styles = `.sav_content {
 }
 .bill_icon {
   margin-right: 10px;
-  color: #fa6c00;
+  color: #FF7110;
   font-size: 1.2rem;
 }
 .row_text {
@@ -392,7 +392,7 @@ const styles = `.sav_content {
 .bill_link {
   margin-left: auto;
   padding-left: 10px;
-  color: #fa6c00;
+  color: #FF7110;
   font-size: 0.76rem;
   font-weight: 600;
   text-decoration: none;
@@ -496,7 +496,7 @@ const styles = `.sav_content {
   background: #d9d9d9;
 }
 .c_fill.solar {
-  background: #fa6c00;
+  background: #FF7110;
 }
 .cmp_box {
   margin-top: 16px;

@@ -320,7 +320,7 @@ const styles = `.roof_content {
 }
 .detail_addr ion-icon {
   margin: 2px 6px 0 0;
-  color: #fa6c00;
+  color: #FF7110;
   font-size: 1rem;
 }
 .detail_close {
@@ -354,7 +354,7 @@ const styles = `.roof_content {
   flex-direction: column;
 }
 .head_stat strong {
-  color: #fa6c00;
+  color: #FF7110;
   font-size: 1.15rem !important;
   font-weight: 700;
   line-height: 1.1;
@@ -415,7 +415,7 @@ const styles = `.roof_content {
 }
 .status_pill ion-icon {
   margin-right: 5px;
-  color: #fa6c00;
+  color: #FF7110;
   font-size: 0.95rem;
 }
 .select_box {
@@ -457,7 +457,7 @@ const styles = `.roof_content {
 }
 .field_box .pin_icon {
   margin-right: 8px;
-  color: #fa6c00;
+  color: #FF7110;
   font-size: 1rem;
 }
 .field_box input {
@@ -473,7 +473,7 @@ const styles = `.roof_content {
   padding: 12px 16px;
   border: 0;
   border-radius: 12px;
-  background: #fa6c00;
+  background: #FF7110;
   color: #ffffff;
   font-size: 0.8rem;
   font-weight: 600;
@@ -525,7 +525,7 @@ const styles = `.roof_content {
   position: absolute;
   border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 2px;
-  background: rgba(250, 108, 0, 0.6);
+  background: rgba(255, 113, 16, 0.6);
 }
 .legend_row {
   align-items: center;
@@ -537,7 +537,7 @@ const styles = `.roof_content {
   margin-right: 8px;
   border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 2px;
-  background: rgba(250, 108, 0, 0.6);
+  background: rgba(255, 113, 16, 0.6);
 }
 .legend_text {
   color: #9a9a9a;
@@ -619,7 +619,7 @@ const styles = `.roof_content {
   text-align: right;
 }
 .cmp_val.battery {
-  color: #fa6c00;
+  color: #FF7110;
 }
 .fine_print {
   margin: 12px 0 0 0;

@@ -109,7 +109,7 @@ const LEAD_STAGES = [
     { name: 'New', swatch: '#9aa0a6' },
     { name: 'Qualified', swatch: '#8fd0e8' },
     { name: 'Proposal', swatch: '#f5c76b' },
-    { name: 'Sold', swatch: '#fa6c00' },
+    { name: 'Sold', swatch: '#FF7110' },
     { name: 'Installed', swatch: '#b7e06b' }
 ];
 
@@ -416,7 +416,7 @@ ion-header ion-toolbar ion-title {
   margin: 0 auto 15px auto;
   padding: 20px;
   border-radius: 16px;
-  background: linear-gradient(135deg, var(--primary) 0%, #fa6c00 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, #FF7110 100%);
   box-shadow: 0 15px 12px -8px rgba(0, 0, 0, 0.25);
 }
 .leads_hero h2 {
@@ -461,7 +461,7 @@ ion-header ion-toolbar ion-title {
 .count_pill {
   padding: 3px 10px;
   border-radius: 20px;
-  background: rgba(250, 108, 0, 0.12);
+  background: rgba(255, 113, 16, 0.12);
   color: var(--primary);
   font-size: 0.7rem !important;
   font-weight: 700;
@@ -521,7 +521,7 @@ ion-header ion-toolbar ion-title {
 }
 .filter_chip.active {
   border-color: var(--primary);
-  background: rgba(250, 108, 0, 0.12);
+  background: rgba(255, 113, 16, 0.12);
   color: var(--primary);
 }
 .empty_note {
@@ -547,7 +547,7 @@ ion-header ion-toolbar ion-title {
   height: 40px;
   margin-right: 12px;
   border-radius: 50%;
-  background: rgba(250, 108, 0, 0.12);
+  background: rgba(255, 113, 16, 0.12);
   color: var(--primary);
   font-size: 0.85rem !important;
   font-weight: 700;
@@ -598,7 +598,7 @@ ion-header ion-toolbar ion-title {
   padding: 4px 9px;
   border: 1px solid var(--border-line-color);
   border-radius: 20px;
-  background: rgba(250, 108, 0, 0.08);
+  background: rgba(255, 113, 16, 0.08);
   color: var(--text-light2);
   font-size: 0.68rem !important;
   font-weight: 600;
@@ -729,7 +729,7 @@ ion-header ion-toolbar ion-title {
   background: #7ec850;
 }
 .tl_dot.tl_orange {
-  background: #fa6c00;
+  background: #FF7110;
 }
 .tl_body h6 {
   margin: 0;

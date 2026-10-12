@@ -4,7 +4,7 @@
 /** Ionic CSS Variables **/
 :root {
   /** primary **/
-  --ion-color-primary: #fa6c00;
+  --ion-color-primary: #FF7110;
 }
 /*!*********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
   !*** css ./node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[6].rules[0].oneOf[0].use[1]!./node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[6].rules[0].oneOf[0].use[2]!./node_modules/resolve-url-loader/index.js??ruleSet[1].rules[6].rules[1].use[0]!./node_modules/sass-loader/dist/cjs.js??ruleSet[1].rules[6].rules[1].use[1]!./src/global.scss ***!
@@ -1400,7 +1400,7 @@ sub {
 .animate__slideOutUp{animation-name:slideOutUp}
 :root {
   --white: #fff;
-  --primary: #fa6c00;
+  --primary: #FF7110;
   --bg-color: #f4eeea;
   --bg-dark: #2b3f50;
   --bg-white: #fff;
@@ -1459,7 +1459,7 @@ img.darkThemeImg {
   font-size: 1rem;
   font-weight: 500;
   height: 53px;
-  --background: #fa6c00;
+  --background: #FF7110;
   text-transform: none;
   color: var(--white);
   margin: 0;
@@ -2432,7 +2432,7 @@ ion-toast::part(button) {
   height: 38px;
   margin-right: 12px;
   border-radius: 50%;
-  background: rgba(250, 108, 0, 0.12);
+  background: rgba(255, 113, 16, 0.12);
 }
 
 .assist_head_icon i {
@@ -2627,7 +2627,7 @@ ion-toast::part(button) {
   height: 32px;
   margin-right: 11px;
   border-radius: 50%;
-  background: rgba(250, 108, 0, 0.12);
+  background: rgba(255, 113, 16, 0.12);
 }
 
 .assist_notif_icon i {
@@ -2708,7 +2708,7 @@ ion-toast::part(button) {
 
 .pdf_btn ion-icon {
   margin-right: 8px;
-  color: #fa6c00;
+  color: #FF7110;
   font-size: 1.05rem;
 }
 
@@ -2749,7 +2749,7 @@ ion-toast::part(button) {
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(250, 108, 0, 0.4);
+  box-shadow: 0 4px 14px rgba(255, 113, 16, 0.4);
   transition: transform 0.2s, opacity 0.2s;
 }
 .card_fab:active { transform: scale(0.95); }
@@ -2960,7 +2960,7 @@ ion-toast::part(button) {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: rgba(250, 108, 0, 0.12);
+  background: rgba(255, 113, 16, 0.12);
   display: flex;
   align-items: center;
   justify-content: center;
