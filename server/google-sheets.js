@@ -149,11 +149,33 @@ async function logScan(scan) {
             info.os,
             info.browser,
             scan.ua || '',
-            scan.ref || ''
+            scan.ref || '',
+            'Scan'
         ]);
     } catch (err) {
         console.error('Google Sheets logScan error:', String((err && err.message) || err));
     }
 }
 
-module.exports = { isConfigured, appendRow, parseUserAgent, logScan };
+// Log a share event to Google Sheets.  Same columns as a scan plus a share
+// method column, with 'Share' in the event-type column.
+async function logShare(share) {
+    try {
+        var info = parseUserAgent(share.ua);
+        await appendRow([
+            share.at || new Date().toISOString(),
+            share.cardId || '',
+            info.device,
+            info.os,
+            info.browser,
+            share.ua || '',
+            share.ref || '',
+            'Share',
+            share.method || ''
+        ]);
+    } catch (err) {
+        console.error('Google Sheets logShare error:', String((err && err.message) || err));
+    }
+}
+
+module.exports = { isConfigured, appendRow, parseUserAgent, logScan, logShare };

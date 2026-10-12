@@ -531,6 +531,34 @@ const server = http.createServer((req, res) => {
         });
         return;
     }
+    // Record a share event (when someone taps the Share button on the card).
+    if (req.method === 'POST' && url.pathname.startsWith('/api/card/share/')) {
+        var cardId = decodeURIComponent(url.pathname.slice('/api/card/share/'.length));
+        var card = readJsonFile(CARD_FILE, null);
+        if (!card || card.id !== cardId) {
+            sendJson(res, 404, { ok: false, message: 'Card not found.' });
+            return;
+        }
+        readJsonBody(req, 4096).then(function (body) {
+            var shareRecord = {
+                cardId: cardId,
+                at: new Date().toISOString(),
+                method: String((body && body.method) || '').slice(0, 40),
+                ua: String(req.headers['user-agent'] || '').slice(0, 300),
+                ref: String(req.headers.referer || '').slice(0, 300)
+            };
+            var scans = readJsonFile(SCANS_FILE, []);
+            scans.push(Object.assign({ type: 'share' }, shareRecord));
+            if (scans.length > 1000) scans.splice(0, scans.length - 1000);
+            writeJsonFile(SCANS_FILE, scans);
+            // Fire-and-forget: log the share to Google Sheets.
+            if (sheets.isConfigured()) {
+                sheets.logShare(shareRecord);
+            }
+            sendJson(res, 200, { ok: true });
+        });
+        return;
+    }
     // Google Sheets connection status (for the profile page to show on/off).
     if (req.method === 'GET' && url.pathname === '/api/sheets/status') {
         sendJson(res, 200, { connected: sheets.isConfigured() });
@@ -545,9 +573,11 @@ const server = http.createServer((req, res) => {
         }
         var allScans = readJsonFile(SCANS_FILE, []);
         var myScans = allScans.filter(function (s) { return s.cardId === card.id; });
+        var shareCount = myScans.filter(function (s) { return s.type === 'share'; }).length;
         sendJson(res, 200, {
             ok: true,
             total: myScans.length,
+            shares: shareCount,
             scans: myScans.slice(-50).reverse()
         });
         return;

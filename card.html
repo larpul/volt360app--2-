@@ -102,7 +102,14 @@ body{font-family:"Hanken Grotesk",-apple-system,BlinkMacSystemFont,"Helvetica Ne
 
     document.getElementById('shareBtn').addEventListener('click',function(){
       var shareData = {title:d.name||'Business Card',text:(d.title?d.title+' at ': '')+(d.company||''),url:window.location.href};
-      if(navigator.share){navigator.share(shareData);}
+      var method = navigator.share ? 'native' : 'clipboard';
+      // Log the share event so it appears in scan analytics and Google Sheets.
+      fetch('/api/card/share/' + encodeURIComponent(cardId),{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({method:method})
+      }).catch(function(){});
+      if(navigator.share){navigator.share(shareData).catch(function(){});}
       else{navigator.clipboard.writeText(window.location.href).then(function(){alert('Link copied to clipboard!');});}
     });
   }
