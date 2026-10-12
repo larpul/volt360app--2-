@@ -561,7 +561,7 @@ const server = http.createServer((req, res) => {
             ok: true,
             name: card.name || '', title: card.title || '', phone: card.phone || '',
             email: card.email || '', website: card.website || '', company: card.company || '',
-            tagline: card.tagline || '', photo: card.photo || ''
+            tagline: card.tagline || '', photo: card.photo || '', updatedAt: card.updatedAt || ''
         });
         return;
     }
