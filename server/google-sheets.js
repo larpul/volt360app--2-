@@ -178,4 +178,13 @@ async function logShare(share) {
     }
 }
 
-module.exports = { isConfigured, appendRow, parseUserAgent, logScan, logShare };
+function getSheetUrl() {
+    if (!SPREADSHEET_ID) return '';
+    // The env var may be a bare ID or a full Google Sheets URL — extract the ID either way.
+    var id = SPREADSHEET_ID;
+    var match = id.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
+    if (match) id = match[1];
+    return 'https://docs.google.com/spreadsheets/d/' + id + '/edit';
+}
+
+module.exports = { isConfigured, appendRow, parseUserAgent, logScan, logShare, getSheetUrl };

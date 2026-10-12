@@ -595,9 +595,9 @@ const server = http.createServer((req, res) => {
         res.end(csv);
         return;
     }
-    // Google Sheets connection status (for the profile page to show on/off).
+    // Google Sheets connection status and direct link (for the analytics page).
     if (req.method === 'GET' && url.pathname === '/api/sheets/status') {
-        sendJson(res, 200, { connected: sheets.isConfigured() });
+        sendJson(res, 200, { connected: sheets.isConfigured(), url: sheets.getSheetUrl() });
         return;
     }
     // Scan analytics for the owner: total count and recent scan details.

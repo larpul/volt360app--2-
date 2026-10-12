@@ -25,6 +25,9 @@ body{font-family:"Hanken Grotesk",-apple-system,BlinkMacSystemFont,"Helvetica Ne
 .filter_btn.active{background:#FF7110;color:#fff;border-color:#FF7110}
 .download_btn{padding:8px 18px;border:none;border-radius:20px;background:#1E1E1E;color:#fff;font-family:inherit;font-size:.82rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;text-decoration:none}
 .download_btn:active{opacity:.85}
+.sheets_btn{padding:8px 18px;border:1px solid #E0E0E0;border-radius:20px;background:#fff;color:#1E1E1E;font-family:inherit;font-size:.82rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;text-decoration:none}
+.sheets_btn svg{width:16px;height:16px}
+.sheets_btn:active{opacity:.85}
 .download_btn svg{width:16px;height:16px}
 .table_wrap{background:#fff;border-radius:14px;box-shadow:0 8px 16px -8px rgba(0,0,0,.1);overflow:hidden;overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-size:.82rem}
@@ -65,6 +68,10 @@ tbody tr:last-child td{border-bottom:none}
       <a class="download_btn" id="downloadBtn" href="/api/card/scans/export">
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
         Download CSV
+      </a>
+      <a class="sheets_btn" id="sheetsBtn" href="#" target="_blank" rel="noopener" style="display:none">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 19V5c0-1.1-.9-2-2-2H7c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2zm-2 0l-3-2-3 2V7h6v12zM5 5h14v1H5z"/></svg>
+        Open in Google Sheets
       </a>
     </div>
   </div>
@@ -162,6 +169,15 @@ tbody tr:last-child td{border-bottom:none}
   }).catch(function(){
     document.getElementById('loading').innerHTML = 'Could not load activity. Please try again.';
   });
+
+  // Show the "Open in Google Sheets" button if a sheet is connected.
+  fetch('/api/sheets/status').then(function(r){return r.json();}).then(function(d){
+    if(d.connected && d.url){
+      var btn = document.getElementById('sheetsBtn');
+      btn.href = d.url;
+      btn.style.display = 'flex';
+    }
+  }).catch(function(){});
 
   document.querySelectorAll('.filter_btn').forEach(function(btn){
     btn.addEventListener('click', function(){
