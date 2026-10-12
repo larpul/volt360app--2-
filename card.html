@@ -7,32 +7,155 @@
 <title>Digital Business Card</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue","Roboto",sans-serif;background:#f4eeea;color:#2b2c30;min-height:100vh;display:flex;justify-content:center;align-items:flex-start;padding:24px 16px}
-.card{width:100%;max-width:380px;background:#fff;border-radius:20px;box-shadow:0 4px 24px rgba(0,0,0,.12);overflow:hidden;text-align:center}
-.card_photo{width:110px;height:110px;border-radius:50%;margin:32px auto 0;object-fit:cover;border:4px solid #FF7110;background:#f4eeea}
-.card_name{font-size:1.5rem;font-weight:700;margin:16px 0 2px}
-.card_title{font-size:1rem;color:#697070;margin-bottom:2px}
-.card_company{font-size:1rem;font-weight:600;color:#FF7110;margin-bottom:24px}
-.card_actions{display:flex;flex-direction:column;gap:10px;padding:0 24px 24px}
-.card_btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;border:none;border-radius:12px;font-size:1rem;font-weight:600;cursor:pointer;transition:opacity .2s;text-decoration:none}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue","Roboto",sans-serif;
+  background:#F9F9F9;
+  color:#1A1A1A;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:0 20px 40px;
+  position:relative;
+  overflow-x:hidden;
+}
+/* Wave pattern in bottom-right corner */
+body::after{
+  content:'';
+  position:fixed;
+  bottom:-20px;
+  right:-20px;
+  width:340px;
+  height:340px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 340 340' fill='none' stroke='%23cccccc' stroke-width='1.2'%3E%3Cpath d='M340 40 Q250 80 340 140 T340 240'/%3E%3Cpath d='M340 70 Q230 110 340 170 T340 270'/%3E%3Cpath d='M340 100 Q210 140 340 200 T340 300'/%3E%3Cpath d='M340 130 Q190 170 340 230 T340 340'/%3E%3Cpath d='M340 160 Q170 200 340 260 T340 340'/%3E%3Cpath d='M340 190 Q150 230 340 290 T340 340'/%3E%3Cpath d='M340 220 Q130 260 340 320 T340 340'/%3E%3Cpath d='M340 250 Q110 290 340 340'/%3E%3Cpath d='M340 280 Q90 310 340 340'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:bottom right;
+  opacity:.5;
+  pointer-events:none;
+  z-index:0;
+}
+/* Logo at top-left */
+.card_logo{
+  align-self:flex-start;
+  padding:24px 0 0;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  z-index:1;
+}
+.card_logo_icon{
+  width:34px;
+  height:34px;
+  border-radius:8px;
+  background:linear-gradient(135deg,#999 0%,#FF7110 100%);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#fff;
+  font-weight:700;
+  font-size:1.1rem;
+  flex-shrink:0;
+}
+.card_logo_text_wrap{display:flex;flex-direction:column}
+.card_logo_text{font-size:1rem;font-weight:700;color:#1A1A1A;line-height:1.2}
+.card_logo_tagline{font-size:.58rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#aaa;margin-top:1px}
+/* Profile photo */
+.card_photo{
+  width:130px;
+  height:130px;
+  border-radius:50%;
+  margin:44px auto 0;
+  object-fit:cover;
+  border:4px solid #FF7110;
+  background:#f0ebe7;
+  z-index:1;
+  position:relative;
+}
+/* Text content */
+.card_name{
+  font-size:1.6rem;
+  font-weight:700;
+  text-align:center;
+  margin:22px 0 6px;
+  color:#1A1A1A;
+  z-index:1;
+  position:relative;
+}
+.card_title{
+  font-size:1.05rem;
+  font-weight:700;
+  text-align:center;
+  color:#FF7110;
+  margin-bottom:4px;
+  z-index:1;
+  position:relative;
+}
+.card_company{
+  font-size:1rem;
+  font-weight:500;
+  text-align:center;
+  color:#666;
+  margin-bottom:34px;
+  z-index:1;
+  position:relative;
+}
+/* Buttons */
+.card_actions{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+  width:100%;
+  max-width:340px;
+  z-index:1;
+  position:relative;
+}
+.card_btn{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  padding:16px;
+  border:none;
+  border-radius:50px;
+  font-size:1rem;
+  font-weight:700;
+  cursor:pointer;
+  transition:opacity .2s;
+  text-decoration:none;
+  font-family:inherit;
+}
 .card_btn:active{opacity:.8}
 .card_btn_primary{background:#FF7110;color:#fff}
-.card_btn_secondary{background:#f4eeea;color:#2b2c30}
-.card_contacts{padding:0 24px 28px}
-.card_contact{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid #f0ebe7;text-decoration:none;color:#2b2c30}
+.card_btn_secondary{background:#1A1A1A;color:#fff}
+/* Contact links */
+.card_contacts{
+  width:100%;
+  max-width:340px;
+  margin-top:28px;
+  z-index:1;
+  position:relative;
+}
+.card_contact{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:14px 0;
+  border-top:1px solid #eee;
+  text-decoration:none;
+  color:#1A1A1A;
+}
 .card_contact:first-child{border-top:none}
 .card_contact svg{width:20px;height:20px;flex-shrink:0;color:#FF7110}
 .card_contact_val{font-size:.95rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.card_empty{text-align:center;padding:60px 24px;color:#697070}
-.card_loading{text-align:center;padding:80px 24px;color:#697070}
-.spinner{width:36px;height:36px;border:3px solid #f4eeea;border-top-color:#FF7110;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px}
+/* Loading / empty states */
+.card_empty{text-align:center;padding:60px 24px;color:#666;z-index:1;position:relative}
+.card_loading{text-align:center;padding:80px 24px;color:#666;z-index:1;position:relative}
+.spinner{width:36px;height:36px;border:3px solid #eee;border-top-color:#FF7110;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px}
 @keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
-<div id="card" class="card">
-<div class="card_loading"><div class="spinner"></div>Loading card…</div>
-</div>
+<div id="card" class="card_loading"><div class="spinner"></div>Loading card…</div>
 <script>
 (function(){
   var path = window.location.pathname;
@@ -55,7 +178,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue","Roboto",sans
       document.getElementById('card').innerHTML='<div class="card_empty">Could not load the card. Please try again.</div>';
     });
 
-  function esc(s){return String(s||'').replace(/[&<>"']/g,function(c){return{'&':'&','<':'<','>':'>','"':'"',"'":'&#39;'}[c];});}
+  function esc(s){return String(s||'').replace(/[&<>"']/g,function(c){return{'&':'&','<':'<','>':'>','"':'"','&#39;':'&#39;'}[c];});}
 
   function vcard(d){
     return 'BEGIN:VCARD\nVERSION:3.0\nFN:'+d.name+'\n'+
@@ -68,8 +191,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue","Roboto",sans
   }
 
   function render(d){
-    var photoHtml = d.photo ? '<img class="card_photo" src="'+esc(d.photo)+'" alt="'+esc(d.name)+'">' : '<div class="card_photo" style="display:flex;align-items:center;justify-content:center;font-size:2.5rem;font-weight:700;color:#FF7110">'+esc((d.name||'?').charAt(0))+'</div>';
-    var html = photoHtml +
+    var logoInitial = esc((d.company||'?').charAt(0).toUpperCase());
+    var logoHtml = '<div class="card_logo">' +
+      '<div class="card_logo_icon">' + logoInitial + '</div>' +
+      '<div class="card_logo_text_wrap">' +
+        '<span class="card_logo_text">' + esc(d.company||'') + '</span>' +
+      '</div>' +
+    '</div>';
+
+    var photoHtml = d.photo ? '<img class="card_photo" src="'+esc(d.photo)+'" alt="'+esc(d.name)+'">' : '<div class="card_photo" style="display:flex;align-items:center;justify-content:center;font-size:3rem;font-weight:700;color:#FF7110">'+esc((d.name||'?').charAt(0))+'</div>';
+    var html = logoHtml + photoHtml +
       '<h1 class="card_name">'+esc(d.name||'Unknown')+'</h1>' +
       (d.title?'<p class="card_title">'+esc(d.title)+'</p>':'') +
       (d.company?'<p class="card_company">'+esc(d.company)+'</p>':'') +
