@@ -321,7 +321,7 @@ ion-header ion-toolbar ion-title {
   margin: 0 auto 15px auto;
   padding: 20px;
   border-radius: 16px;
-  background: linear-gradient(135deg, var(--primary) 0%, #fa6c00 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, #FF7110 100%);
   box-shadow: 0 15px 12px -8px rgba(0, 0, 0, 0.25);
 }
 .sched_hero h2 {
@@ -395,7 +395,7 @@ ion-header ion-toolbar ion-title {
   min-width: 15px;
   padding: 1px 4px;
   border-radius: 10px;
-  background: rgba(250, 108, 0, 0.14);
+  background: rgba(255, 113, 16, 0.14);
   color: var(--primary);
   font-size: 0.58rem !important;
   font-weight: 700;
@@ -452,7 +452,7 @@ ion-header ion-toolbar ion-title {
   margin-top: 12px;
   padding: 10px 12px;
   border-radius: 12px;
-  background: rgba(250, 108, 0, 0.08);
+  background: rgba(255, 113, 16, 0.08);
 }
 .alert_row.conflict {
   background: rgba(230, 36, 36, 0.1);
@@ -494,7 +494,7 @@ ion-header ion-toolbar ion-title {
   margin-right: 12px;
   padding: 8px 0;
   border-radius: 12px;
-  background: rgba(250, 108, 0, 0.1);
+  background: rgba(255, 113, 16, 0.1);
   text-align: center;
 }
 .time_box strong {

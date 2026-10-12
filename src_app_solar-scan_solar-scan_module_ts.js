@@ -307,7 +307,7 @@ const styles = `.scan_wrap {
   color: #2f3a12;
 }
 .verdict.installed {
-  background: #fa6c00;
+  background: #FF7110;
   color: #ffffff;
 }
 .ai_line {

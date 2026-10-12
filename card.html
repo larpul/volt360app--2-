@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="theme-color" content="#F7F7F7"/>
+<title>Digital Business Card</title>
+<link href="https://fonts.cdnfonts.com/css/uber-move-2" rel="stylesheet">
+<style>
+/* All sizes are taken from the design PDF (1392 units wide) and expressed in
+   container-width units, so the card keeps the design's proportions at any size. */
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{min-height:100%}
+body{font-family:"Uber Move",sans-serif;background:#E9E9E9;display:flex;justify-content:center;align-items:flex-start;min-height:100vh}
+.card{container-type:inline-size;position:relative;overflow:hidden;width:100%;max-width:440px;min-height:100vh;background:#F7F7F7;display:flex;flex-direction:column;align-items:center;text-align:center}
+@media (min-width:480px){
+  body{padding:32px 0;align-items:center}
+  .card{min-height:0;aspect-ratio:1392/2164;border-radius:20px;box-shadow:0 10px 40px rgba(0,0,0,.08)}
+}
+.card_wave{position:absolute;right:0;bottom:0;width:58.3cqw;height:34cqw;background:url("/assets/images/card/wave.svg") no-repeat right bottom/100% 100%;opacity:.19;pointer-events:none}
+.card_logo{align-self:flex-start;display:block;width:30.9cqw;margin:6.3cqw 0 0 5.8cqw;position:relative}
+.card_photo{display:block;width:30cqw;height:30cqw;margin-top:0.9cqw;border-radius:50%;border:.72cqw solid #FF7815;object-fit:cover;background:#ddd;position:relative}
+.card_photo_initial{display:flex;align-items:center;justify-content:center;font-size:12cqw;font-weight:700;color:#FF7815}
+.card_name{font-size:7.2cqw;font-weight:700;letter-spacing:-.055em;line-height:1;color:#1E1E1E;margin-top:5.6cqw;position:relative}
+.card_title{font-size:3.6cqw;font-weight:400;line-height:1.2;color:#ED4A1D;margin-top:1.6cqw;position:relative}
+.card_company{font-size:3.6cqw;font-weight:400;line-height:1.2;color:#4E4E4E;margin-top:2.4cqw;position:relative}
+.card_actions{display:flex;flex-direction:column;gap:1.45cqw;width:82.3cqw;margin-top:5.4cqw;position:relative}
+.card_btn{height:11.7cqw;border:none;border-radius:999px;font-family:inherit;font-size:3.6cqw;font-weight:500;color:#fff;cursor:pointer;transition:opacity .2s}
+.card_btn:active{opacity:.85}
+.card_btn_primary{background:#FF7815}
+.card_btn_secondary{background:#000}
+.card_contact{display:flex;flex-direction:column;gap:2.4cqw;width:82.3cqw;margin-top:4.2cqw;position:relative}
+.card_contact_row{display:flex;align-items:center;gap:2.4cqw;font-size:3.4cqw;color:#4E4E4E;text-decoration:none;line-height:1.3;word-break:break-word}
+.card_contact_row svg{width:4.5cqw;height:4.5cqw;color:#FF7815;flex-shrink:0}
+.card_phone_form{width:82.3cqw;margin-top:4.2cqw;position:relative;display:flex;flex-direction:column;gap:1.5cqw}
+.card_phone_label{font-size:3.2cqw;color:#4E4E4E;font-weight:500;margin-bottom:.5cqw}
+.card_phone_input{height:11.7cqw;border:1px solid #ddd;border-radius:999px;font-family:inherit;font-size:3.4cqw;padding:0 5cqw;color:#1E1E1E;outline:none;background:#fff}
+.card_phone_input:focus{border-color:#FF7815}
+.card_msg{padding:30cqw 8cqw;color:#4E4E4E;font-size:4cqw;position:relative}
+.spinner{width:9cqw;height:9cqw;border:.8cqw solid #e2e2e2;border-top-color:#FF7815;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 4cqw}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<main id="card" class="card">
+  <div class="card_msg"><div class="spinner"></div>Loading card…</div>
+</main>
+<script>
+(function(){
+  var root = document.getElementById('card');
+  var path = window.location.pathname;
+  var cardId = path.indexOf('/card/') === 0 ? decodeURIComponent(path.slice(6)) : '';
+  if(!cardId){cardId = new URLSearchParams(window.location.search).get('id')||'';}
+  if(!cardId){message('No card ID provided.');return;}
+
+  fetch('/api/card/scan/' + encodeURIComponent(cardId),{method:'POST'})
+    .then(function(r){return r.json();})
+    .then(function(d){ if(d && d.ok){render(d);} else {message('This business card is no longer available.');} })
+    .catch(function(){ message('Could not load the card. Please try again.'); });
+
+  function message(text){root.innerHTML='<div class="card_msg">'+esc(text)+'</div>';}
+
+  function esc(s){return String(s||'').replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+
+  function vcard(d, photoBase64){
+    return 'BEGIN:VCARD\nVERSION:3.0\nFN:'+d.name+'\n'+
+      (d.title?'TITLE:'+d.title+'\n':'')+
+      (d.company?'ORG:'+d.company+'\n':'')+
+      (d.phone?'TEL;TYPE=CELL:'+d.phone+'\n':'')+
+      (d.email?'EMAIL:'+d.email+'\n':'')+
+      (d.website?'URL:'+d.website+'\n':'')+
+      (photoBase64?'PHOTO;ENCODING=b;TYPE=JPEG:'+photoBase64+'\n':'')+
+      'END:VCARD';
+  }
+
+  function render(d){
+    var photo = d.photo
+      ? '<img class="card_photo" src="'+esc(d.photo)+'" alt="'+esc(d.name)+'">'
+      : '<div class="card_photo card_photo_initial">'+esc((d.name||'?').charAt(0))+'</div>';
+    root.innerHTML =
+      '<div class="card_wave" aria-hidden="true"></div>' +
+      '<img class="card_logo" src="/assets/images/card/map-logo.svg" alt="Midwest American Power — Power for the People">' +
+      photo +
+      '<h1 class="card_name">'+esc(d.name||'Unknown')+'</h1>' +
+      (d.title?'<p class="card_title">'+esc(d.title)+'</p>':'') +
+      (d.company?'<p class="card_company">'+esc(d.company)+'</p>':'') +
+      '<div class="card_actions">' +
+        '<button class="card_btn card_btn_primary" id="saveBtn">Save to Contacts</button>' +
+        '<button class="card_btn card_btn_secondary" id="shareBtn">Share</button>' +
+      '</div>' +
+      '<div class="card_contact">' +
+        (d.phone?'<a class="card_contact_row" href="tel:'+esc(d.phone)+'"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>'+esc(d.phone)+'</a>':'') +
+        (d.email?'<a class="card_contact_row" href="mailto:'+esc(d.email)+'"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>'+esc(d.email)+'</a>':'') +
+        (d.website?'<a class="card_contact_row" href="'+esc(d.website)+'" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93C7.05 19.44 4 16.08 4 12c0-.61.08-1.21.21-1.82L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41C17.94 5.78 20 8.65 20 12c0 2.08-.81 3.98-2.1 5.39z"/></svg>'+esc(d.website.replace(/^https?:\/\//,''))+'</a>':'') +
+      '</div>' +
+      '<form class="card_phone_form" id="phoneForm">' +
+        '<p class="card_phone_label">Want a callback? Leave your number:</p>' +
+        '<input class="card_phone_input" id="phoneInput" type="tel" placeholder="Your phone number" autocomplete="tel">' +
+        '<input class="card_phone_input" id="nameInput" type="text" placeholder="Your name" autocomplete="name">' +
+        '<button class="card_btn card_btn_primary" type="submit" id="phoneSubmit" style="margin-top:1.5cqw">Request Callback</button>' +
+      '</form>';
+
+    document.getElementById('saveBtn').addEventListener('click',function(){
+      var btn = document.getElementById('saveBtn');
+      btn.textContent = 'Saving…'; btn.disabled = true;
+      var photoUrl = d.photo || '';
+      var fetchPromise = photoUrl
+        ? fetch(photoUrl).then(function(r){return r.blob();}).then(function(b){
+            return new Promise(function(resolve){
+              var reader = new FileReader();
+              reader.onloadend = function(){resolve(reader.result.split(',')[1]);};
+              reader.onerror = function(){resolve(null);};
+              reader.readAsDataURL(b);
+            });
+          }).catch(function(){return null;})
+        : Promise.resolve(null);
+      fetchPromise.then(function(b64){
+        var vcf = vcard(d, b64);
+        var blob = new Blob([vcf],{type:'text/vcard'});
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = (d.name||'contact')+'.vcf';
+        a.click();
+        URL.revokeObjectURL(a.href);
+        btn.textContent = 'Save to Contacts'; btn.disabled = false;
+      });
+    });
+
+    document.getElementById('shareBtn').addEventListener('click',function(){
+      var shareData = {title:d.name||'Business Card',text:(d.title?d.title+' at ': '')+(d.company||''),url:window.location.href};
+      var method = navigator.share ? 'native' : 'clipboard';
+      // Log the share event so it appears in scan analytics and Google Sheets.
+      fetch('/api/card/share/' + encodeURIComponent(cardId),{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({method:method})
+      }).catch(function(){});
+      if(navigator.share){navigator.share(shareData).catch(function(){});}
+      else{navigator.clipboard.writeText(window.location.href).then(function(){alert('Link copied to clipboard!');});}
+    });
+
+    // Optional phone number capture — visitor can leave their number for a callback.
+    var form = document.getElementById('phoneForm');
+    if(form){
+      form.addEventListener('submit',function(e){
+        e.preventDefault();
+        var phone = document.getElementById('phoneInput').value.trim();
+        var name = document.getElementById('nameInput').value.trim();
+        if(!phone) return;
+        var btn = document.getElementById('phoneSubmit');
+        btn.disabled = true; btn.textContent = 'Sending…';
+        fetch('/api/card/contact/' + encodeURIComponent(cardId),{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({phone:phone,name:name})
+        }).then(function(r){return r.json();}).then(function(res){
+          if(res.ok){
+            form.innerHTML = '<p style="font-size:3.4cqw;color:#FF7815;font-weight:600;padding:2cqw 0">Thanks! ' + esc(d.name||'we') + ' will reach out soon.</p>';
+          } else { btn.disabled = false; btn.textContent = 'Submit'; alert('Could not send. Please try again.'); }
+        }).catch(function(){ btn.disabled = false; btn.textContent = 'Submit'; alert('Could not send. Please try again.'); });
+      });
+    }
+  }
+})();
+</script>
+</body>
+</html>

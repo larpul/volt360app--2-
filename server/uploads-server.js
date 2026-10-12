@@ -30,6 +30,23 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
 const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
 const scanCache = new Map();
 
+// ---- Digital Business Card: QR sharing and scan tracking ----
+// Card data and scan records are stored as JSON files next to the uploads directory.
+const CARD_FILE = path.join(path.dirname(DATA_DIR), 'card.json');
+const SCANS_FILE = path.join(path.dirname(DATA_DIR), 'scans.json');
+
+// Google Sheets integration — each QR scan is logged as a new spreadsheet row.
+const sheets = require('./google-sheets');
+
+function readJsonFile(filePath, fallback) {
+    try { return JSON.parse(fs.readFileSync(filePath, 'utf8')); }
+    catch (e) { return fallback; }
+}
+
+function writeJsonFile(filePath, data) {
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+}
+
 async function googleJson(url, ms, body) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), ms);
@@ -320,6 +337,29 @@ async function analyzeBill(buffer, mime) {
     };
 }
 
+// Look up approximate location from the visitor's IP address using ip-api.com (free, no key).
+async function ipLocation(ip) {
+    if (!ip || ip === '127.0.0.1' || ip.startsWith('10.') || ip.startsWith('172.') || ip.startsWith('192.168.')) {
+        return '';
+    }
+    try {
+        var controller = new AbortController();
+        var timer = setTimeout(function () { controller.abort(); }, 4000);
+        var resp = await fetch('http://ip-api.com/json/' + ip + '?fields=city,regionName,country', { signal: controller.signal });
+        clearTimeout(timer);
+        var data = await resp.json();
+        if (data && (data.city || data.regionName)) {
+            return [data.city, data.regionName, data.country].filter(Boolean).join(', ');
+        }
+    } catch (e) { /* non-blocking */ }
+    return '';
+}
+
+// Extract the visitor's real IP from nginx proxy headers.
+function clientIp(req) {
+    return req.headers['x-real-ip'] || (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket.remoteAddress || '';
+}
+
 function sendJson(res, status, payload) {
     const body = JSON.stringify(payload);
     res.writeHead(status, {
@@ -439,6 +479,231 @@ const server = http.createServer((req, res) => {
         serveFile(res, decodeURIComponent(url.pathname.slice('/uploads/'.length)));
         return;
     }
+    // ---- Digital Business Card ----
+    // Get the owner's card data.
+    if (req.method === 'GET' && url.pathname === '/api/card') {
+        var card = readJsonFile(CARD_FILE, null);
+        sendJson(res, 200, card || { name: '', title: '', phone: '', email: '', website: '', company: '', photo: '', tagline: '' });
+        return;
+    }
+    // Save the owner's card data (create or update). Generates a stable card ID on first save.
+    if (req.method === 'PUT' && url.pathname === '/api/card') {
+        readJsonBody(req, 64 * 1024).then(function (body) {
+            if (!body) { sendJson(res, 400, { ok: false, message: 'Invalid card data.' }); return; }
+            var existing = readJsonFile(CARD_FILE, {});
+            var card = {
+                id: existing.id || 'card_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+                name: String(body.name || '').slice(0, 120),
+                title: String(body.title || '').slice(0, 120),
+                phone: String(body.phone || '').slice(0, 40),
+                email: String(body.email || '').slice(0, 200),
+                website: String(body.website || '').slice(0, 300),
+                company: String(body.company || '').slice(0, 120),
+                tagline: String(body.tagline || '').slice(0, 120),
+                photo: String(body.photo || '').slice(0, 500),
+                updatedAt: new Date().toISOString()
+            };
+            writeJsonFile(CARD_FILE, card);
+            sendJson(res, 200, { ok: true, card: card });
+        });
+        return;
+    }
+    // Public card data (for QR code scans). Returns contact fields only, no internal IDs.
+    if (req.method === 'GET' && url.pathname.startsWith('/api/card/public/')) {
+        var cardId = decodeURIComponent(url.pathname.slice('/api/card/public/'.length));
+        var card = readJsonFile(CARD_FILE, null);
+        if (!card || card.id !== cardId) {
+            sendJson(res, 404, { ok: false, message: 'Card not found.' });
+            return;
+        }
+        sendJson(res, 200, {
+            ok: true,
+            name: card.name || '', title: card.title || '', phone: card.phone || '',
+            email: card.email || '', website: card.website || '', company: card.company || '',
+            tagline: card.tagline || '', photo: card.photo || ''
+        });
+        return;
+    }
+    // Record a scan and return card data for the public page to display.
+    if (req.method === 'POST' && url.pathname.startsWith('/api/card/scan/')) {
+        var cardId = decodeURIComponent(url.pathname.slice('/api/card/scan/'.length));
+        var card = readJsonFile(CARD_FILE, null);
+        if (!card || card.id !== cardId) {
+            sendJson(res, 404, { ok: false, message: 'Card not found.' });
+            return;
+        }
+        var scanRecord = {
+            cardId: cardId,
+            at: new Date().toISOString(),
+            ua: String(req.headers['user-agent'] || '').slice(0, 300),
+            ref: String(req.headers.referer || '').slice(0, 300),
+            ip: clientIp(req),
+            location: ''
+        };
+        var scans = readJsonFile(SCANS_FILE, []);
+        scans.push(scanRecord);
+        if (scans.length > 1000) scans.splice(0, scans.length - 1000);
+        writeJsonFile(SCANS_FILE, scans);
+        // Fire-and-forget: look up the visitor's location from their IP, then log to Sheets.
+        if (sheets.isConfigured()) {
+            ipLocation(scanRecord.ip).then(function (loc) {
+                if (loc) {
+                    scanRecord.location = loc;
+                    // Update the stored record in place.
+                    var fresh = readJsonFile(SCANS_FILE, []);
+                    var idx = fresh.length - 1;
+                    if (idx >= 0 && fresh[idx].at === scanRecord.at) { fresh[idx].location = loc; writeJsonFile(SCANS_FILE, fresh); }
+                }
+                sheets.logScan(scanRecord);
+            }).catch(function () { sheets.logScan(scanRecord); });
+        }
+        sendJson(res, 200, {
+            ok: true,
+            name: card.name || '', title: card.title || '', phone: card.phone || '',
+            email: card.email || '', website: card.website || '', company: card.company || '',
+            tagline: card.tagline || '', photo: card.photo || ''
+        });
+        return;
+    }
+    // Record a share event (when someone taps the Share button on the card).
+    if (req.method === 'POST' && url.pathname.startsWith('/api/card/share/')) {
+        var cardId = decodeURIComponent(url.pathname.slice('/api/card/share/'.length));
+        var card = readJsonFile(CARD_FILE, null);
+        if (!card || card.id !== cardId) {
+            sendJson(res, 404, { ok: false, message: 'Card not found.' });
+            return;
+        }
+        readJsonBody(req, 4096).then(function (body) {
+            var shareRecord = {
+                cardId: cardId,
+                at: new Date().toISOString(),
+                type: 'share',
+                method: String((body && body.method) || '').slice(0, 40),
+                ua: String(req.headers['user-agent'] || '').slice(0, 300),
+                ref: String(req.headers.referer || '').slice(0, 300),
+                ip: clientIp(req),
+                location: ''
+            };
+            var scans = readJsonFile(SCANS_FILE, []);
+            scans.push(shareRecord);
+            if (scans.length > 1000) scans.splice(0, scans.length - 1000);
+            writeJsonFile(SCANS_FILE, scans);
+            // Fire-and-forget: look up location, then log to Google Sheets.
+            if (sheets.isConfigured()) {
+                ipLocation(shareRecord.ip).then(function (loc) {
+                    if (loc) {
+                        shareRecord.location = loc;
+                        var fresh = readJsonFile(SCANS_FILE, []);
+                        var idx = fresh.length - 1;
+                        if (idx >= 0 && fresh[idx].at === shareRecord.at) { fresh[idx].location = loc; writeJsonFile(SCANS_FILE, fresh); }
+                    }
+                    sheets.logShare(shareRecord);
+                }).catch(function () { sheets.logShare(shareRecord); });
+            }
+            sendJson(res, 200, { ok: true });
+        });
+        return;
+    }
+    // Record a contact request (visitor leaves their phone number on the card page).
+    if (req.method === 'POST' && url.pathname.startsWith('/api/card/contact/')) {
+        var cardId = decodeURIComponent(url.pathname.slice('/api/card/contact/'.length));
+        var card = readJsonFile(CARD_FILE, null);
+        if (!card || card.id !== cardId) {
+            sendJson(res, 404, { ok: false, message: 'Card not found.' });
+            return;
+        }
+        readJsonBody(req, 4096).then(function (body) {
+            var phone = String((body && body.phone) || '').slice(0, 40);
+            var name = String((body && body.name) || '').slice(0, 120);
+            var contactRecord = {
+                cardId: cardId,
+                at: new Date().toISOString(),
+                type: 'contact',
+                phone: phone,
+                name: name,
+                ua: String(req.headers['user-agent'] || '').slice(0, 300),
+                ref: String(req.headers.referer || '').slice(0, 300),
+                ip: clientIp(req),
+                location: ''
+            };
+            var scans = readJsonFile(SCANS_FILE, []);
+            scans.push(contactRecord);
+            if (scans.length > 1000) scans.splice(0, scans.length - 1000);
+            writeJsonFile(SCANS_FILE, scans);
+            // Fire-and-forget: look up location, then log to Google Sheets.
+            if (sheets.isConfigured()) {
+                ipLocation(contactRecord.ip).then(function (loc) {
+                    contactRecord.location = loc;
+                    sheets.logContact(contactRecord);
+                }).catch(function () { sheets.logContact(contactRecord); });
+            }
+            sendJson(res, 200, { ok: true });
+        });
+        return;
+    }
+    // Export all scan and share records as a CSV download (same data logged to Google Sheets).
+    if (req.method === 'GET' && url.pathname === '/api/card/scans/export') {
+        var card = readJsonFile(CARD_FILE, null);
+        var allScans = readJsonFile(SCANS_FILE, []);
+        var myScans = card ? allScans.filter(function (s) { return s.cardId === card.id; }) : [];
+        // Sort newest first so the CSV reads the same way the dashboard does.
+        myScans.sort(function (a, b) { return (b.at || '') < (a.at || '') ? -1 : (b.at || '') > (a.at || '') ? 1 : 0; });
+        var info = sheets.parseUserAgent;
+        var rows = [['Timestamp', 'Event', 'Name', 'Phone', 'Location', 'Device', 'OS', 'Browser', 'Method', 'User Agent', 'Referrer']];
+        myScans.forEach(function (s) {
+            var ua = info(s.ua);
+            rows.push([
+                s.at || '',
+                s.type === 'share' ? 'Share' : s.type === 'contact' ? 'Contact' : 'Scan',
+                s.name || '',
+                s.phone || '',
+                s.location || '',
+                ua.device,
+                ua.os,
+                ua.browser,
+                s.method || '',
+                s.ua || '',
+                s.ref || ''
+            ]);
+        });
+        var csv = rows.map(function (r) {
+            return r.map(function (cell) {
+                var v = String(cell);
+                if (/[",\n]/.test(v)) v = '"' + v.replace(/"/g, '""') + '"';
+                return v;
+            }).join(',');
+        }).join('\n');
+        res.writeHead(200, {
+            'Content-Type': 'text/csv',
+            'Content-Disposition': 'attachment; filename="card-activity.csv"'
+        });
+        res.end(csv);
+        return;
+    }
+    // Google Sheets connection status and direct link (for the analytics page).
+    if (req.method === 'GET' && url.pathname === '/api/sheets/status') {
+        sendJson(res, 200, { connected: sheets.isConfigured(), url: sheets.getSheetUrl() });
+        return;
+    }
+    // Scan analytics for the owner: total count and recent scan details.
+    if (req.method === 'GET' && url.pathname === '/api/card/scans') {
+        var card = readJsonFile(CARD_FILE, null);
+        if (!card) {
+            sendJson(res, 200, { ok: true, total: 0, scans: [] });
+            return;
+        }
+        var allScans = readJsonFile(SCANS_FILE, []);
+        var myScans = allScans.filter(function (s) { return s.cardId === card.id; });
+        var shareCount = myScans.filter(function (s) { return s.type === 'share'; }).length;
+        sendJson(res, 200, {
+            ok: true,
+            total: myScans.length,
+            shares: shareCount,
+            scans: myScans.slice(-50).reverse()
+        });
+        return;
+    }
+
     sendJson(res, 404, { error: 'not found' });
 });
 

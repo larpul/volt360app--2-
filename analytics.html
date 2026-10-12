@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Card Activity — Volt360</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Hanken Grotesk",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;background:#F4F5F7;color:#1E1E1E;min-height:100vh}
+.header{background:linear-gradient(135deg,#FF7110 0%,#FF9D4D 100%);padding:24px 20px;color:#fff;box-shadow:0 4px 20px rgba(255,113,16,.3)}
+.header h1{font-size:1.5rem;font-weight:700}
+.header p{margin-top:4px;font-size:.85rem;opacity:.9}
+.container{max-width:960px;margin:0 auto;padding:20px}
+.summary{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.summary_card{flex:1;min-width:140px;padding:16px;border-radius:14px;background:#fff;box-shadow:0 8px 16px -8px rgba(0,0,0,.1)}
+.summary_card strong{display:block;font-size:2rem;font-weight:700;color:#FF7110;line-height:1}
+.summary_card span{display:block;margin-top:4px;font-size:.75rem;color:#6B6B6B;font-weight:600}
+.toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+.toolbar h2{font-size:1.1rem;font-weight:600}
+.filters{display:flex;gap:8px}
+.filter_btn{padding:6px 14px;border:1px solid #E0E0E0;border-radius:20px;background:#fff;color:#6B6B6B;font-family:inherit;font-size:.8rem;font-weight:600;cursor:pointer;transition:all .2s}
+.filter_btn.active{background:#FF7110;color:#fff;border-color:#FF7110}
+.download_btn{padding:8px 18px;border:none;border-radius:20px;background:#1E1E1E;color:#fff;font-family:inherit;font-size:.82rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;text-decoration:none}
+.download_btn:active{opacity:.85}
+.sheets_btn{padding:8px 18px;border:1px solid #E0E0E0;border-radius:20px;background:#fff;color:#1E1E1E;font-family:inherit;font-size:.82rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;text-decoration:none}
+.sheets_btn svg{width:16px;height:16px}
+.sheets_btn:active{opacity:.85}
+.download_btn svg{width:16px;height:16px}
+.table_wrap{background:#fff;border-radius:14px;box-shadow:0 8px 16px -8px rgba(0,0,0,.1);overflow:hidden;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.82rem}
+thead th{padding:12px 14px;text-align:left;font-size:.72rem;font-weight:700;color:#6B6B6B;text-transform:uppercase;letter-spacing:.04em;background:#FAFAFA;border-bottom:2px solid #F0F0F0;white-space:nowrap}
+tbody td{padding:10px 14px;border-bottom:1px solid #F0F0F0;white-space:nowrap}
+tbody tr:last-child td{border-bottom:none}
+.event_badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:.7rem;font-weight:700}
+.event_scan{background:rgba(255,113,16,.12);color:#FF7110}
+.event_share{background:rgba(30,30,30,.08);color:#1E1E1E}
+.event_contact{background:rgba(0,128,0,.12);color:#2e7d32}
+.spinner_wrap{text-align:center;padding:60px 20px;color:#6B6B6B}
+.spinner{width:32px;height:32px;border:3px solid #E0E0E0;border-top-color:#FF7110;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:40px 20px;color:#6B6B6B;font-size:.9rem}
+.back_link{display:inline-flex;align-items:center;gap:4px;margin-top:12px;color:rgba(255,255,255,.9);font-size:.82rem;font-weight:600;text-decoration:none}
+.back_link svg{width:16px;height:16px}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>Card Activity</h1>
+  <p>Everyone who scanned or shared your digital business card</p>
+  <a class="back_link" href="/dashboard"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>Back to Dashboard</a>
+</div>
+<div class="container">
+  <div class="summary" id="summary">
+    <div class="summary_card"><strong id="sumScans">—</strong><span>Total Scans</span></div>
+    <div class="summary_card"><strong id="sumShares">—</strong><span>Total Shares</span></div>
+    <div class="summary_card"><strong id="sumContacts">—</strong><span>Contacts</span></div>
+    <div class="summary_card"><strong id="sumToday">—</strong><span>Today</span></div>
+  </div>
+  <div class="toolbar">
+    <h2>Activity Log</h2>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <div class="filters">
+        <button class="filter_btn active" data-filter="all">All</button>
+        <button class="filter_btn" data-filter="scan">Scans</button>
+        <button class="filter_btn" data-filter="share">Shares</button>
+        <button class="filter_btn" data-filter="contact">Contacts</button>
+      </div>
+      <a class="download_btn" id="downloadBtn" href="/api/card/scans/export">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+        Download CSV
+      </a>
+      <a class="sheets_btn" id="sheetsBtn" href="#" target="_blank" rel="noopener" style="display:none">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 19V5c0-1.1-.9-2-2-2H7c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2zm-2 0l-3-2-3 2V7h6v12zM5 5h14v1H5z"/></svg>
+        Open in Google Sheets
+      </a>
+    </div>
+  </div>
+  <div class="table_wrap">
+    <div class="spinner_wrap" id="loading"><div class="spinner"></div>Loading activity…</div>
+    <table id="table" style="display:none">
+      <thead>
+        <tr>
+          <th>Date & Time</th>
+          <th>Event</th>
+          <th>Name</th>
+          <th>Phone</th>
+          <th>Location</th>
+          <th>Device</th>
+          <th>OS</th>
+          <th>Browser</th>
+          <th>Method</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div class="empty" id="empty" style="display:none">No activity yet.</div>
+  </div>
+</div>
+<script>
+(function(){
+  var allRows = [];
+  var currentFilter = 'all';
+
+  // Simple user-agent parser (matches the server-side one).
+  function parseUA(ua){
+    ua = ua || '';
+    var os='Unknown',browser='Unknown',device='Desktop';
+    if(/iPad|Android(?!.*Mobile)|Silk/i.test(ua)) device='Tablet';
+    else if(/iPhone|Android.*Mobile|Mobile|iPod/i.test(ua)) device='Mobile';
+    if(/Windows/i.test(ua)) os='Windows';
+    else if(/Mac OS X|Macintosh/i.test(ua)) os='macOS';
+    else if(/Android/i.test(ua)) os='Android';
+    else if(/iPhone|iPad|iPod/i.test(ua)) os='iOS';
+    else if(/Linux/i.test(ua)) os='Linux';
+    if(/Edg\//i.test(ua)) browser='Edge';
+    else if(/OPR\/|Opera/i.test(ua)) browser='Opera';
+    else if(/Chrome\//i.test(ua)&&!/Edg/i.test(ua)) browser='Chrome';
+    else if(/Firefox\//i.test(ua)) browser='Firefox';
+    else if(/Safari\//i.test(ua)&&!/Chrome/i.test(ua)) browser='Safari';
+    return {device:device,os:os,browser:browser};
+  }
+
+  function fmtDate(iso){
+    var d = new Date(iso);
+    if(isNaN(d)) return iso || '';
+    var opts = {month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'};
+    return d.toLocaleString('en-US',opts);
+  }
+
+  function render(){
+    var rows = allRows;
+    if(currentFilter === 'scan') rows = allRows.filter(function(r){return r.type !== 'share' && r.type !== 'contact';});
+    else if(currentFilter === 'share') rows = allRows.filter(function(r){return r.type === 'share';});
+    else if(currentFilter === 'contact') rows = allRows.filter(function(r){return r.type === 'contact';});
+
+    var tbody = document.getElementById('tbody');
+    tbody.innerHTML = '';
+    if(!rows.length){
+      document.getElementById('table').style.display = 'none';
+      document.getElementById('empty').style.display = 'block';
+      return;
+    }
+    document.getElementById('empty').style.display = 'none';
+    document.getElementById('table').style.display = 'table';
+
+    rows.forEach(function(r){
+      var info = parseUA(r.ua);
+      var isShare = r.type === 'share';
+      var isContact = r.type === 'contact';
+      var badge = isShare ? 'event_share' : isContact ? 'event_contact' : 'event_scan';
+      var label = isShare ? 'Share' : isContact ? 'Contact' : 'Scan';
+      var tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td>'+fmtDate(r.at)+'</td>'+
+        '<td><span class="event_badge '+badge+'">'+label+'</span></td>'+
+        '<td>'+(r.name || '—')+'</td>'+
+        '<td>'+(r.phone || '—')+'</td>'+
+        '<td>'+(r.location || r.ip || '—')+'</td>'+
+        '<td>'+info.device+'</td>'+
+        '<td>'+info.os+'</td>'+
+        '<td>'+info.browser+'</td>'+
+        '<td>'+(r.method || '—')+'</td>';
+      tbody.appendChild(tr);
+    });
+  }
+
+  fetch('/api/card/scans').then(function(r){return r.json();}).then(function(d){
+    document.getElementById('loading').style.display = 'none';
+    if(!d.ok || !d.scans){ document.getElementById('empty').style.display='block'; return; }
+    allRows = d.scans;
+    var contactCount = allRows.filter(function(s){return s.type === 'contact';}).length;
+    document.getElementById('sumScans').textContent = (d.total - (d.shares || 0) - contactCount);
+    document.getElementById('sumShares').textContent = (d.shares || 0);
+    document.getElementById('sumContacts').textContent = contactCount;
+    var today = new Date(); today.setHours(0,0,0,0);
+    var todayISO = today.toISOString().slice(0,10);
+    document.getElementById('sumToday').textContent = allRows.filter(function(s){
+      return s.at && s.at.slice(0,10) === todayISO;
+    }).length;
+    render();
+  }).catch(function(){
+    document.getElementById('loading').innerHTML = 'Could not load activity. Please try again.';
+  });
+
+  // Show the "Open in Google Sheets" button if a sheet is connected.
+  fetch('/api/sheets/status').then(function(r){return r.json();}).then(function(d){
+    if(d.connected && d.url){
+      var btn = document.getElementById('sheetsBtn');
+      btn.href = d.url;
+      btn.style.display = 'flex';
+    }
+  }).catch(function(){});
+
+  document.querySelectorAll('.filter_btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.filter_btn').forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      currentFilter = btn.dataset.filter;
+      render();
+    });
+  });
+})();
+</script>
+</body>
+</html>

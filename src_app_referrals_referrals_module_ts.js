@@ -383,7 +383,7 @@ const styles = `.ref_content {
   padding: 9px 12px;
   border-radius: 10px;
   background: #ffffff;
-  color: #fa6c00;
+  color: #FF7110;
   font-size: 0.78rem;
   font-weight: 500;
 }
@@ -392,8 +392,8 @@ const styles = `.ref_content {
   margin-top: 16px;
   padding: 18px 16px;
   border-radius: 18px;
-  background: #fa6c00;
-  box-shadow: 0 10px 24px rgba(250, 108, 0, 0.3);
+  background: #FF7110;
+  box-shadow: 0 10px 24px rgba(255, 113, 16, 0.3);
 }
 .progress_head {
   position: relative;
@@ -597,7 +597,7 @@ const styles = `.ref_content {
   margin-right: 12px;
   border-radius: 50%;
   background: #ffedd9;
-  color: #fa6c00;
+  color: #FF7110;
   font-size: 1rem;
   font-weight: 700;
   display: flex;
@@ -646,7 +646,7 @@ const styles = `.ref_content {
 }
 .status_chip.pending {
   background: #fff1e0;
-  color: #fa6c00;
+  color: #FF7110;
 }
 .status_chip.approved {
   background: #e7f0ff;
@@ -693,7 +693,7 @@ const styles = `.ref_content {
 }
 .mini_btn ion-icon {
   margin-right: 6px;
-  color: #fa6c00;
+  color: #FF7110;
   font-size: 0.95rem;
 }
 .ref_row {
@@ -719,7 +719,7 @@ const styles = `.ref_content {
 }
 .ref_dot.pending {
   background: #fff1e0;
-  color: #fa6c00;
+  color: #FF7110;
 }
 .ref_dot.approved {
   background: #e7f0ff;
@@ -737,7 +737,7 @@ const styles = `.ref_content {
 .ghost_btn.small {
   margin-top: 8px;
   padding: 10px;
-  color: #fa6c00;
+  color: #FF7110;
   font-weight: 600;
   text-align: left;
 }
@@ -749,7 +749,7 @@ const styles = `.ref_content {
 }
 .apply_btn {
   margin: 0;
-  --color: #fa6c00;
+  --color: #FF7110;
   font-size: 0.86rem;
   font-weight: 600;
 }
@@ -829,8 +829,8 @@ ion-toolbar ion-title {
   cursor: pointer;
 }
 .status_pick .pick.active {
-  border-color: #fa6c00;
-  background: #fa6c00;
+  border-color: #FF7110;
+  background: #FF7110;
   color: #ffffff;
 }
 .form_error {
@@ -903,7 +903,7 @@ ion-toolbar ion-title {
 }
 .share_icon.email {
   background: #ffedd9;
-  color: #fa6c00;
+  color: #FF7110;
 }
 .share_text {
   display: block;

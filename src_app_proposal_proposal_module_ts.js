@@ -404,7 +404,7 @@ const styles = `.prop_content {
 }
 .bill_icon {
   margin-right: 10px;
-  color: #fa6c00;
+  color: #FF7110;
   font-size: 1.2rem;
 }
 .row_text {
@@ -428,7 +428,7 @@ const styles = `.prop_content {
 .bill_link {
   margin-left: auto;
   padding-left: 10px;
-  color: #fa6c00;
+  color: #FF7110;
   font-size: 0.76rem;
   font-weight: 600;
   text-decoration: none;
@@ -494,8 +494,8 @@ const styles = `.prop_content {
   cursor: pointer;
 }
 .chip.on {
-  border-color: #fa6c00;
-  background: #fa6c00;
+  border-color: #FF7110;
+  background: #FF7110;
   color: #ffffff;
 }
 .proj_box {
@@ -523,7 +523,7 @@ const styles = `.prop_content {
   font-weight: 600;
 }
 .proj_row.net strong {
-  color: #fa6c00;
+  color: #FF7110;
   font-weight: 700;
 }
 .plan_box {
@@ -580,7 +580,7 @@ const styles = `.prop_content {
   background: #d9d9d9;
 }
 .c_fill.solar {
-  background: #fa6c00;
+  background: #FF7110;
 }
 .diff_box {
   margin-top: 16px;
@@ -590,7 +590,7 @@ const styles = `.prop_content {
 }
 .diff_box strong {
   display: block;
-  color: #fa6c00;
+  color: #FF7110;
   font-size: 0.92rem;
   font-weight: 700;
 }

@@ -1,0 +1,48 @@
+services:
+  # Static-file web entry point (port 3000). Serves the prebuilt Angular/Ionic
+  # bundle directly from the bind-mounted repo and proxies /api and /uploads to
+  # the Node backend. No build step — edits to the static files appear on reload.
+  web:
+    image: nginx:alpine
+    ports:
+      - "3000:80"
+    volumes:
+      - ./:/usr/share/nginx/html:ro
+      - ./nginx.base44.main.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx.base44.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: on-failure
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  # Node.js backend: uploads, AI assistant, roof scan, bill analysis.
+  # Dependency-free (uses Node 22 built-ins only), so no install step is needed.
+  api:
+    image: node:22-slim
+    working_dir: /app
+    command: ["node", "server/uploads-server.js"]
+    environment:
+      - PORT=4000
+      - DATA_DIR=/data/uploads
+      - BASE44_PREVIEW_MODE
+    env_file:
+      - /run/base44/app.env
+    volumes:
+      - ./:/app:ro
+      - uploads_data:/data/uploads
+    restart: on-failure
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:4000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+volumes:
+  uploads_data:
