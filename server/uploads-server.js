@@ -559,6 +559,42 @@ const server = http.createServer((req, res) => {
         });
         return;
     }
+    // Export all scan and share records as a CSV download (same data logged to Google Sheets).
+    if (req.method === 'GET' && url.pathname === '/api/card/scans/export') {
+        var card = readJsonFile(CARD_FILE, null);
+        var allScans = readJsonFile(SCANS_FILE, []);
+        var myScans = card ? allScans.filter(function (s) { return s.cardId === card.id; }) : [];
+        // Sort newest first so the CSV reads the same way the dashboard does.
+        myScans.sort(function (a, b) { return (b.at || '') < (a.at || '') ? -1 : (b.at || '') > (a.at || '') ? 1 : 0; });
+        var info = sheets.parseUserAgent;
+        var rows = [['Timestamp', 'Event', 'Device', 'OS', 'Browser', 'Method', 'User Agent', 'Referrer']];
+        myScans.forEach(function (s) {
+            var ua = info(s.ua);
+            rows.push([
+                s.at || '',
+                s.type === 'share' ? 'Share' : 'Scan',
+                ua.device,
+                ua.os,
+                ua.browser,
+                s.method || '',
+                s.ua || '',
+                s.ref || ''
+            ]);
+        });
+        var csv = rows.map(function (r) {
+            return r.map(function (cell) {
+                var v = String(cell);
+                if (/[",\n]/.test(v)) v = '"' + v.replace(/"/g, '""') + '"';
+                return v;
+            }).join(',');
+        }).join('\n');
+        res.writeHead(200, {
+            'Content-Type': 'text/csv',
+            'Content-Disposition': 'attachment; filename="card-activity.csv"'
+        });
+        res.end(csv);
+        return;
+    }
     // Google Sheets connection status (for the profile page to show on/off).
     if (req.method === 'GET' && url.pathname === '/api/sheets/status') {
         sendJson(res, 200, { connected: sheets.isConfigured() });
