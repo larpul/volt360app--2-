@@ -614,11 +614,13 @@ const server = http.createServer((req, res) => {
         }
         readJsonBody(req, 4096).then(function (body) {
             var phone = String((body && body.phone) || '').slice(0, 40);
+            var name = String((body && body.name) || '').slice(0, 120);
             var contactRecord = {
                 cardId: cardId,
                 at: new Date().toISOString(),
                 type: 'contact',
                 phone: phone,
+                name: name,
                 ua: String(req.headers['user-agent'] || '').slice(0, 300),
                 ref: String(req.headers.referer || '').slice(0, 300),
                 ip: clientIp(req),
@@ -647,12 +649,13 @@ const server = http.createServer((req, res) => {
         // Sort newest first so the CSV reads the same way the dashboard does.
         myScans.sort(function (a, b) { return (b.at || '') < (a.at || '') ? -1 : (b.at || '') > (a.at || '') ? 1 : 0; });
         var info = sheets.parseUserAgent;
-        var rows = [['Timestamp', 'Event', 'Phone', 'Location', 'Device', 'OS', 'Browser', 'Method', 'User Agent', 'Referrer']];
+        var rows = [['Timestamp', 'Event', 'Name', 'Phone', 'Location', 'Device', 'OS', 'Browser', 'Method', 'User Agent', 'Referrer']];
         myScans.forEach(function (s) {
             var ua = info(s.ua);
             rows.push([
                 s.at || '',
                 s.type === 'share' ? 'Share' : s.type === 'contact' ? 'Contact' : 'Scan',
+                s.name || '',
                 s.phone || '',
                 s.location || '',
                 ua.device,

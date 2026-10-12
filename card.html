@@ -97,6 +97,7 @@ body{font-family:"Hanken Grotesk",-apple-system,BlinkMacSystemFont,"Helvetica Ne
       '<form class="card_phone_form" id="phoneForm">' +
         '<p class="card_phone_label">Want a callback? Leave your number:</p>' +
         '<input class="card_phone_input" id="phoneInput" type="tel" placeholder="Your phone number" autocomplete="tel">' +
+        '<input class="card_phone_input" id="nameInput" type="text" placeholder="Your name" autocomplete="name">' +
         '<button class="card_btn card_btn_primary" type="submit" id="phoneSubmit" style="margin-top:1.5cqw">Request Callback</button>' +
       '</form>';
 
@@ -128,13 +129,14 @@ body{font-family:"Hanken Grotesk",-apple-system,BlinkMacSystemFont,"Helvetica Ne
       form.addEventListener('submit',function(e){
         e.preventDefault();
         var phone = document.getElementById('phoneInput').value.trim();
+        var name = document.getElementById('nameInput').value.trim();
         if(!phone) return;
         var btn = document.getElementById('phoneSubmit');
         btn.disabled = true; btn.textContent = 'Sending…';
         fetch('/api/card/contact/' + encodeURIComponent(cardId),{
           method:'POST',
           headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({phone:phone})
+          body:JSON.stringify({phone:phone,name:name})
         }).then(function(r){return r.json();}).then(function(res){
           if(res.ok){
             form.innerHTML = '<p style="font-size:3.4cqw;color:#FF7815;font-weight:600;padding:2cqw 0">Thanks! ' + esc(d.name||'we') + ' will reach out soon.</p>';
