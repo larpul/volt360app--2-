@@ -62,13 +62,14 @@ body{font-family:"Uber Move",sans-serif;background:#E9E9E9;display:flex;justify-
 
   function esc(s){return String(s||'').replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 
-  function vcard(d){
+  function vcard(d, photoBase64){
     return 'BEGIN:VCARD\nVERSION:3.0\nFN:'+d.name+'\n'+
       (d.title?'TITLE:'+d.title+'\n':'')+
       (d.company?'ORG:'+d.company+'\n':'')+
       (d.phone?'TEL;TYPE=CELL:'+d.phone+'\n':'')+
       (d.email?'EMAIL:'+d.email+'\n':'')+
       (d.website?'URL:'+d.website+'\n':'')+
+      (photoBase64?'PHOTO;ENCODING=b;TYPE=JPEG:'+photoBase64+'\n':'')+
       'END:VCARD';
   }
 
@@ -100,12 +101,29 @@ body{font-family:"Uber Move",sans-serif;background:#E9E9E9;display:flex;justify-
       '</form>';
 
     document.getElementById('saveBtn').addEventListener('click',function(){
-      var blob = new Blob([vcard(d)],{type:'text/vcard'});
-      var a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = (d.name||'contact')+'.vcf';
-      a.click();
-      URL.revokeObjectURL(a.href);
+      var btn = document.getElementById('saveBtn');
+      btn.textContent = 'Saving…'; btn.disabled = true;
+      var photoUrl = d.photo || '';
+      var fetchPromise = photoUrl
+        ? fetch(photoUrl).then(function(r){return r.blob();}).then(function(b){
+            return new Promise(function(resolve){
+              var reader = new FileReader();
+              reader.onloadend = function(){resolve(reader.result.split(',')[1]);};
+              reader.onerror = function(){resolve(null);};
+              reader.readAsDataURL(b);
+            });
+          }).catch(function(){return null;})
+        : Promise.resolve(null);
+      fetchPromise.then(function(b64){
+        var vcf = vcard(d, b64);
+        var blob = new Blob([vcf],{type:'text/vcard'});
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = (d.name||'contact')+'.vcf';
+        a.click();
+        URL.revokeObjectURL(a.href);
+        btn.textContent = 'Save to Contacts'; btn.disabled = false;
+      });
     });
 
     document.getElementById('shareBtn').addEventListener('click',function(){
