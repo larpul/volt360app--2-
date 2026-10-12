@@ -156,7 +156,7 @@ tbody tr:last-child td{border-bottom:none}
         '<td>'+fmtDate(r.at)+'</td>'+
         '<td><span class="event_badge '+badge+'">'+label+'</span></td>'+
         '<td>'+(r.phone || '—')+'</td>'+
-        '<td>'+(r.location || '—')+'</td>'+
+        '<td>'+(r.location || r.ip || '—')+'</td>'+
         '<td>'+info.device+'</td>'+
         '<td>'+info.os+'</td>'+
         '<td>'+info.browser+'</td>'+
