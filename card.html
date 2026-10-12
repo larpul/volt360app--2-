@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="theme-color" content="#fa6c00"/>
+<title>Digital Business Card</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue","Roboto",sans-serif;background:#f4eeea;color:#2b2c30;min-height:100vh;display:flex;justify-content:center;align-items:flex-start;padding:24px 16px}
+.card{width:100%;max-width:380px;background:#fff;border-radius:20px;box-shadow:0 4px 24px rgba(0,0,0,.12);overflow:hidden;text-align:center}
+.card_photo{width:110px;height:110px;border-radius:50%;margin:32px auto 0;object-fit:cover;border:4px solid #fa6c00;background:#f4eeea}
+.card_name{font-size:1.5rem;font-weight:700;margin:16px 0 2px}
+.card_title{font-size:1rem;color:#697070;margin-bottom:2px}
+.card_company{font-size:1rem;font-weight:600;color:#fa6c00;margin-bottom:24px}
+.card_actions{display:flex;flex-direction:column;gap:10px;padding:0 24px 24px}
+.card_btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;border:none;border-radius:12px;font-size:1rem;font-weight:600;cursor:pointer;transition:opacity .2s;text-decoration:none}
+.card_btn:active{opacity:.8}
+.card_btn_primary{background:#fa6c00;color:#fff}
+.card_btn_secondary{background:#f4eeea;color:#2b2c30}
+.card_contacts{padding:0 24px 28px}
+.card_contact{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid #f0ebe7;text-decoration:none;color:#2b2c30}
+.card_contact:first-child{border-top:none}
+.card_contact svg{width:20px;height:20px;flex-shrink:0;color:#fa6c00}
+.card_contact_val{font-size:.95rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.card_empty{text-align:center;padding:60px 24px;color:#697070}
+.card_loading{text-align:center;padding:80px 24px;color:#697070}
+.spinner{width:36px;height:36px;border:3px solid #f4eeea;border-top-color:#fa6c00;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div id="card" class="card">
+<div class="card_loading"><div class="spinner"></div>Loading card…</div>
+</div>
+<script>
+(function(){
+  var path = window.location.pathname;
+  var cardId = '';
+  // /card/{id} or /card?id=xxx
+  if(path.indexOf('/card/') === 0){cardId = decodeURIComponent(path.slice(6));}
+  if(!cardId){cardId = new URLSearchParams(window.location.search).get('id')||'';}
+  if(!cardId){document.getElementById('card').innerHTML='<div class="card_empty">No card ID provided.</div>';return;}
+
+  fetch('/api/card/scan/' + encodeURIComponent(cardId),{method:'POST'})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(!d || !d.ok){
+        document.getElementById('card').innerHTML='<div class="card_empty">This business card is no longer available.</div>';
+        return;
+      }
+      render(d);
+    })
+    .catch(function(){
+      document.getElementById('card').innerHTML='<div class="card_empty">Could not load the card. Please try again.</div>';
+    });
+
+  function esc(s){return String(s||'').replace(/[&<>"']/g,function(c){return{'&':'&','<':'<','>':'>','"':'"',"'":'&#39;'}[c];});}
+
+  function vcard(d){
+    return 'BEGIN:VCARD\nVERSION:3.0\nFN:'+d.name+'\n'+
+      (d.title?'TITLE:'+d.title+'\n':'')+
+      (d.company?'ORG:'+d.company+'\n':'')+
+      (d.phone?'TEL;TYPE=CELL:'+d.phone+'\n':'')+
+      (d.email?'EMAIL:'+d.email+'\n':'')+
+      (d.website?'URL:'+d.website+'\n':'')+
+      'END:VCARD';
+  }
+
+  function render(d){
+    var photoHtml = d.photo ? '<img class="card_photo" src="'+esc(d.photo)+'" alt="'+esc(d.name)+'">' : '<div class="card_photo" style="display:flex;align-items:center;justify-content:center;font-size:2.5rem;font-weight:700;color:#fa6c00">'+esc((d.name||'?').charAt(0))+'</div>';
+    var html = photoHtml +
+      '<h1 class="card_name">'+esc(d.name||'Unknown')+'</h1>' +
+      (d.title?'<p class="card_title">'+esc(d.title)+'</p>':'') +
+      (d.company?'<p class="card_company">'+esc(d.company)+'</p>':'') +
+      '<div class="card_actions">' +
+        '<button class="card_btn card_btn_primary" id="saveBtn">Save to Contacts</button>' +
+        '<button class="card_btn card_btn_secondary" id="shareBtn">Share</button>' +
+      '</div>' +
+      '<div class="card_contacts">' +
+        (d.phone?'<a class="card_contact" href="tel:'+esc(d.phone)+'"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 10.8c1.4 2.8 3.8 5.2 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.2.2 2.4.6 3.6.1.4 0 .8-.3 1l-2.2 1.2z"/></svg><span class="card_contact_val">'+esc(d.phone)+'</span></a>':'') +
+        (d.email?'<a class="card_contact" href="mailto:'+esc(d.email)+'"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg><span class="card_contact_val">'+esc(d.email)+'</span></a>':'') +
+        (d.website?'<a class="card_contact" href="'+esc(d.website)+'" target="_blank"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm-1 17.9c-3.4-.5-6-3.5-6-7 0-.5.1-1 .2-1.5l4.3 4.3v.9c0 1 .8 1.8 1.5 2v1.3zM17.9 16c-.2-.6-.8-1-1.4-1h-1v-3c0-.6-.4-1-1-1H9v-2h2c.6 0 1-.4 1-1V6h2c.6 0 1-.4 1-1v-.4c2.4 1.1 4 3.5 4 6.4 0 2.1-.8 4-2.1 5z"/></svg><span class="card_contact_val">'+esc(d.website)+'</span></a>':'') +
+      '</div>';
+    document.getElementById('card').innerHTML = html;
+
+    document.getElementById('saveBtn').addEventListener('click',function(){
+      var blob = new Blob([vcard(d)],{type:'text/vcard'});
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = (d.name||'contact')+'.vcf';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
+
+    document.getElementById('shareBtn').addEventListener('click',function(){
+      var shareData = {title:d.name||'Business Card',text:(d.title?d.title+' at ': '')+(d.company||''),url:window.location.href};
+      if(navigator.share){navigator.share(shareData);}
+      else{navigator.clipboard.writeText(window.location.href).then(function(){alert('Link copied to clipboard!');});}
+    });
+  }
+})();
+</script>
+</body>
+</html>

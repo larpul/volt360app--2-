@@ -30,6 +30,20 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
 const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
 const scanCache = new Map();
 
+// ---- Digital Business Card: QR sharing and scan tracking ----
+// Card data and scan records are stored as JSON files next to the uploads directory.
+const CARD_FILE = path.join(path.dirname(DATA_DIR), 'card.json');
+const SCANS_FILE = path.join(path.dirname(DATA_DIR), 'scans.json');
+
+function readJsonFile(filePath, fallback) {
+    try { return JSON.parse(fs.readFileSync(filePath, 'utf8')); }
+    catch (e) { return fallback; }
+}
+
+function writeJsonFile(filePath, data) {
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+}
+
 async function googleJson(url, ms, body) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), ms);
@@ -439,6 +453,92 @@ const server = http.createServer((req, res) => {
         serveFile(res, decodeURIComponent(url.pathname.slice('/uploads/'.length)));
         return;
     }
+    // ---- Digital Business Card ----
+    // Get the owner's card data.
+    if (req.method === 'GET' && url.pathname === '/api/card') {
+        var card = readJsonFile(CARD_FILE, null);
+        sendJson(res, 200, card || { name: '', title: '', phone: '', email: '', website: '', company: '', photo: '' });
+        return;
+    }
+    // Save the owner's card data (create or update). Generates a stable card ID on first save.
+    if (req.method === 'PUT' && url.pathname === '/api/card') {
+        readJsonBody(req, 64 * 1024).then(function (body) {
+            if (!body) { sendJson(res, 400, { ok: false, message: 'Invalid card data.' }); return; }
+            var existing = readJsonFile(CARD_FILE, {});
+            var card = {
+                id: existing.id || 'card_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+                name: String(body.name || '').slice(0, 120),
+                title: String(body.title || '').slice(0, 120),
+                phone: String(body.phone || '').slice(0, 40),
+                email: String(body.email || '').slice(0, 200),
+                website: String(body.website || '').slice(0, 300),
+                company: String(body.company || '').slice(0, 120),
+                photo: String(body.photo || '').slice(0, 500),
+                updatedAt: new Date().toISOString()
+            };
+            writeJsonFile(CARD_FILE, card);
+            sendJson(res, 200, { ok: true, card: card });
+        });
+        return;
+    }
+    // Public card data (for QR code scans). Returns contact fields only, no internal IDs.
+    if (req.method === 'GET' && url.pathname.startsWith('/api/card/public/')) {
+        var cardId = decodeURIComponent(url.pathname.slice('/api/card/public/'.length));
+        var card = readJsonFile(CARD_FILE, null);
+        if (!card || card.id !== cardId) {
+            sendJson(res, 404, { ok: false, message: 'Card not found.' });
+            return;
+        }
+        sendJson(res, 200, {
+            ok: true,
+            name: card.name || '', title: card.title || '', phone: card.phone || '',
+            email: card.email || '', website: card.website || '', company: card.company || '',
+            photo: card.photo || ''
+        });
+        return;
+    }
+    // Record a scan and return card data for the public page to display.
+    if (req.method === 'POST' && url.pathname.startsWith('/api/card/scan/')) {
+        var cardId = decodeURIComponent(url.pathname.slice('/api/card/scan/'.length));
+        var card = readJsonFile(CARD_FILE, null);
+        if (!card || card.id !== cardId) {
+            sendJson(res, 404, { ok: false, message: 'Card not found.' });
+            return;
+        }
+        var scans = readJsonFile(SCANS_FILE, []);
+        scans.push({
+            cardId: cardId,
+            at: new Date().toISOString(),
+            ua: String(req.headers['user-agent'] || '').slice(0, 300),
+            ref: String(req.headers.referer || '').slice(0, 300)
+        });
+        if (scans.length > 1000) scans.splice(0, scans.length - 1000);
+        writeJsonFile(SCANS_FILE, scans);
+        sendJson(res, 200, {
+            ok: true,
+            name: card.name || '', title: card.title || '', phone: card.phone || '',
+            email: card.email || '', website: card.website || '', company: card.company || '',
+            photo: card.photo || ''
+        });
+        return;
+    }
+    // Scan analytics for the owner: total count and recent scan details.
+    if (req.method === 'GET' && url.pathname === '/api/card/scans') {
+        var card = readJsonFile(CARD_FILE, null);
+        if (!card) {
+            sendJson(res, 200, { ok: true, total: 0, scans: [] });
+            return;
+        }
+        var allScans = readJsonFile(SCANS_FILE, []);
+        var myScans = allScans.filter(function (s) { return s.cardId === card.id; });
+        sendJson(res, 200, {
+            ok: true,
+            total: myScans.length,
+            scans: myScans.slice(-50).reverse()
+        });
+        return;
+    }
+
     sendJson(res, 404, { error: 'not found' });
 });
 

@@ -2724,4 +2724,251 @@ ion-toast::part(button) {
   text-align: center;
 }
 
+/* ============================================================
+   Digital Business Card widget
+   ============================================================ */
+.card_root { position: relative; z-index: 10000; }
+
+.card_dock {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  z-index: 10001;
+}
+.card_dock[hidden] { display: none; }
+
+.card_fab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 18px;
+  border: none;
+  border-radius: 30px;
+  background: var(--primary);
+  color: var(--white);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(250, 108, 0, 0.4);
+  transition: transform 0.2s, opacity 0.2s;
+}
+.card_fab:active { transform: scale(0.95); }
+.card_fab i { font-size: 1.2rem; }
+
+.card_backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 10002;
+}
+.card_backdrop[hidden] { display: none; }
+
+.card_panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 100%;
+  max-width: 480px;
+  height: 100%;
+  background: var(--bg-white);
+  z-index: 10003;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+.card_panel[hidden] { display: none; }
+
+@media (max-width: 520px) {
+  .card_panel { max-width: 100%; }
+}
+
+.card_head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 20px;
+  background: var(--primary);
+  color: var(--white);
+  flex-shrink: 0;
+}
+.card_head_icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+}
+.card_head_text { flex: 1; }
+.card_head_text h2 { font-size: 1.15rem; font-weight: 700; margin: 0; }
+.card_head_text p { font-size: 0.78rem; opacity: 0.85; margin: 2px 0 0; }
+.card_close {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: var(--white);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.card_body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+/* QR code section */
+.card_qr_section {
+  text-align: center;
+  padding: 8px 0 24px;
+}
+.card_qr_box {
+  display: inline-block;
+  padding: 12px;
+  background: var(--white);
+  border-radius: 16px;
+  border: 1px solid #eee;
+  margin-bottom: 12px;
+}
+.card_qr_box img,
+.card_qr_box canvas { display: block; }
+.card_qr_hint {
+  font-size: 0.82rem;
+  color: var(--text-light);
+  transition: color 0.3s;
+}
+.card_qr_nosave {
+  font-size: 0.85rem;
+  color: var(--text-light2);
+  padding: 20px 16px;
+  line-height: 1.5;
+}
+.card_qr_nosave[hidden] { display: none; }
+.card_qr_section.no_card .card_qr_box { display: none; }
+
+/* Form */
+.card_form { padding-bottom: 20px; }
+.card_field {
+  margin-bottom: 14px;
+}
+.card_field label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-light3);
+  margin-bottom: 5px;
+}
+.card_field input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid #e5e0dc;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  color: var(--text-dark);
+  background: var(--white);
+  outline: none;
+  transition: border-color 0.2s;
+}
+.card_field input:focus {
+  border-color: var(--primary);
+}
+.card_save {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  background: var(--primary);
+  color: var(--white);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 6px;
+  transition: opacity 0.2s;
+}
+.card_save:active { opacity: 0.85; }
+.card_save:disabled { opacity: 0.6; cursor: default; }
+
+/* Share buttons */
+.card_share {
+  display: flex;
+  gap: 8px;
+  padding-bottom: 20px;
+}
+.card_share[hidden] { display: none; }
+.card_share_btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 11px 8px;
+  border: 1.5px solid #e5e0dc;
+  border-radius: 10px;
+  background: var(--bg-color);
+  color: var(--text-dark);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+.card_share_btn:active { background: #eee8e3; }
+.card_share_btn i { font-size: 1.1rem; color: var(--primary); }
+
+/* Scan tracking */
+.card_scans[hidden] { display: none; }
+.card_scans_title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin: 0 0 4px;
+}
+.card_scans_title i { color: var(--primary); }
+.card_scans_total {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 14px;
+}
+.card_scans_list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.card_scans_empty {
+  font-size: 0.85rem;
+  color: var(--text-light2);
+  text-align: center;
+  padding: 12px;
+}
+.card_scan_item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--bg-color);
+  border-radius: 10px;
+}
+.card_scan_icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(250, 108, 0, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.card_scan_icon i { color: var(--primary); font-size: 1.1rem; }
+.card_scan_body { flex: 1; }
+.card_scan_device { font-size: 0.88rem; font-weight: 600; color: var(--text-dark); }
+.card_scan_time { font-size: 0.75rem; color: var(--text-light); }
+
 /*# sourceMappingURL=styles.css.map*/
