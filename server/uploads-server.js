@@ -604,6 +604,42 @@ const server = http.createServer((req, res) => {
         });
         return;
     }
+    // Record a booking request (visitor selected a date/time on the scheduling tool).
+    if (req.method === 'POST' && url.pathname.startsWith('/api/card/book/')) {
+        var cardId = decodeURIComponent(url.pathname.slice('/api/card/book/'.length));
+        var card = readJsonFile(CARD_FILE, null);
+        if (!card || card.id !== cardId) {
+            sendJson(res, 404, { ok: false, message: 'Card not found.' });
+            return;
+        }
+        readJsonBody(req, 4096).then(function (body) {
+            var booking = {
+                cardId: cardId,
+                at: new Date().toISOString(),
+                type: 'booking',
+                date: String((body && body.date) || '').slice(0, 60),
+                time: String((body && body.time) || '').slice(0, 40),
+                name: String((body && body.name) || '').slice(0, 120),
+                email: String((body && body.email) || '').slice(0, 200),
+                ua: String(req.headers['user-agent'] || '').slice(0, 300),
+                ref: String(req.headers.referer || '').slice(0, 300),
+                ip: clientIp(req),
+                location: ''
+            };
+            var scans = readJsonFile(SCANS_FILE, []);
+            scans.push(booking);
+            if (scans.length > 1000) scans.splice(0, scans.length - 1000);
+            writeJsonFile(SCANS_FILE, scans);
+            if (sheets.isConfigured()) {
+                ipLocation(booking.ip).then(function (loc) {
+                    booking.location = loc;
+                    sheets.logBooking(booking);
+                }).catch(function () { sheets.logBooking(booking); });
+            }
+            sendJson(res, 200, { ok: true });
+        });
+        return;
+    }
     // Record a contact request (visitor leaves their phone number on the card page).
     if (req.method === 'POST' && url.pathname.startsWith('/api/card/contact/')) {
         var cardId = decodeURIComponent(url.pathname.slice('/api/card/contact/'.length));

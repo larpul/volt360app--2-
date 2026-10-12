@@ -160,6 +160,43 @@ body::after{
   .bento-website{min-height:200px}
 }
 
+/* ===== Scheduler ===== */
+.schedule-section{padding:80px 48px 80px}
+.schedule-wrap{max-width:640px}
+.schedule-wrap h3{
+  font-family:'Playfair Display',serif;font-size:clamp(1.5rem,3vw,2.25rem);
+  font-weight:700;margin-bottom:8px;line-height:1.1;
+}
+.schedule-wrap>p{color:var(--stone);font-size:15px;margin-bottom:32px}
+.schedule-dates{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;margin-bottom:24px;scrollbar-width:thin}
+.date-chip{
+  flex-shrink:0;min-height:64px;min-width:64px;padding:10px 16px;
+  border:1px solid rgba(26,26,26,.15);background:transparent;cursor:pointer;
+  font-family:'IBM Plex Mono',monospace;text-align:center;
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  transition:border-color .3s ease,background .3s ease,color .3s ease;
+}
+.date-chip:hover{border-color:var(--ink)}
+.date-chip.selected{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.date-chip .dc-day{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--stone)}
+.date-chip.selected .dc-day{color:var(--accent)}
+.date-chip .dc-num{font-size:20px;font-weight:600;line-height:1}
+.date-chip .dc-month{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--stone)}
+.date-chip.selected .dc-month{color:rgba(242,240,233,.6)}
+.schedule-times{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:32px}
+.time-chip{
+  min-height:48px;border:1px solid rgba(26,26,26,.15);background:transparent;cursor:pointer;
+  font-family:'IBM Plex Mono',monospace;font-size:14px;color:var(--ink);
+  transition:border-color .3s ease,background .3s ease,color .3s ease;
+}
+.time-chip:hover{border-color:var(--ink)}
+.time-chip.selected{background:var(--accent);color:var(--ink);border-color:var(--accent);font-weight:600}
+.time-chip:disabled{opacity:.3;cursor:not-allowed}
+@media(max-width:768px){
+  .schedule-section{padding:60px 24px 60px}
+  .schedule-times{grid-template-columns:repeat(3,1fr)}
+}
+
 /* ===== Contact Form ===== */
 .contact-section{padding:80px 48px 120px}
 .contact-form{max-width:560px}
@@ -290,9 +327,7 @@ a:focus-visible,button:focus-visible,input:focus-visible{
       '<section class="matrix reveal">'+
         '<button class="bar bar-save magnetic" id="saveBtn"><span>Save Contact</span><span class="bar-arrow">→</span></button>'+
         '<a class="bar bar-message magnetic" id="messageBtn" href="'+(d.email?'mailto:'+esc(d.email):d.phone?'sms:'+esc(d.phone):'#')+'"><span>Direct Message</span><span class="bar-arrow">→</span></a>'+
-        (d.website
-          ?'<a class="bar bar-book magnetic" href="'+esc(d.website)+'" target="_blank" rel="noopener"><span class="bar-inner"><span>Book Appointment</span><span class="bar-arrow">→</span></span></a>'
-          :'<button class="bar bar-book magnetic" id="bookBtn"><span class="bar-inner"><span>Book Appointment</span><span class="bar-arrow">→</span></span></button>')+
+        '<button class="bar bar-book magnetic" id="bookBtn"><span class="bar-inner"><span>Book Appointment</span><span class="bar-arrow">→</span></span></button>'+
       '</section>'+
 
       '<section class="ecosystem reveal">'+
@@ -310,6 +345,21 @@ a:focus-visible,button:focus-visible,input:focus-visible{
           '<button class="bento-card bento-share" id="shareBtn">'+
             '<div class="bc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/><line x1="15.4" y1="6.5" x2="8.6" y2="10.5"/></svg></div>'+
             '<div><div class="bc-label">Share</div><div class="bc-value">Send this card</div></div></button>'+
+        '</div>'+
+      '</section>'+
+
+      '<section class="schedule-section reveal" id="schedule">'+
+        '<div class="section-label">Smart Scheduling</div>'+
+        '<div class="schedule-wrap">'+
+          '<h3>Book a Meeting</h3>'+
+          '<p>Select a date and time that works for you.</p>'+
+          '<div class="schedule-dates" id="scheduleDates"></div>'+
+          '<div class="schedule-times" id="scheduleTimes"></div>'+
+          '<form class="schedule-form" id="scheduleForm">'+
+            '<div class="cf-field"><label for="sf-name">Your Name</label><input class="cf-input" id="sf-name" type="text" placeholder="Jane Doe" autocomplete="name" required></div>'+
+            '<div class="cf-field"><label for="sf-email">Your Email</label><input class="cf-input" id="sf-email" type="email" placeholder="jane@example.com" autocomplete="email" required></div>'+
+            '<button class="cf-submit magnetic" type="submit" id="sf-submit">Confirm Booking</button>'+
+          '</form>'+
         '</div>'+
       '</section>'+
 
@@ -347,10 +397,11 @@ a:focus-visible,button:focus-visible,input:focus-visible{
       URL.revokeObjectURL(a.href);
     });
 
-    // --- Book Appointment fallback ---
+    // --- Book Appointment — scroll to scheduler ---
     var bookBtn=document.getElementById('bookBtn');
     if(bookBtn) bookBtn.addEventListener('click',function(){
-      if(d.email){window.location.href='mailto:'+d.email+'?subject=Appointment%20Request';}
+      var el=document.getElementById('schedule');
+      if(el) el.scrollIntoView({behavior:'smooth'});
     });
 
     // --- Share ---
@@ -384,6 +435,69 @@ a:focus-visible,button:focus-visible,input:focus-visible{
       } else {
         form.innerHTML='<div class="cf-success">Thanks! '+esc(name.split(' ')[0])+' will reach out soon.</div>';
       }
+    });
+
+    // --- Scheduler ---
+    var selectedDate=null,selectedTime=null,selectedDateLabel='';
+
+    var datesEl=document.getElementById('scheduleDates');
+    if(datesEl){
+      var today=new Date();
+      for(var i=0;i<14;i++){
+        (function(i){
+          var dd=new Date(today);dd.setDate(dd.getDate()+i);
+          var dn=dd.toLocaleDateString('en-US',{weekday:'short'});
+          var dnum=dd.getDate();
+          var dm=dd.toLocaleDateString('en-US',{month:'short'});
+          var chip=document.createElement('button');
+          chip.type='button';chip.className='date-chip';
+          chip.innerHTML='<span class="dc-day">'+dn+'</span><span class="dc-num">'+dnum+'</span><span class="dc-month">'+dm+'</span>';
+          chip.addEventListener('click',function(){
+            document.querySelectorAll('.date-chip').forEach(function(c){c.classList.remove('selected')});
+            chip.classList.add('selected');
+            selectedDate=dd.toISOString().split('T')[0];
+            selectedDateLabel=dd.toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});
+          });
+          datesEl.appendChild(chip);
+        })(i);
+      }
+    }
+
+    var timesEl=document.getElementById('scheduleTimes');
+    if(timesEl){
+      var slots=['9:00 AM','9:30 AM','10:00 AM','10:30 AM','11:00 AM','11:30 AM','12:00 PM','12:30 PM','1:00 PM','1:30 PM','2:00 PM','2:30 PM','3:00 PM','3:30 PM','4:00 PM','4:30 PM'];
+      slots.forEach(function(slot){
+        var chip=document.createElement('button');
+        chip.type='button';chip.className='time-chip';chip.textContent=slot;
+        chip.addEventListener('click',function(){
+          document.querySelectorAll('.time-chip').forEach(function(c){c.classList.remove('selected')});
+          chip.classList.add('selected');selectedTime=slot;
+        });
+        timesEl.appendChild(chip);
+      });
+    }
+
+    var scheduleForm=document.getElementById('scheduleForm');
+    if(scheduleForm) scheduleForm.addEventListener('submit',function(e){
+      e.preventDefault();
+      if(!selectedDate||!selectedTime){alert('Please select a date and time.');return;}
+      var vn=document.getElementById('sf-name').value.trim();
+      var ve=document.getElementById('sf-email').value.trim();
+      if(!vn||!ve) return;
+      var btn=document.getElementById('sf-submit');
+      btn.disabled=true;btn.textContent='Confirming…';
+      function success(){
+        scheduleForm.innerHTML='<div class="cf-success">Booking confirmed for '+esc(selectedDateLabel)+' at '+esc(selectedTime)+'. A confirmation will be sent to '+esc(ve)+'.</div>';
+      }
+      if(cardId){
+        fetch('/api/card/book/'+encodeURIComponent(cardId),{
+          method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({date:selectedDateLabel,time:selectedTime,name:vn,email:ve})
+        }).then(function(r){return r.json()}).then(function(res){
+          if(res.ok) success();
+          else{btn.disabled=false;btn.textContent='Confirm Booking';alert('Could not book. Please try again.');}
+        }).catch(function(){btn.disabled=false;btn.textContent='Confirm Booking';alert('Could not book. Please try again.');});
+      } else success();
     });
 
     // --- QR Code ---
