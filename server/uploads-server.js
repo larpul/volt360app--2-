@@ -35,6 +35,9 @@ const scanCache = new Map();
 const CARD_FILE = path.join(path.dirname(DATA_DIR), 'card.json');
 const SCANS_FILE = path.join(path.dirname(DATA_DIR), 'scans.json');
 
+// Google Sheets integration — each QR scan is logged as a new spreadsheet row.
+const sheets = require('./google-sheets');
+
 function readJsonFile(filePath, fallback) {
     try { return JSON.parse(fs.readFileSync(filePath, 'utf8')); }
     catch (e) { return fallback; }
@@ -505,21 +508,31 @@ const server = http.createServer((req, res) => {
             sendJson(res, 404, { ok: false, message: 'Card not found.' });
             return;
         }
-        var scans = readJsonFile(SCANS_FILE, []);
-        scans.push({
+        var scanRecord = {
             cardId: cardId,
             at: new Date().toISOString(),
             ua: String(req.headers['user-agent'] || '').slice(0, 300),
             ref: String(req.headers.referer || '').slice(0, 300)
-        });
+        };
+        var scans = readJsonFile(SCANS_FILE, []);
+        scans.push(scanRecord);
         if (scans.length > 1000) scans.splice(0, scans.length - 1000);
         writeJsonFile(SCANS_FILE, scans);
+        // Fire-and-forget: log the scan to Google Sheets without blocking the response.
+        if (sheets.isConfigured()) {
+            sheets.logScan(scanRecord);
+        }
         sendJson(res, 200, {
             ok: true,
             name: card.name || '', title: card.title || '', phone: card.phone || '',
             email: card.email || '', website: card.website || '', company: card.company || '',
             photo: card.photo || ''
         });
+        return;
+    }
+    // Google Sheets connection status (for the profile page to show on/off).
+    if (req.method === 'GET' && url.pathname === '/api/sheets/status') {
+        sendJson(res, 200, { connected: sheets.isConfigured() });
         return;
     }
     // Scan analytics for the owner: total count and recent scan details.
