@@ -1,0 +1,17 @@
+{
+  "previewPort": 3000,
+  "healthPath": "/",
+  "startCommand": "docker compose -f docker-compose.base44.yml up -d",
+  "secrets": [
+    {
+      "name": "GEMINI_API_KEY",
+      "description": "Google AI (Gemini) API key for the Volt 360 AI Assistant, roof scan panel detection, and utility bill analysis. Optional at boot — without it the app starts and the AI features report 'not configured'.",
+      "requiredAtBoot": false
+    },
+    {
+      "name": "GOOGLE_MAPS_API_KEY",
+      "description": "Google Maps/Cloud API key for the Solar API roof data and satellite tiles, also served to the browser for map display. Optional at boot — without it the roof scan reports 'not configured'.",
+      "requiredAtBoot": false
+    }
+  ]
+}
