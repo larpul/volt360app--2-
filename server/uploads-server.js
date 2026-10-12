@@ -460,7 +460,7 @@ const server = http.createServer((req, res) => {
     // Get the owner's card data.
     if (req.method === 'GET' && url.pathname === '/api/card') {
         var card = readJsonFile(CARD_FILE, null);
-        sendJson(res, 200, card || { name: '', title: '', phone: '', email: '', website: '', company: '', photo: '' });
+        sendJson(res, 200, card || { name: '', title: '', phone: '', email: '', website: '', company: '', photo: '', tagline: '' });
         return;
     }
     // Save the owner's card data (create or update). Generates a stable card ID on first save.
@@ -476,6 +476,7 @@ const server = http.createServer((req, res) => {
                 email: String(body.email || '').slice(0, 200),
                 website: String(body.website || '').slice(0, 300),
                 company: String(body.company || '').slice(0, 120),
+                tagline: String(body.tagline || '').slice(0, 120),
                 photo: String(body.photo || '').slice(0, 500),
                 updatedAt: new Date().toISOString()
             };
@@ -496,7 +497,7 @@ const server = http.createServer((req, res) => {
             ok: true,
             name: card.name || '', title: card.title || '', phone: card.phone || '',
             email: card.email || '', website: card.website || '', company: card.company || '',
-            photo: card.photo || ''
+            tagline: card.tagline || '', photo: card.photo || ''
         });
         return;
     }
@@ -526,7 +527,7 @@ const server = http.createServer((req, res) => {
             ok: true,
             name: card.name || '', title: card.title || '', phone: card.phone || '',
             email: card.email || '', website: card.website || '', company: card.company || '',
-            photo: card.photo || ''
+            tagline: card.tagline || '', photo: card.photo || ''
         });
         return;
     }

@@ -10,7 +10,7 @@
 body{
   font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue","Roboto",sans-serif;
   background:#F9F9F9;
-  color:#1A1A1A;
+  color:#000000;
   min-height:100vh;
   display:flex;
   flex-direction:column;
@@ -27,10 +27,10 @@ body::after{
   right:-20px;
   width:340px;
   height:340px;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 340 340' fill='none' stroke='%23cccccc' stroke-width='1.2'%3E%3Cpath d='M340 40 Q250 80 340 140 T340 240'/%3E%3Cpath d='M340 70 Q230 110 340 170 T340 270'/%3E%3Cpath d='M340 100 Q210 140 340 200 T340 300'/%3E%3Cpath d='M340 130 Q190 170 340 230 T340 340'/%3E%3Cpath d='M340 160 Q170 200 340 260 T340 340'/%3E%3Cpath d='M340 190 Q150 230 340 290 T340 340'/%3E%3Cpath d='M340 220 Q130 260 340 320 T340 340'/%3E%3Cpath d='M340 250 Q110 290 340 340'/%3E%3Cpath d='M340 280 Q90 310 340 340'/%3E%3C/svg%3E");
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 340 340' fill='none' stroke='%23EBEBEB' stroke-width='1.2'%3E%3Cpath d='M340 40 Q250 80 340 140 T340 240'/%3E%3Cpath d='M340 70 Q230 110 340 170 T340 270'/%3E%3Cpath d='M340 100 Q210 140 340 200 T340 300'/%3E%3Cpath d='M340 130 Q190 170 340 230 T340 340'/%3E%3Cpath d='M340 160 Q170 200 340 260 T340 340'/%3E%3Cpath d='M340 190 Q150 230 340 290 T340 340'/%3E%3Cpath d='M340 220 Q130 260 340 320 T340 340'/%3E%3Cpath d='M340 250 Q110 290 340 340'/%3E%3Cpath d='M340 280 Q90 310 340 340'/%3E%3C/svg%3E");
   background-repeat:no-repeat;
   background-position:bottom right;
-  opacity:.5;
+  opacity:1;
   pointer-events:none;
   z-index:0;
 }
@@ -42,23 +42,17 @@ body::after{
   align-items:center;
   gap:10px;
   z-index:1;
+  position:relative;
 }
 .card_logo_icon{
-  width:34px;
-  height:34px;
-  border-radius:8px;
-  background:linear-gradient(135deg,#999 0%,#FF7110 100%);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  color:#fff;
-  font-weight:700;
-  font-size:1.1rem;
+  width:36px;
+  height:36px;
   flex-shrink:0;
 }
 .card_logo_text_wrap{display:flex;flex-direction:column}
-.card_logo_text{font-size:1rem;font-weight:700;color:#1A1A1A;line-height:1.2}
-.card_logo_tagline{font-size:.58rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#aaa;margin-top:1px}
+.card_logo_text{font-size:1rem;font-weight:700;color:#000;line-height:1.2}
+.card_logo_text .clr{color:#FF7110}
+.card_logo_tagline{font-size:.55rem;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:#000;margin-top:2px}
 /* Profile photo */
 .card_photo{
   width:130px;
@@ -77,7 +71,7 @@ body::after{
   font-weight:700;
   text-align:center;
   margin:22px 0 6px;
-  color:#1A1A1A;
+  color:#000;
   z-index:1;
   position:relative;
 }
@@ -126,7 +120,7 @@ body::after{
 }
 .card_btn:active{opacity:.8}
 .card_btn_primary{background:#FF7110;color:#fff}
-.card_btn_secondary{background:#1A1A1A;color:#fff}
+.card_btn_secondary{background:#000;color:#fff}
 /* Contact links */
 .card_contacts{
   width:100%;
@@ -142,7 +136,7 @@ body::after{
   padding:14px 0;
   border-top:1px solid #eee;
   text-decoration:none;
-  color:#1A1A1A;
+  color:#000;
 }
 .card_contact:first-child{border-top:none}
 .card_contact svg{width:20px;height:20px;flex-shrink:0;color:#FF7110}
@@ -160,7 +154,6 @@ body::after{
 (function(){
   var path = window.location.pathname;
   var cardId = '';
-  // /card/{id} or /card?id=xxx
   if(path.indexOf('/card/') === 0){cardId = decodeURIComponent(path.slice(6));}
   if(!cardId){cardId = new URLSearchParams(window.location.search).get('id')||'';}
   if(!cardId){document.getElementById('card').innerHTML='<div class="card_empty">No card ID provided.</div>';return;}
@@ -178,7 +171,25 @@ body::after{
       document.getElementById('card').innerHTML='<div class="card_empty">Could not load the card. Please try again.</div>';
     });
 
-  function esc(s){return String(s||'').replace(/[&<>"']/g,function(c){return{'&':'&','<':'<','>':'>','"':'"','&#39;':'&#39;'}[c];});}
+  function esc(s){return String(s||'').replace(/[&<>"']/g,function(c){return{'&':'&','<':'<','>':'>','"':'"',"'":'&#39;'}[c];});}
+
+  // Split company name so the last word is orange in the logo
+  function logoNameHtml(company){
+    if(!company) return '';
+    var parts = company.split(' ');
+    if(parts.length <= 1) return esc(company);
+    var last = parts.pop();
+    return esc(parts.join(' ')) + ' <span class="clr">' + esc(last) + '</span>';
+  }
+
+  // V/wave icon SVG: grey top half, orange bottom half
+  var LOGO_SVG = '<svg class="card_logo_icon" viewBox="0 0 40 36" xmlns="http://www.w3.org/2000/svg">'
+    + '<defs><linearGradient id="vg" x1="0" y1="0" x2="0" y2="1">'
+    + '<stop offset="0%" stop-color="#888"/><stop offset="48%" stop-color="#888"/>'
+    + '<stop offset="52%" stop-color="#FF7110"/><stop offset="100%" stop-color="#FF7110"/>'
+    + '</linearGradient></defs>'
+    + '<path d="M5 4 L20 32 L35 4" stroke="url(#vg)" stroke-width="5.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>'
+    + '</svg>';
 
   function vcard(d){
     return 'BEGIN:VCARD\nVERSION:3.0\nFN:'+d.name+'\n'+
@@ -191,11 +202,11 @@ body::after{
   }
 
   function render(d){
-    var logoInitial = esc((d.company||'?').charAt(0).toUpperCase());
     var logoHtml = '<div class="card_logo">' +
-      '<div class="card_logo_icon">' + logoInitial + '</div>' +
+      LOGO_SVG +
       '<div class="card_logo_text_wrap">' +
-        '<span class="card_logo_text">' + esc(d.company||'') + '</span>' +
+        '<span class="card_logo_text">' + logoNameHtml(d.company) + '</span>' +
+        (d.tagline ? '<span class="card_logo_tagline">' + esc(d.tagline) + '</span>' : '') +
       '</div>' +
     '</div>';
 
