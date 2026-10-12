@@ -4,7 +4,7 @@
  * Digital Business Card — a standalone widget for the Solar360 profile page.
  *
  * Appends its own markup to <body>, outside the Angular app, so it survives route
- * changes. When the user is on /my-profile a floating button appears that opens a
+ * changes. When the user is on /home a floating button appears that opens a
  * panel with: a QR code linking to the public card page, an editable contact form,
  * share / copy / vCard-download buttons, and scan-tracking analytics.
  *
@@ -106,7 +106,7 @@
         var path = window.location.pathname;
         if (path === currentPath) return;
         currentPath = path;
-        if (path === '/my-profile') {
+        if (path === '/home') {
             dock.hidden = false;
         } else {
             dock.hidden = true;
