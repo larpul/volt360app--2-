@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 328 100" width="328" height="100" role="img" aria-label="Solar360">
+  <g stroke="#FF7110" stroke-width="5" stroke-linecap="round">
+    <path d="M46 20 V8 M46 92 V80 M16 50 H4 M88 50 H76 M24.8 28.8 16.3 20.3 M67.2 71.2 75.7 79.7 M67.2 28.8 75.7 20.3 M24.8 71.2 16.3 79.7"/>
+  </g>
+  <circle cx="46" cy="50" r="17" fill="#FF7110"/>
+  <g stroke="#1b1b1b" stroke-width="1.6" opacity="0.35">
+    <path d="M34 50 H58 M46 38 V62"/>
+  </g>
+  <text x="106" y="63" font-family="Helvetica, Arial, sans-serif" font-size="41" font-weight="700" letter-spacing="1.2" fill="#1b1b1b">SOLAR<tspan fill="#FF7110">360</tspan></text>
+</svg>

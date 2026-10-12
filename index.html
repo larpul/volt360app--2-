@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8"/>
-    <title>Ionic App</title>
+    <title>Solar360 | Solar Sales</title>
 
     <base href="/"/>
 
@@ -16,6 +16,7 @@
 
     <!-- add to homescreen for ios -->
     <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-title" content="Solar360"/>
     <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
 
     <!--  For font -->
@@ -27,12 +28,14 @@
 
 <body>
     <script src="assets/Js/anime.min.js"></script>
+    <script src="assets/Js/jspdf.umd.min.js"></script>
+    <script src="solar360-pdf.js"></script>
     <script src="assets/Js/wow.min.js"></script>
     <script>
         new WOW().init();
     </script>
     <app-root></app-root>
 
-<script src="runtime.js" type="module"></script><script src="polyfills.js" type="module"></script><script src="vendor.js" type="module"></script><script src="main.js" type="module"></script></body>
+<script src="runtime.js" type="module"></script><script src="polyfills.js" type="module"></script><script src="vendor.js" type="module"></script><script src="main.js" type="module"></script><script src="solar360-assist.js"></script></body>
 
 </html>

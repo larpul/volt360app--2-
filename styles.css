@@ -4,7 +4,7 @@
 /** Ionic CSS Variables **/
 :root {
   /** primary **/
-  --ion-color-primary: #ff5e00;
+  --ion-color-primary: #fa6c00;
 }
 /*!*********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
   !*** css ./node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[6].rules[0].oneOf[0].use[1]!./node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[6].rules[0].oneOf[0].use[2]!./node_modules/resolve-url-loader/index.js??ruleSet[1].rules[6].rules[1].use[0]!./node_modules/sass-loader/dist/cjs.js??ruleSet[1].rules[6].rules[1].use[1]!./src/global.scss ***!
@@ -1400,7 +1400,7 @@ sub {
 .animate__slideOutUp{animation-name:slideOutUp}
 :root {
   --white: #fff;
-  --primary: #ff6803;
+  --primary: #fa6c00;
   --bg-color: #f4eeea;
   --bg-dark: #2b3f50;
   --bg-white: #fff;
@@ -1459,7 +1459,7 @@ img.darkThemeImg {
   font-size: 1rem;
   font-weight: 500;
   height: 53px;
-  --background: #FF7110;
+  --background: #fa6c00;
   text-transform: none;
   color: var(--white);
   margin: 0;
@@ -1781,7 +1781,7 @@ ion-backdrop {
   padding: 20px 23px 16px 23px;
 }
 .alert-wrapper .alert-head h2 {
-  text-transform: uppercase;
+  text-transform: none;
   letter-spacing: 1px;
   font-size: 1.2rem;
   color: var(--text-black);
@@ -1826,7 +1826,7 @@ ion-backdrop {
   height: -moz-fit-content;
   height: fit-content;
   font-size: 1rem;
-  text-transform: uppercase;
+  text-transform: none;
   letter-spacing: 0.7px;
 }
 .animate__animated {
@@ -2066,6 +2066,662 @@ ion-app[dir=rtl] app-charge-spot-info .form.recent_check_ins ion-list ion-item .
 }
 .dark-theme app-charge-spot-info ion-footer ion-row ion-col .button.btn.add_check_in {
   --background: var(--bg-secondary) !important;
+}
+
+/* Global type size: all app text at 10pt (icons keep their own size) */
+html,
+body,
+body :not(ion-icon) {
+  font-size: 10pt !important;
+}
+
+/* App-wide typeface: Uber Move (assets/font/, loaded by index.html's font stylesheet).
+   The page stylesheets each name their own family, so the override below is !important —
+   the same shape as the global size/normal-case rules. ion-icon is excluded because its
+   glyphs come from the icon fonts, and the Ionic components' shadow DOM follows the
+   --ion-font-family variable. */
+html {
+  --ion-font-family: 'Uber Move', 'Poppins', Roboto, sans-serif;
+}
+body,
+body :not(ion-icon):not(.zmdi) {
+  font-family: 'Uber Move', 'Poppins', Roboto, sans-serif !important;
+}
+
+/* Normal-case labels: the page styles and Ionic's Material defaults both
+   render text in ALL CAPS via text-transform. The shadow parts cover the
+   Ionic components whose label sits inside their shadow DOM. */
+body,
+body *,
+ion-button::part(native),
+ion-segment-button::part(native),
+ion-back-button::part(native),
+ion-item-option::part(native),
+ion-toast::part(button) {
+  text-transform: none !important;
+}
+
+/* Sales-agent sheet (Home map): opens when one of the agent photo pins on the map is tapped.
+   It lives in this app-wide sheet so the card follows the app's normal styling and dark theme. */
+.agent_backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 10000;
+}
+
+.agent_sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10001;
+  background: var(--bg-white);
+  border-radius: 20px 20px 0 0;
+  padding: 20px 18px calc(24px + env(safe-area-inset-bottom));
+  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.22);
+  animation: agent_sheet_up 0.32s ease both;
+}
+
+@keyframes agent_sheet_up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.agent_sheet_close {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--primary);
+  text-align: center;
+}
+
+.agent_sheet_close ion-icon {
+  color: var(--white);
+  font-size: 1.4rem;
+  line-height: 30px;
+}
+
+.agent_head {
+  display: flex;
+  align-items: center;
+  padding-right: 34px;
+  margin-bottom: 16px;
+}
+
+.agent_head_photo {
+  width: 58px;
+  height: 58px;
+  margin-right: 14px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--white);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+.agent_head_text h2 {
+  margin: 0 0 2px 0;
+  color: var(--text-dark);
+  font-weight: 600;
+  font-size: 1.15rem !important;
+}
+
+.agent_head_text .agent_role {
+  margin: 0 0 6px 0;
+  color: var(--text-light2);
+}
+
+.agent_live {
+  display: inline-flex;
+  align-items: center;
+  color: #2e7d32;
+  font-weight: 600;
+}
+
+.agent_live i {
+  width: 7px;
+  height: 7px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: #2e7d32;
+}
+
+.agent_block {
+  display: flex;
+  align-items: flex-start;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  background: var(--bg-color);
+  border-radius: 12px;
+}
+
+.agent_block_icon {
+  margin-right: 12px;
+}
+
+.agent_block_icon ion-icon {
+  color: var(--primary);
+  font-size: 1.3rem;
+}
+
+.agent_block_text strong {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--text-dark);
+  font-weight: 600;
+}
+
+.agent_block_text p {
+  margin: 0;
+  color: var(--text-light2);
+  line-height: 1.45;
+}
+
+.agent_block_text .agent_coords {
+  margin-top: 2px;
+  opacity: 0.75;
+}
+
+/* Call / Text actions on the agent sheet: the first is the primary filled action, the
+   second a neutral one, matching the sheet's dark-theme-aware card styling. */
+.agent_actions {
+  display: flex;
+  margin-bottom: 16px;
+}
+
+.agent_action {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  margin-right: 12px;
+  border-radius: 12px;
+  background: var(--primary);
+  color: var(--white);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.agent_action:last-child {
+  margin-right: 0;
+  background: var(--bg-color);
+  color: var(--text-dark);
+}
+
+.agent_action ion-icon {
+  margin-right: 8px;
+  font-size: 1.3rem;
+}
+
+.agent_milestones h3 {
+  margin: 0 0 10px 0;
+  color: var(--text-dark);
+  font-weight: 600;
+  font-size: 1rem !important;
+}
+
+.milestone_row {
+  display: flex;
+  align-items: flex-start;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border-line-color);
+}
+
+.milestone_row:last-child {
+  border-bottom: none;
+}
+
+.milestone_dot {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  margin: 5px 12px 0 2px;
+  border-radius: 50%;
+  background: var(--primary);
+}
+
+.milestone_row strong {
+  display: block;
+  color: var(--text-dark);
+  font-weight: 600;
+}
+
+.milestone_row p {
+  margin: 1px 0 0 0;
+  color: var(--text-light2);
+}
+
+/* Volt 360 AI Assistant: the floating AI helper and its new-message bell, on every page.
+   solar360-assist.js builds this markup outside the Angular app (appended to <body>),
+   so it is present whatever route is showing; the colours follow the app's theme
+   variables, so the dark theme keeps working. It is docked above the Home map's pin
+   legend, which sits along the bottom of that page. */
+.assist_root {
+  position: relative;
+  z-index: 9500;
+}
+
+.assist_dock {
+  position: fixed;
+  right: 14px;
+  bottom: 88px;
+  z-index: 9500;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.assist_root.assist_open .assist_dock {
+  display: none;
+}
+
+.assist_root [hidden] {
+  display: none !important;
+}
+
+.assist_fab {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--bg-white);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.28);
+  cursor: pointer;
+}
+
+.assist_fab i {
+  color: var(--primary);
+  font-size: 1.5rem !important;
+  line-height: 1;
+}
+
+.assist_fab_chat {
+  width: 56px;
+  height: 56px;
+  margin-top: 10px;
+  background: var(--primary);
+}
+
+.assist_fab_chat i {
+  color: #ffffff;
+  font-size: 1.8rem !important;
+}
+
+.assist_badge {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 10px;
+  background: #e87869;
+  color: #ffffff;
+  font-size: 0.72rem !important;
+  font-weight: 700;
+  line-height: 20px;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.assist_backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 11500;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.assist_panel {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 11600;
+  display: flex;
+  flex-direction: column;
+  max-width: 520px;
+  max-height: 78vh;
+  margin: 0 auto;
+  background: var(--bg-white);
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.22);
+  animation: assist_up 0.28s ease both;
+}
+
+@keyframes assist_up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.assist_head {
+  display: flex;
+  align-items: center;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border-line-color);
+}
+
+.assist_head_icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  margin-right: 12px;
+  border-radius: 50%;
+  background: rgba(250, 108, 0, 0.12);
+}
+
+.assist_head_icon i {
+  color: var(--primary);
+  font-size: 1.4rem !important;
+  line-height: 1;
+}
+
+.assist_head_text {
+  flex: 1;
+}
+
+.assist_head_text h2 {
+  margin: 0;
+  color: var(--text-dark);
+  font-size: 1.05rem !important;
+  font-weight: 600;
+}
+
+.assist_head_text p {
+  margin: 2px 0 0 0;
+  color: var(--text-light2);
+}
+
+.assist_close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--bg-color);
+  cursor: pointer;
+}
+
+.assist_close i {
+  color: var(--text-dark);
+  font-size: 1.2rem !important;
+  line-height: 1;
+}
+
+.assist_msgs {
+  flex: 1;
+  min-height: 140px;
+  overflow-y: auto;
+  padding: 16px 18px;
+  background: var(--bg-color);
+}
+
+.assist_msg {
+  max-width: 82%;
+  margin-bottom: 12px;
+  padding: 10px 13px;
+  border-radius: 14px;
+  background: var(--bg-white);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+}
+
+.assist_msg p {
+  margin: 0;
+  color: var(--text-dark);
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+.assist_msg span {
+  display: block;
+  margin-top: 5px;
+  color: var(--text-light2);
+  font-size: 0.68rem !important;
+}
+
+.assist_msg.user {
+  margin-left: auto;
+  background: var(--primary);
+}
+
+.assist_msg.user p,
+.assist_msg.user span {
+  color: #ffffff;
+}
+
+.assist_typing {
+  display: flex;
+  align-items: center;
+}
+
+.assist_typing i {
+  width: 6px;
+  height: 6px;
+  margin-right: 4px;
+  border-radius: 50%;
+  background: var(--text-light2);
+  animation: assist_blink 1.1s infinite ease-in-out;
+}
+
+.assist_typing i:nth-child(2) {
+  animation-delay: 0.18s;
+}
+
+.assist_typing i:nth-child(3) {
+  margin-right: 0;
+  animation-delay: 0.36s;
+}
+
+@keyframes assist_blink {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.assist_form {
+  display: flex;
+  align-items: center;
+  padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border-line-color);
+  background: var(--bg-white);
+}
+
+.assist_input {
+  flex: 1;
+  height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--border-line-color);
+  border-radius: 22px;
+  background: var(--bg-color);
+  color: var(--text-dark);
+  outline: none;
+}
+
+.assist_send {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin: 0 0 0 10px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--primary);
+  cursor: pointer;
+}
+
+.assist_send i {
+  color: #ffffff;
+  font-size: 1.5rem !important;
+  line-height: 1;
+}
+
+.assist_send:disabled {
+  opacity: 0.5;
+}
+
+.assist_notif_list {
+  overflow-y: auto;
+  padding: 6px 14px calc(20px + env(safe-area-inset-bottom));
+  background: var(--bg-color);
+}
+
+.assist_notif {
+  display: flex;
+  align-items: flex-start;
+  width: 100%;
+  margin: 10px 0;
+  padding: 12px 13px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  background: var(--bg-white);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+  text-align: left;
+  cursor: pointer;
+}
+
+.assist_notif.new {
+  border-color: var(--primary);
+}
+
+.assist_notif_icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  margin-right: 11px;
+  border-radius: 50%;
+  background: rgba(250, 108, 0, 0.12);
+}
+
+.assist_notif_icon i {
+  color: var(--primary);
+  font-size: 1.2rem !important;
+  line-height: 1;
+}
+
+.assist_notif_body {
+  flex: 1;
+  overflow: hidden;
+}
+
+.assist_notif_top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.assist_notif_top strong {
+  color: var(--text-dark);
+  font-weight: 600;
+}
+
+.assist_notif_top span {
+  color: var(--text-light2);
+  font-size: 0.66rem !important;
+}
+
+.assist_notif_body p {
+  display: -webkit-box;
+  margin: 4px 0 0 0;
+  color: var(--text-light2);
+  line-height: 1.45;
+  overflow: hidden;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+.assist_notif_new {
+  flex-shrink: 0;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: var(--primary);
+  color: #ffffff;
+  font-size: 0.62rem !important;
+  font-weight: 700;
+}
+
+.assist_empty {
+  padding: 26px 8px;
+  margin: 0;
+  color: var(--text-light2);
+  text-align: center;
+  line-height: 1.5;
+}
+
+/* "Download PDF" pill, shared by the pages that write a document out (Solar proposal, Savings
+   calculator) — one block here rather than a copy in each page chunk. */
+.pdf_btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-top: 14px;
+  padding: 12px 14px;
+  border: 0;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #1a1a1a;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+}
+
+.pdf_btn ion-icon {
+  margin-right: 8px;
+  color: #fa6c00;
+  font-size: 1.05rem;
+}
+
+.pdf_btn:active {
+  opacity: 0.85;
+}
+
+.pdf_notice {
+  margin: 8px 0 0 0;
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 500;
+  text-align: center;
 }
 
 /*# sourceMappingURL=styles.css.map*/

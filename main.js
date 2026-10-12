@@ -44,6 +44,42 @@ const routes = [
         loadChildren: () => __webpack_require__.e(/*! import() */ "src_app_home_home_module_ts").then(__webpack_require__.bind(__webpack_require__, /*! ./home/home.module */ 2711)).then(m => m.HomePageModule)
     },
     {
+        path: 'dashboard',
+        loadChildren: () => __webpack_require__.e(/*! import() */ "src_app_dashboard_dashboard_module_ts").then(__webpack_require__.bind(__webpack_require__, /*! ./dashboard/dashboard.module */ 9202)).then(m => m.DashboardPageModule)
+    },
+    {
+        path: 'solar-scan',
+        loadChildren: () => __webpack_require__.e(/*! import() */ "src_app_solar-scan_solar-scan_module_ts").then(__webpack_require__.bind(__webpack_require__, /*! ./solar-scan/solar-scan.module */ 9211)).then(m => m.SolarScanPageModule)
+    },
+    {
+        path: 'referrals',
+        loadChildren: () => __webpack_require__.e(/*! import() */ "src_app_referrals_referrals_module_ts").then(__webpack_require__.bind(__webpack_require__, /*! ./referrals/referrals.module */ 9221)).then(m => m.ReferralsPageModule)
+    },
+    {
+        path: 'site-visits',
+        loadChildren: () => __webpack_require__.e(/*! import() */ "src_app_site-visits_site-visits_module_ts").then(__webpack_require__.bind(__webpack_require__, /*! ./site-visits/site-visits.module */ 9231)).then(m => m.SiteVisitsPageModule)
+    },
+    {
+        path: 'schedule',
+        loadChildren: () => __webpack_require__.e(/*! import() */ "src_app_schedule_schedule_module_ts").then(__webpack_require__.bind(__webpack_require__, /*! ./schedule/schedule.module */ 9241)).then(m => m.SchedulePageModule)
+    },
+    {
+        path: 'savings',
+        loadChildren: () => __webpack_require__.e(/*! import() */ "src_app_savings_savings_module_ts").then(__webpack_require__.bind(__webpack_require__, /*! ./savings/savings.module */ 9251)).then(m => m.SavingsPageModule)
+    },
+    {
+        path: 'proposal',
+        loadChildren: () => __webpack_require__.e(/*! import() */ "src_app_proposal_proposal_module_ts").then(__webpack_require__.bind(__webpack_require__, /*! ./proposal/proposal.module */ 9271)).then(m => m.ProposalPageModule)
+    },
+    {
+        path: 'roof',
+        loadChildren: () => __webpack_require__.e(/*! import() */ "src_app_roof_roof_module_ts").then(__webpack_require__.bind(__webpack_require__, /*! ./roof/roof.module */ 9281)).then(m => m.RoofPageModule)
+    },
+    {
+        path: 'leads',
+        loadChildren: () => __webpack_require__.e(/*! import() */ "src_app_leads_leads_module_ts").then(__webpack_require__.bind(__webpack_require__, /*! ./leads/leads.module */ 9264)).then(m => m.LeadsPageModule)
+    },
+    {
         path: 'filter',
         loadChildren: () => __webpack_require__.e(/*! import() */ "src_app_filter_filter_module_ts").then(__webpack_require__.bind(__webpack_require__, /*! ./filter/filter.module */ 5254)).then(m => m.FilterPageModule)
     },
@@ -210,6 +246,33 @@ let AppComponent = class AppComponent {
     }
     home() {
         this.navCtrl.navigateRoot(['./home']);
+    }
+    dashboard() {
+        this.navCtrl.navigateRoot(['./dashboard']);
+    }
+    solarScan() {
+        this.navCtrl.navigateRoot(['./solar-scan']);
+    }
+    referrals() {
+        this.navCtrl.navigateRoot(['./referrals']);
+    }
+    siteVisits() {
+        this.navCtrl.navigateRoot(['./site-visits']);
+    }
+    schedule() {
+        this.navCtrl.navigateRoot(['./schedule']);
+    }
+    savings() {
+        this.navCtrl.navigateRoot(['./savings']);
+    }
+    proposal() {
+        this.navCtrl.navigateRoot(['./proposal']);
+    }
+    roof() {
+        this.navCtrl.navigateRoot(['./roof']);
+    }
+    leads() {
+        this.navCtrl.navigateRoot(['./leads']);
     }
     favorite() {
         this.navCtrl.navigateRoot(['./favorite']);
@@ -1123,7 +1186,7 @@ module.exports = "ion-content {\n  --background: rgba(0, 0, 0, 0.66) !important;
 /***/ ((module) => {
 
 "use strict";
-module.exports = "<ion-app [dir]=\"rtlSide\">\n    <ion-split-pane contentId=\"main-content\">\n        <ion-menu *ngIf=\"showSideMenu\" contentId=\"main-content\" [side]=\"rtlSideMenu\" type=\"overlay\">\n            <ion-header class=\"bg_transparent\">\n                <!-- <ion-toolbar>\n                  <ion-title>\n                      <div class=\"title_inner d-flex\">\n                          <ion-menu-toggle auto-hide=\"false\">\n                              <ion-icon class=\"zmdi zmdi-close\"></ion-icon>\n                          </ion-menu-toggle>\n                      </div>\n                  </ion-title>\n              </ion-toolbar> -->\n                <ion-button *ngIf=\"config.demoMode\" size=\"large\" class=\"btn end\" expand=\"full\" (click)=\"buyappalert()\">\n                    {{\"buy_this_app\" | translate}}\n                </ion-button>\n                <ion-menu-toggle auto-hide=\"false\" (click)=\"my_profile()\">\n                    <div class=\"brofile_box\">\n                        <div class=\"img_box center_img\">\n                            <img src=\"assets/images/profile.png\" class=\"crop_img\">\n                        </div>\n                        <div class=\"text_box\">\n                            <h2 class=\"d-flex\">Ronald <br> Howansky\n                                <ion-icon class=\"zmdi zmdi-chevron-right ion-text-end end\"></ion-icon>\n                            </h2>\n                        </div>\n                    </div>\n                </ion-menu-toggle>\n            </ion-header>\n            <ion-content fullscreen>\n                <ion-list>\n                    <ion-menu-toggle auto-hide=\"false\" class=\"animate__animated animate__fadeInUp\" (click)=\"home()\">\n                        <ion-item lines=\"none\">\n                            <div class=\"item_inner d-flex\">\n                                <ion-icon class=\"zmdi zmdi-home ion-text-start\" style=\"color: #FF7110;\"></ion-icon>\n                                <h2>{{'home' | translate}}</h2>\n                            </div>\n                        </ion-item>\n                    </ion-menu-toggle>\n                    <ion-menu-toggle auto-hide=\"false\" class=\"animate__animated animate__fadeInUp\" (click)=\"favorite()\">\n                        <ion-item lines=\"none\">\n                            <div class=\"item_inner d-flex\">\n                                <ion-icon class=\"zmdi zmdi-favorite ion-text-start\" style=\"color: #FF7110;\"></ion-icon>\n                                <h2>{{'favorites' | translate}}</h2>\n                            </div>\n                        </ion-item>\n                    </ion-menu-toggle>\n\n                    <ion-menu-toggle auto-hide=\"false\" class=\"animate__animated animate__fadeInUp\" (click)=\"termsConditions()\">\n                        <ion-item lines=\"none\">\n                            <div class=\"item_inner d-flex\">\n                                <ion-icon class=\"zmdi zmdi-assignment ion-text-start\" style=\"color: #FF7110;\"></ion-icon>\n                                <h2>{{'terms_conditions' | translate}}</h2>\n                            </div>\n                        </ion-item>\n                    </ion-menu-toggle>\n\n                    <ion-menu-toggle auto-hide=\"false\" class=\"animate__animated animate__fadeInUp\" (click)=\"faq()\">\n                        <ion-item lines=\"none\">\n                            <div class=\"item_inner d-flex\">\n                                <ion-icon class=\"zmdi zmdi-help ion-text-start\" style=\"color: #FF7110;\"></ion-icon>\n                                <h2>{{'faq' | translate}}</h2>\n                            </div>\n                        </ion-item>\n                    </ion-menu-toggle>\n                    <ion-menu-toggle auto-hide=\"false\" class=\"animate__animated animate__fadeInUp\" (click)=\"settings()\">\n                        <ion-item lines=\"none\">\n                            <div class=\"item_inner d-flex\">\n                                <ion-icon class=\"zmdi zmdi-settings ion-text-start\" style=\"color: #FF7110;\"></ion-icon>\n                                <h2>{{'settings' | translate}}</h2>\n                            </div>\n                        </ion-item>\n                    </ion-menu-toggle>\n                </ion-list>\n            </ion-content>\n\n            <ion-footer class=\"ion-no-border\">\n                <div class=\"banner\">\n                    <div class=\"logo\" style=\" padding-top: 15px;\">\n                        <img src=\"assets/images/logo_vault360.png\" class=\"lightThemeImg\">\n                        <img src=\"assets/images/logo_vault360dark.png\" class=\"darkThemeImg\">\n                    </div>\n\n                    <div class=\"banner_img\">\n                        <img src=\"assets/images/vector_menu.png\">\n                    </div>\n                </div>\n\n                <ion-menu-toggle auto-hide=\"false\" *ngIf=\"config.demoMode\">\n                    <div class=\"developed_by d-flex\" (click)=\"developed_by()\">\n                        <h2>{{\"developed_by\" | translate}}</h2>\n                        <div class=\"img_box ion-text-end end\">\n                            <img src=\"assets/images/opus_labs_dark.png\" class=\"lightThemeImg\">\n                            <img src=\"assets/images/opus_labs.png\" class=\"darkThemeImg\">\n                        </div>\n                    </div>\n                </ion-menu-toggle>\n            </ion-footer>\n        </ion-menu>\n        <ion-router-outlet id=\"main-content\"></ion-router-outlet>\n    </ion-split-pane>\n</ion-app>";
+module.exports = "<ion-app [dir]=\"rtlSide\">\n    <ion-split-pane contentId=\"main-content\">\n        <ion-menu *ngIf=\"showSideMenu\" contentId=\"main-content\" [side]=\"rtlSideMenu\" type=\"overlay\">\n            <ion-header class=\"bg_transparent\">\n                <!-- <ion-toolbar>\n                  <ion-title>\n                      <div class=\"title_inner d-flex\">\n                          <ion-menu-toggle auto-hide=\"false\">\n                              <ion-icon class=\"zmdi zmdi-close\"></ion-icon>\n                          </ion-menu-toggle>\n                      </div>\n                  </ion-title>\n              </ion-toolbar> -->\n                <ion-button *ngIf=\"config.demoMode\" size=\"large\" class=\"btn end\" expand=\"full\" (click)=\"buyappalert()\">\n                    {{\"buy_this_app\" | translate}}\n                </ion-button>\n                <ion-menu-toggle auto-hide=\"false\" (click)=\"my_profile()\">\n                    <div class=\"brofile_box\">\n                        <div class=\"img_box center_img\">\n                            <img src=\"assets/images/profile.png\" class=\"crop_img\">\n                        </div>\n                        <div class=\"text_box\">\n                            <h2 class=\"d-flex\">Ronald <br> Howansky\n                                <ion-icon class=\"zmdi zmdi-chevron-right ion-text-end end\"></ion-icon>\n                            </h2>\n                        </div>\n                    </div>\n                </ion-menu-toggle>\n            </ion-header>\n            <ion-content fullscreen>\n                <ion-list>\n                    <ion-menu-toggle auto-hide=\"false\" class=\"animate__animated animate__fadeInUp\" (click)=\"home()\">\n                        <ion-item lines=\"none\">\n                            <div class=\"item_inner d-flex\">\n                                <ion-icon class=\"zmdi zmdi-home ion-text-start\" style=\"color: #fa6c00;\"></ion-icon>\n                                <h2>{{'home' | translate}}</h2>\n                            </div>\n                        </ion-item>\n                    </ion-menu-toggle>\n                    <ion-menu-toggle auto-hide=\"false\" class=\"animate__animated animate__fadeInUp\" (click)=\"dashboard()\">\n                        <ion-item lines=\"none\">\n                            <div class=\"item_inner d-flex\">\n                                <ion-icon class=\"zmdi zmdi-view-dashboard ion-text-start\" style=\"color: #fa6c00;\"></ion-icon>\n                                <h2>{{'dashboard' | translate}}</h2>\n                            </div>\n                        </ion-item>\n                    </ion-menu-toggle>\n                    <ion-menu-toggle auto-hide=\"false\" class=\"animate__animated animate__fadeInUp\" (click)=\"leads()\">\n                        <ion-item lines=\"none\">\n                            <div class=\"item_inner d-flex\">\n                                <ion-icon class=\"zmdi zmdi-assignment-account ion-text-start\" style=\"color: #fa6c00;\"></ion-icon>\n                                <h2>Leads</h2>\n                            </div>\n                        </ion-item>\n                    </ion-menu-toggle>\n                    <ion-menu-toggle auto-hide=\"false\" class=\"animate__animated animate__fadeInUp\" (click)=\"solarScan()\">\n                        <ion-item lines=\"none\">\n                            <div class=\"item_inner d-flex\">\n                                <ion-icon class=\"zmdi zmdi-sun ion-text-start\" style=\"color: #fa6c00;\"></ion-icon>\n                                <h2>Solar scan</h2>\n                            </div>\n                        </ion-item>\n                    </ion-menu-toggle>\n                    <ion-menu-toggle auto-hide=\"false\" class=\"animate__animated animate__fadeInUp\" (click)=\"referrals()\">\n                        <ion-item lines=\"none\">\n                            <div class=\"item_inner d-flex\">\n                                <ion-icon class=\"zmdi zmdi-accounts-add ion-text-start\" style=\"color: #fa6c00;\"></ion-icon>\n                                <h2>Referrals</h2>\n                            </div>\n                        </ion-item>\n                    </ion-menu-toggle>\n                    <ion-menu-toggle auto-hide=\"false\" class=\"animate__animated animate__fadeInUp\" (click)=\"siteVisits()\">\n                        <ion-item lines=\"none\">\n                            <div class=\"item_inner d-flex\">\n                                <ion-icon class=\"zmdi zmdi-assignment-check ion-text-start\" style=\"color: #fa6c00;\"></ion-icon>\n                                <h2>Site visits</h2>\n                            </div>\n                        </ion-item>\n                    </ion-menu-toggle>\n                    <ion-menu-toggle auto-hide=\"false\" class=\"animate__animated animate__fadeInUp\" (click)=\"schedule()\">\n                        <ion-item lines=\"none\">\n                            <div class=\"item_inner d-flex\">\n                                <ion-icon class=\"zmdi zmdi-calendar ion-text-start\" style=\"color: #fa6c00;\"></ion-icon>\n                                <h2>Schedule</h2>\n                            </div>\n                        </ion-item>\n                    </ion-menu-toggle>\n                    <ion-menu-toggle auto-hide=\"false\" class=\"animate__animated animate__fadeInUp\" (click)=\"savings()\">\n                        <ion-item lines=\"none\">\n                            <div class=\"item_inner d-flex\">\n                                <ion-icon class=\"zmdi zmdi-money ion-text-start\" style=\"color: #fa6c00;\"></ion-icon>\n                                <h2>Savings calculator</h2>\n                            </div>\n                        </ion-item>\n                    </ion-menu-toggle>\n                    <ion-menu-toggle auto-hide=\"false\" class=\"animate__animated animate__fadeInUp\" (click)=\"proposal()\">\n                        <ion-item lines=\"none\">\n                            <div class=\"item_inner d-flex\">\n                                <ion-icon class=\"zmdi zmdi-collection-text ion-text-start\" style=\"color: #fa6c00;\"></ion-icon>\n                                <h2>Solar proposal</h2>\n                            </div>\n                        </ion-item>\n                    </ion-menu-toggle>\n                    <ion-menu-toggle auto-hide=\"false\" class=\"animate__animated animate__fadeInUp\" (click)=\"favorite()\">\n                        <ion-item lines=\"none\">\n                            <div class=\"item_inner d-flex\">\n                                <ion-icon class=\"zmdi zmdi-favorite ion-text-start\" style=\"color: #fa6c00;\"></ion-icon>\n                                <h2>{{'favorites' | translate}}</h2>\n                            </div>\n                        </ion-item>\n                    </ion-menu-toggle>\n\n                    <ion-menu-toggle auto-hide=\"false\" class=\"animate__animated animate__fadeInUp\" (click)=\"termsConditions()\">\n                        <ion-item lines=\"none\">\n                            <div class=\"item_inner d-flex\">\n                                <ion-icon class=\"zmdi zmdi-assignment ion-text-start\" style=\"color: #fa6c00;\"></ion-icon>\n                                <h2>{{'terms_conditions' | translate}}</h2>\n                            </div>\n                        </ion-item>\n                    </ion-menu-toggle>\n\n                    <ion-menu-toggle auto-hide=\"false\" class=\"animate__animated animate__fadeInUp\" (click)=\"faq()\">\n                        <ion-item lines=\"none\">\n                            <div class=\"item_inner d-flex\">\n                                <ion-icon class=\"zmdi zmdi-help ion-text-start\" style=\"color: #fa6c00;\"></ion-icon>\n                                <h2>{{'faq' | translate}}</h2>\n                            </div>\n                        </ion-item>\n                    </ion-menu-toggle>\n                    <ion-menu-toggle auto-hide=\"false\" class=\"animate__animated animate__fadeInUp\" (click)=\"settings()\">\n                        <ion-item lines=\"none\">\n                            <div class=\"item_inner d-flex\">\n                                <ion-icon class=\"zmdi zmdi-settings ion-text-start\" style=\"color: #fa6c00;\"></ion-icon>\n                                <h2>{{'settings' | translate}}</h2>\n                            </div>\n                        </ion-item>\n                    </ion-menu-toggle>\n                </ion-list>\n            </ion-content>\n\n            <ion-footer class=\"ion-no-border\">\n                <div class=\"banner\">\n                    <div class=\"logo\" style=\" padding-top: 15px;\">\n                        <img src=\"assets/images/logo_vault360.png\" class=\"lightThemeImg\">\n                        <img src=\"assets/images/logo_vault360dark.png\" class=\"darkThemeImg\">\n                    </div>\n\n                    <div class=\"banner_img\">\n                        <img src=\"assets/images/vector_menu.png\">\n                    </div>\n                </div>\n\n                <ion-menu-toggle auto-hide=\"false\" *ngIf=\"config.demoMode\">\n                    <div class=\"developed_by d-flex\" (click)=\"developed_by()\">\n                        <h2>{{\"developed_by\" | translate}}</h2>\n                        <div class=\"img_box ion-text-end end\">\n                            <img src=\"assets/images/opus_labs_dark.png\" class=\"lightThemeImg\">\n                            <img src=\"assets/images/opus_labs.png\" class=\"darkThemeImg\">\n                        </div>\n                    </div>\n                </ion-menu-toggle>\n            </ion-footer>\n        </ion-menu>\n        <ion-router-outlet id=\"main-content\"></ion-router-outlet>\n    </ion-split-pane>\n</ion-app>";
 
 /***/ }),
 
@@ -1146,6 +1209,208 @@ module.exports = "<ion-content>\n    <div class=\"clear_button\">\n        <ion-
 
 "use strict";
 module.exports = "<ion-content>\n    <div class=\"cloes_btn ion-text-end\">\n        <ion-icon name=\"close-outline\" (click)=\"dismiss()\"></ion-icon>\n    </div>\n\n    <ion-card>\n        <div class=\"img_box\">\n            <img src=\"assets/images/vt_popup_img.png\">\n        </div>\n\n        <div class=\"text_box\">\n            <h2>Stay in touch.</h2>\n            <p>Stay connected for Future <br>updates and new products.</p>\n        </div>\n        <ion-list lines=\"none\">\n\n            <ion-item lines=\"none\">\n                <ion-input type=\"email\" placeholder=\"Enter your email address\" [(ngModel)]=\"email_Id\"></ion-input>\n            </ion-item>\n\n            <ion-button size=\"large\" shape=\"block\" class=\"btn\" (click)=\"onSubscribe()\">\n                Subscribe Now\n            </ion-button>\n\n        </ion-list>\n    </ion-card>\n</ion-content>";
+
+/***/ }),
+
+/***/ 9200:
+/*!**************************************!*\
+  !*** ./src/app/inquiry-store.ts ***!
+  \**************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "HOUSE_SAMPLES": () => (/* binding */ HOUSE_SAMPLES),
+/* harmony export */   "PIPELINE_STAGES": () => (/* binding */ PIPELINE_STAGES),
+/* harmony export */   "offsetDateISO": () => (/* binding */ offsetDateISO),
+/* harmony export */   "InquiryStore": () => (/* binding */ InquiryStore),
+/* harmony export */   "VisitLog": () => (/* binding */ VisitLog)
+/* harmony export */ });
+// One shared record of the solar inquiries: the Home map seeds and publishes it, the
+// Dashboard reads it back, so both pages always describe the same houses.
+// The solar sales pipeline: a per-prospect stage that is tracked separately from the
+// install status, so a house can still be "In Progress" on the roof while its sale is
+// already "Closed won" (and a cancelled job can sit at "Closed lost").
+const PIPELINE_STAGES = [
+    { name: 'Lead', swatch: '#f5f5f5' },
+    { name: 'Contacted', swatch: '#dcdcdc' },
+    { name: 'Site survey', swatch: '#b7e06b' },
+    { name: 'Proposal sent', swatch: '#8fd0e8' },
+    { name: 'Negotiation', swatch: '#f5c76b' },
+    { name: 'Closed won', swatch: '#fa6c00' },
+    { name: 'Closed lost', swatch: '#e87869' }
+];
+const HOUSE_SAMPLES = [
+    { lat: 39.351996, lng: -84.331021, top: 35.4, left: 51.6, status: 'New', colour: 'yellow',
+      customerName: 'Tylersville Rd Residence', locationAddress: '1420 Tylersville Rd, Mason, OH 45040',
+      systemSize: 'Not sized yet', technicianNotes: 'Owner asked for a site visit; driveway on the north side.',
+      decisionReason: 'Wants to cut a $190/mo electric bill but is still undecided; waiting on the quote.',
+      electricBills: [],
+      appointmentInDays: 2, appointmentTime: '09:30', visitInDays: null, visitMinutes: null, pipelineStage: 'Site survey' },
+    { lat: 39.319387, lng: -84.312587, top: 43.1, left: 57.7, status: 'Installed', colour: 'green',
+      customerName: 'Mason Montgomery Rd Residence', locationAddress: '8250 Mason Montgomery Rd, Mason, OH 45040',
+      systemSize: '5.2 kW - 13 panels', technicianNotes: 'South-facing roof mount; last inspection passed.',
+      decisionReason: 'Decided to go solar to wipe out a $240/mo bill and lock in the 25-year panel warranty.',
+      electricBills: [{ name: 'electric-bill-jul.pdf', url: '', usageKwh: 1060, amountDue: 240 }, { name: 'electric-bill-aug.pdf', url: '', usageKwh: 1120, amountDue: 252 }],
+      appointmentInDays: -6, appointmentTime: '14:00', visitInDays: -12, visitTime: '09:15', visitMinutes: 75, pipelineStage: 'Closed won' },
+    { lat: 39.345865, lng: -84.328393, top: 36.9, left: 52.5, status: 'In Progress', colour: 'blue',
+      customerName: 'Snider Rd Residence', locationAddress: '640 Snider Rd, Mason, OH 45040',
+      systemSize: '4.4 kW - 11 panels', technicianNotes: 'Rails set; panels arrive next week.',
+      decisionReason: 'Going solar for the 30% tax credit and to offset charging an EV at home.',
+      electricBills: [{ name: 'electric-bill-jun.pdf', url: '', usageKwh: 940, amountDue: 205 }, { name: 'electric-bill-jul.pdf', url: '', usageKwh: 975, amountDue: 214 }],
+      appointmentInDays: 0, appointmentTime: '08:00', visitInDays: -20, visitTime: '13:40', visitMinutes: 45, pipelineStage: 'Closed won' },
+    { lat: 39.33759, lng: -84.338855, top: 38.8, left: 49.1, status: 'Not Home', colour: 'gray',
+      customerName: 'Western Row Rd Residence', locationAddress: '1120 Western Row Rd, Mason, OH 45040',
+      systemSize: 'Not sized yet', technicianNotes: 'Two visits, nobody home. Card left in the mailbox.',
+      decisionReason: 'No one was home to discuss it; a neighbour says the family is still undecided.',
+      electricBills: [],
+      appointmentInDays: 1, appointmentTime: '16:30', visitInDays: -3, visitTime: '17:05', visitMinutes: 10, pipelineStage: 'Contacted' },
+    { lat: 39.328727, lng: -84.318121, top: 40.9, left: 55.9, status: 'New', colour: 'yellow',
+      customerName: 'Cedar Village Residence', locationAddress: '305 Cedar Village Dr, Mason, OH 45040',
+      systemSize: 'Not sized yet', technicianNotes: 'Interested in solar plus an EV charger.',
+      decisionReason: 'Interested but undecided; comparing two quotes while waiting on the HOA.',
+      electricBills: [],
+      appointmentInDays: 4, appointmentTime: '11:00', visitInDays: null, visitMinutes: null, pipelineStage: 'Proposal sent' },
+    { lat: 39.235612, lng: -84.348908, top: 62.8, left: 45.7, status: 'Installed', colour: 'green',
+      customerName: 'Montgomery Rd Residence', locationAddress: '9876 Montgomery Rd, Cincinnati, OH 45242',
+      systemSize: '6.0 kW - 15 panels', technicianNotes: 'Ground mount at the back of the lot.',
+      decisionReason: 'Went solar after the new roof to offset a $310/mo summer bill.',
+      electricBills: [{ name: 'electric-bill-may.pdf', url: '', usageKwh: 1210, amountDue: 268 }, { name: 'electric-bill-aug.pdf', url: '', usageKwh: 1430, amountDue: 318 }],
+      appointmentInDays: 9, appointmentTime: '13:15', visitInDays: -30, visitTime: '11:20', visitMinutes: 120, pipelineStage: 'Closed won' },
+    { lat: 39.249048, lng: -84.34482, top: 59.6, left: 47.1, status: 'Renter', colour: 'violet',
+      customerName: 'Pfeiffer Rd Residence', locationAddress: '10450 Pfeiffer Rd, Montgomery, OH 45242',
+      systemSize: 'Not sized yet', technicianNotes: 'Renting; needs landlord approval before quoting.',
+      decisionReason: "Not going solar now — they rent the house and need the landlord's approval first.",
+      electricBills: [{ name: 'electric-bill-jul.pdf', url: '', usageKwh: 790, amountDue: 168 }],
+      appointmentInDays: -2, appointmentTime: '10:45', visitInDays: -5, visitTime: '10:05', visitMinutes: 30, pipelineStage: 'Lead' },
+    { lat: 39.227911, lng: -84.359584, top: 64.6, left: 42.2, status: 'Cancelled', colour: 'red',
+      customerName: 'Cooper Rd Residence', locationAddress: '7700 Cooper Rd, Montgomery, OH 45242',
+      systemSize: 'Not sized yet', technicianNotes: 'Credit check failed; re-check in six months.',
+      decisionReason: 'Decided not to go solar for now — the credit check failed; re-check in six months.',
+      electricBills: [{ name: 'electric-bill-jun.pdf', url: '', usageKwh: 705, amountDue: 152 }],
+      appointmentInDays: 15, appointmentTime: '15:30', visitInDays: -45, visitTime: '15:45', visitMinutes: 20, pipelineStage: 'Closed lost' }
+];
+
+// Appointment and visit dates are stored as day offsets so the demo always has events
+// around the day the app is opened, whatever that date happens to be. visitTime is the
+// seeded visit's arrival time (HH:MM), which the Site visits log shows as its check-in.
+const offsetDateISO = (offset) => {
+    const date = new Date();
+    date.setHours(12, 0, 0, 0);
+    date.setDate(date.getDate() + offset);
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return date.getFullYear() + '-' + month + '-' + day;
+};
+
+let snapshot = null;
+
+// Same records the map builds at startup, so a Dashboard opened first still has content.
+const seedSnapshot = () => {
+    const inquiries = HOUSE_SAMPLES.map((house, index) => ({
+        id: 'inquiry' + (index + 1),
+        lat: house.lat,
+        lng: house.lng,
+        top: house.top,
+        left: house.left
+    }));
+    const notes = {};
+    HOUSE_SAMPLES.forEach((house, index) => {
+        notes['inquiry' + (index + 1)] = {
+            customerName: house.customerName,
+            locationAddress: house.locationAddress,
+            status: house.status,
+            statusClass: 'status_' + house.colour,
+            colour: house.colour,
+            systemSize: house.systemSize,
+            technicianNotes: house.technicianNotes,
+            decisionReason: house.decisionReason,
+            electricBills: house.electricBills || [],
+            appointmentDate: offsetDateISO(house.appointmentInDays),
+            appointmentTime: house.appointmentTime,
+            visitDate: house.visitInDays === null || house.visitInDays === undefined ? null : offsetDateISO(house.visitInDays),
+            visitMinutes: house.visitMinutes === undefined ? null : house.visitMinutes,
+            visitTime: house.visitTime || null,
+            pipelineStage: house.pipelineStage,
+            files: [],
+            isNew: false
+        };
+    });
+    return { inquiries: inquiries, notes: notes };
+};
+
+// The site-visit log is the one inquiry record that outlives a reload: the Home map's Check out
+// appends a visit here (via VisitLog.record) and the Site visits page reads it back. It lives in
+// localStorage - like the referrals page - because the rest of the note data is in-memory only.
+const VISIT_LOG_KEY = 'solar360_visit_log';
+
+const readVisitLog = () => {
+    try {
+        const raw = window.localStorage.getItem(VISIT_LOG_KEY);
+        const parsed = raw ? JSON.parse(raw) : [];
+        return Array.isArray(parsed) ? parsed : [];
+    }
+    catch (e) {
+        return [];
+    }
+};
+
+const VisitLog = {
+    // Every visit to show, newest first: the visits recorded here (which survived a reload) plus
+    // the visited houses the store still holds (the seeded demo visits, and an unrecorded visit).
+    // A recorded visit wins over the store's copy of the same house.
+    entries(data) {
+        const recorded = readVisitLog();
+        const recordedIds = {};
+        recorded.forEach(visit => { recordedIds[visit.id] = true; });
+        const visits = data.inquiries
+            .filter(inquiry => !recordedIds[inquiry.id] && (data.notes[inquiry.id] || {}).visitDate)
+            .map(inquiry => {
+                const note = data.notes[inquiry.id];
+                const hasCoords = note.checkInLat !== undefined && note.checkInLat !== null;
+                return {
+                    id: inquiry.id,
+                    customerName: note.customerName || 'New inquiry',
+                    locationAddress: note.locationAddress || 'Location not set',
+                    lat: hasCoords ? note.checkInLat : inquiry.lat,
+                    lng: hasCoords ? note.checkInLng : inquiry.lng,
+                    checkInTime: note.visitTime || 'Not recorded',
+                    visitDate: note.visitDate,
+                    notes: note.technicianNotes || ''
+                };
+            })
+            .concat(recorded);
+        return visits.sort((a, b) => (b.visitDate + ' ' + (b.checkInTime || '')).localeCompare(a.visitDate + ' ' + (a.checkInTime || '')));
+    },
+    // One record per house: a later visit replaces the earlier one, so the log lists each
+    // property's latest site visit.
+    record(visit) {
+        const visits = readVisitLog().filter(item => item.id !== visit.id).concat([visit]);
+        try {
+            window.localStorage.setItem(VISIT_LOG_KEY, JSON.stringify(visits));
+        }
+        catch (e) {
+        }
+    }
+};
+
+const InquiryStore = {
+    publish(addedInquiries, installationNotes) {
+        snapshot = {
+            inquiries: addedInquiries.map(inquiry => Object.assign({}, inquiry)),
+            notes: JSON.parse(JSON.stringify(installationNotes))
+        };
+    },
+    snapshot() {
+        if (!snapshot) {
+            snapshot = seedSnapshot();
+        }
+        return snapshot;
+    }
+};
+
+
 
 /***/ })
 
