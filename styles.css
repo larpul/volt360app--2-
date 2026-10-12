@@ -2319,7 +2319,7 @@ ion-toast::part(button) {
   z-index: 9500;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-end;
 }
 
 .assist_root.assist_open .assist_dock {
