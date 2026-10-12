@@ -5,11 +5,30 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <meta name="theme-color" content="#F2F0E9"/>
 <title>Digital Business Card</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=IBM+Plex+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
+/* ===== Uber Move Text — Self-hosted ===== */
+@font-face{
+  font-family:'Uber Move Text';font-weight:300;font-style:normal;font-display:swap;
+  src:url('/assets/fonts/uber-move/UberMoveTextBNG-Light.woff2') format('woff2'),
+      url('/assets/fonts/uber-move/UberMoveTextBNG-Light.woff') format('woff');
+}
+@font-face{
+  font-family:'Uber Move Text';font-weight:400;font-style:normal;font-display:swap;
+  src:url('/assets/fonts/uber-move/UberMoveTextBNG-Regular.woff2') format('woff2'),
+      url('/assets/fonts/uber-move/UberMoveTextBNG-Regular.woff') format('woff');
+}
+@font-face{
+  font-family:'Uber Move Text';font-weight:500;font-style:normal;font-display:swap;
+  src:url('/assets/fonts/uber-move/UberMoveTextBNG-Medium.woff2') format('woff2'),
+      url('/assets/fonts/uber-move/UberMoveTextBNG-Medium.woff') format('woff');
+}
+@font-face{
+  font-family:'Uber Move Text';font-weight:700;font-style:normal;font-display:swap;
+  src:url('/assets/fonts/uber-move/UberMoveTextBNG-Bold.woff2') format('woff2'),
+      url('/assets/fonts/uber-move/UberMoveTextBNG-Bold.woff') format('woff');
+}
+
 /* ===== EPHEMERAL ARCHIVE — Kinetic Identity System ===== */
 :root{
   --bg:#F2F0E9;
@@ -22,7 +41,7 @@
 *{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
 body{
-  font-family:'IBM Plex Mono',monospace;
+  font-family:'Uber Move Text',sans-serif;
   background:var(--bg);
   color:var(--ink);
   font-size:18px;
@@ -66,7 +85,7 @@ body::after{
 }
 .hero-eyebrow::before{content:'';display:inline-block;width:32px;height:1px;background:var(--accent);vertical-align:middle;margin-right:12px}
 .hero-name{
-  font-family:'Playfair Display',serif;font-weight:900;
+  font-family:'Uber Move Text',sans-serif;font-weight:900;
   font-size:clamp(3rem,9vw,11rem);line-height:.88;letter-spacing:-.03em;
   color:var(--ink);margin-bottom:16px;
   transition:transform .6s var(--ease-bounce);
@@ -107,7 +126,7 @@ body::after{
   position:relative;width:100%;min-height:72px;
   display:flex;align-items:center;justify-content:space-between;
   padding:0 48px;border:none;cursor:pointer;
-  font-family:'IBM Plex Mono',monospace;font-size:clamp(.9rem,1.5vw,1.25rem);
+  font-family:'Uber Move Text',sans-serif;font-size:clamp(.9rem,1.5vw,1.25rem);
   font-weight:500;letter-spacing:.12em;text-transform:uppercase;
   text-decoration:none;overflow:hidden;
   transition:transform .4s var(--ease-bounce),letter-spacing .4s ease;
@@ -149,7 +168,7 @@ body::after{
 .bento-card:hover .bc-icon{color:var(--accent);transform:scale(1.1)}
 .bento-card .bc-icon svg{width:100%;height:100%}
 .bento-website{grid-column:span 4;grid-row:span 2;min-height:280px}
-.bento-website .bc-value{font-family:'Playfair Display',serif;font-size:clamp(1.5rem,3vw,2.5rem);font-weight:700}
+.bento-website .bc-value{font-family:'Uber Move Text',sans-serif;font-size:clamp(1.5rem,3vw,2.5rem);font-weight:700}
 .bento-email{grid-column:span 2}
 .bento-phone{grid-column:span 2}
 .bento-share{grid-column:span 2}
@@ -164,7 +183,7 @@ body::after{
 .schedule-section{padding:80px 48px 80px}
 .schedule-wrap{max-width:640px}
 .schedule-wrap h3{
-  font-family:'Playfair Display',serif;font-size:clamp(1.5rem,3vw,2.25rem);
+  font-family:'Uber Move Text',sans-serif;font-size:clamp(1.5rem,3vw,2.25rem);
   font-weight:700;margin-bottom:8px;line-height:1.1;
 }
 .schedule-wrap>p{color:var(--stone);font-size:15px;margin-bottom:32px}
@@ -172,7 +191,7 @@ body::after{
 .date-chip{
   flex-shrink:0;min-height:64px;min-width:64px;padding:10px 16px;
   border:1px solid rgba(26,26,26,.15);background:transparent;cursor:pointer;
-  font-family:'IBM Plex Mono',monospace;text-align:center;
+  font-family:'Uber Move Text',sans-serif;text-align:center;
   display:flex;flex-direction:column;align-items:center;gap:2px;
   transition:border-color .3s ease,background .3s ease,color .3s ease;
 }
@@ -186,7 +205,7 @@ body::after{
 .schedule-times{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:32px}
 .time-chip{
   min-height:48px;border:1px solid rgba(26,26,26,.15);background:transparent;cursor:pointer;
-  font-family:'IBM Plex Mono',monospace;font-size:14px;color:var(--ink);
+  font-family:'Uber Move Text',sans-serif;font-size:14px;color:var(--ink);
   transition:border-color .3s ease,background .3s ease,color .3s ease;
 }
 .time-chip:hover{border-color:var(--ink)}
@@ -201,7 +220,7 @@ body::after{
 .contact-section{padding:80px 48px 120px}
 .contact-form{max-width:560px}
 .contact-form h3{
-  font-family:'Playfair Display',serif;font-size:clamp(1.5rem,3vw,2.25rem);
+  font-family:'Uber Move Text',sans-serif;font-size:clamp(1.5rem,3vw,2.25rem);
   font-weight:700;margin-bottom:8px;line-height:1.1;
 }
 .contact-form p{color:var(--stone);font-size:15px;margin-bottom:32px}
@@ -210,7 +229,7 @@ body::after{
 .cf-input{
   width:100%;min-height:56px;background:transparent;border:none;
   border-bottom:1px solid var(--ink);padding:12px 0;
-  font-family:'IBM Plex Mono',monospace;font-size:18px;color:var(--ink);outline:none;
+  font-family:'Uber Move Text',sans-serif;font-size:18px;color:var(--ink);outline:none;
   transition:border-color .3s ease;
 }
 .cf-input::placeholder{color:var(--stone);opacity:.5}
@@ -218,7 +237,7 @@ body::after{
 .cf-submit{
   margin-top:24px;min-height:56px;padding:0 40px;
   background:var(--ink);color:var(--bg);border:none;cursor:pointer;
-  font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:500;
+  font-family:'Uber Move Text',sans-serif;font-size:15px;font-weight:500;
   letter-spacing:.12em;text-transform:uppercase;
   transition:background .3s ease,transform .4s var(--ease-bounce);
 }
@@ -309,7 +328,7 @@ a:focus-visible,button:focus-visible,input:focus-visible{
     var name=d.name||'Unknown';
     var photoHtml=d.photo
       ?'<img src="'+esc(d.photo)+'" alt="Portrait of '+esc(name)+'">'
-      :'<div class="hero-placeholder" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1A1A1A,#3a3a3a);color:#F2F0E9;font-family:Playfair Display,serif;font-size:8rem;font-weight:900">'+esc(initials(name))+'</div>';
+      :'<div class="hero-placeholder" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1A1A1A,#3a3a3a);color:#F2F0E9;font-family:'Uber Move Text',sans-serif;font-size:8rem;font-weight:700">'+esc(initials(name))+'</div>';
 
     root.innerHTML=
       '<div class="spine" aria-hidden="true">'+esc(name)+'<span class="dot"></span>Digital Card</div>'+
