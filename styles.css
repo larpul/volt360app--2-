@@ -2731,30 +2731,30 @@ ion-toast::part(button) {
 
 .card_dock {
   position: fixed;
-  bottom: 24px;
-  left: 24px;
-  z-index: 10001;
+  right: 14px;
+  bottom: 152px;
+  z-index: 9500;
 }
 .card_dock[hidden] { display: none; }
 
 .card_fab {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 12px 18px;
-  border: none;
-  border-radius: 30px;
-  background: var(--primary);
-  color: var(--white);
-  font-size: 0.85rem;
-  font-weight: 600;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--bg-white);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.28);
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(255, 113, 16, 0.4);
-  transition: transform 0.2s, opacity 0.2s;
+  transition: transform 0.2s;
 }
-.card_fab:hover { background: #FF8C3D; }
+.card_fab:hover { background: #FFF3E8; }
 .card_fab:active { transform: scale(0.95); }
-.card_fab i { font-size: 1.2rem; }
+.card_fab i { color: var(--primary); font-size: 1.5rem; }
 
 .card_backdrop {
   position: fixed;

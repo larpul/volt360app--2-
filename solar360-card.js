@@ -32,7 +32,6 @@
         + '<div class="card_dock" hidden>'
         +   '<button type="button" class="card_fab" data-act="open" aria-label="Digital Business Card">'
         +     '<i class="zmdi zmdi-card"></i>'
-        +     '<span>Business Card</span>'
         +   '</button>'
         + '</div>'
         + '<div class="card_backdrop" data-act="close" hidden></div>'
