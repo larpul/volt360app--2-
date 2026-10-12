@@ -577,17 +577,28 @@ const server = http.createServer((req, res) => {
             var shareRecord = {
                 cardId: cardId,
                 at: new Date().toISOString(),
+                type: 'share',
                 method: String((body && body.method) || '').slice(0, 40),
                 ua: String(req.headers['user-agent'] || '').slice(0, 300),
-                ref: String(req.headers.referer || '').slice(0, 300)
+                ref: String(req.headers.referer || '').slice(0, 300),
+                ip: clientIp(req),
+                location: ''
             };
             var scans = readJsonFile(SCANS_FILE, []);
-            scans.push(Object.assign({ type: 'share' }, shareRecord));
+            scans.push(shareRecord);
             if (scans.length > 1000) scans.splice(0, scans.length - 1000);
             writeJsonFile(SCANS_FILE, scans);
-            // Fire-and-forget: log the share to Google Sheets.
+            // Fire-and-forget: look up location, then log to Google Sheets.
             if (sheets.isConfigured()) {
-                sheets.logShare(shareRecord);
+                ipLocation(shareRecord.ip).then(function (loc) {
+                    if (loc) {
+                        shareRecord.location = loc;
+                        var fresh = readJsonFile(SCANS_FILE, []);
+                        var idx = fresh.length - 1;
+                        if (idx >= 0 && fresh[idx].at === shareRecord.at) { fresh[idx].location = loc; writeJsonFile(SCANS_FILE, fresh); }
+                    }
+                    sheets.logShare(shareRecord);
+                }).catch(function () { sheets.logShare(shareRecord); });
             }
             sendJson(res, 200, { ok: true });
         });
