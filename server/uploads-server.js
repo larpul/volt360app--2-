@@ -37,6 +37,7 @@ const SCANS_FILE = path.join(path.dirname(DATA_DIR), 'scans.json');
 
 // Google Sheets integration — each QR scan is logged as a new spreadsheet row.
 const sheets = require('./google-sheets');
+const email = require('./email');
 
 function readJsonFile(filePath, fallback) {
     try { return JSON.parse(fs.readFileSync(filePath, 'utf8')); }
@@ -634,7 +635,13 @@ const server = http.createServer((req, res) => {
                 ipLocation(booking.ip).then(function (loc) {
                     booking.location = loc;
                     sheets.logBooking(booking);
-                }).catch(function () { sheets.logBooking(booking); });
+                    email.sendBookingNotification(booking, card.name);
+                }).catch(function () { sheets.logBooking(booking); email.sendBookingNotification(booking, card.name); });
+            } else if (email.isConfigured()) {
+                ipLocation(booking.ip).then(function (loc) {
+                    booking.location = loc;
+                    email.sendBookingNotification(booking, card.name);
+                }).catch(function () { email.sendBookingNotification(booking, card.name); });
             }
             sendJson(res, 200, { ok: true });
         });
