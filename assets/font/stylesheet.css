@@ -1,3 +1,21 @@
+/* Uber Move — the app-wide typeface (see styles.css). Two faces only: Medium serves
+   regular/medium text, Bold everything from 700 up. */
+@font-face {
+    font-family: 'Uber Move';
+    src: url('UberMoveMedium.otf') format('opentype');
+    font-weight: 400 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Uber Move';
+    src: url('UberMoveBold.otf') format('opentype');
+    font-weight: 700 900;
+    font-style: normal;
+    font-display: swap;
+}
+
 @font-face {
     font-family: 'Poppins';
     src: url('Poppins-Bold.woff2') format('woff2'),
