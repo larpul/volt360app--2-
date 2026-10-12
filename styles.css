@@ -2752,6 +2752,7 @@ ion-toast::part(button) {
   box-shadow: 0 4px 14px rgba(255, 113, 16, 0.4);
   transition: transform 0.2s, opacity 0.2s;
 }
+.card_fab:hover { background: #FF8C3D; }
 .card_fab:active { transform: scale(0.95); }
 .card_fab i { font-size: 1.2rem; }
 
@@ -2814,7 +2815,9 @@ ion-toast::part(button) {
   border-radius: 50%;
   font-size: 1.1rem;
   cursor: pointer;
+  transition: background 0.2s;
 }
+.card_close:hover { background: rgba(255, 255, 255, 0.35); }
 
 .card_body {
   flex: 1;
@@ -2890,6 +2893,7 @@ ion-toast::part(button) {
   margin-top: 6px;
   transition: opacity 0.2s;
 }
+.card_save:hover { background: #FF8C3D; }
 .card_save:active { opacity: 0.85; }
 .card_save:disabled { opacity: 0.6; cursor: default; }
 
@@ -2916,6 +2920,7 @@ ion-toast::part(button) {
   cursor: pointer;
   transition: border-color 0.2s, background 0.2s;
 }
+.card_share_btn:hover { border-color: #FF8C3D; background: #FFF3E8; }
 .card_share_btn:active { background: #eee8e3; }
 .card_share_btn i { font-size: 1.1rem; color: var(--primary); }
 
