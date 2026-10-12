@@ -34,6 +34,10 @@ body{font-family:"Hanken Grotesk",-apple-system,BlinkMacSystemFont,"Helvetica Ne
 .card_contact{display:flex;flex-direction:column;gap:2.4cqw;width:82.3cqw;margin-top:4.2cqw;position:relative}
 .card_contact_row{display:flex;align-items:center;gap:2.4cqw;font-size:3.4cqw;color:#4E4E4E;text-decoration:none;line-height:1.3;word-break:break-word}
 .card_contact_row svg{width:4.5cqw;height:4.5cqw;color:#FF7815;flex-shrink:0}
+.card_phone_form{width:82.3cqw;margin-top:4.2cqw;position:relative;display:flex;flex-direction:column;gap:1.5cqw}
+.card_phone_label{font-size:3.2cqw;color:#4E4E4E;font-weight:500;margin-bottom:.5cqw}
+.card_phone_input{height:11.7cqw;border:1px solid #ddd;border-radius:999px;font-family:inherit;font-size:3.4cqw;padding:0 5cqw;color:#1E1E1E;outline:none;background:#fff}
+.card_phone_input:focus{border-color:#FF7815}
 .card_msg{padding:30cqw 8cqw;color:#4E4E4E;font-size:4cqw;position:relative}
 .spinner{width:9cqw;height:9cqw;border:.8cqw solid #e2e2e2;border-top-color:#FF7815;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 4cqw}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -89,7 +93,12 @@ body{font-family:"Hanken Grotesk",-apple-system,BlinkMacSystemFont,"Helvetica Ne
         (d.phone?'<a class="card_contact_row" href="tel:'+esc(d.phone)+'"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>'+esc(d.phone)+'</a>':'') +
         (d.email?'<a class="card_contact_row" href="mailto:'+esc(d.email)+'"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>'+esc(d.email)+'</a>':'') +
         (d.website?'<a class="card_contact_row" href="'+esc(d.website)+'" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93C7.05 19.44 4 16.08 4 12c0-.61.08-1.21.21-1.82L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41C17.94 5.78 20 8.65 20 12c0 2.08-.81 3.98-2.1 5.39z"/></svg>'+esc(d.website.replace(/^https?:\/\//,''))+'</a>':'') +
-      '</div>';
+      '</div>' +
+      '<form class="card_phone_form" id="phoneForm">' +
+        '<p class="card_phone_label">Want a callback? Leave your number:</p>' +
+        '<input class="card_phone_input" id="phoneInput" type="tel" placeholder="Your phone number" autocomplete="tel">' +
+        '<button class="card_btn card_btn_primary" type="submit" id="phoneSubmit" style="margin-top:1.5cqw">Request Callback</button>' +
+      '</form>';
 
     document.getElementById('saveBtn').addEventListener('click',function(){
       var blob = new Blob([vcard(d)],{type:'text/vcard'});
@@ -112,6 +121,27 @@ body{font-family:"Hanken Grotesk",-apple-system,BlinkMacSystemFont,"Helvetica Ne
       if(navigator.share){navigator.share(shareData).catch(function(){});}
       else{navigator.clipboard.writeText(window.location.href).then(function(){alert('Link copied to clipboard!');});}
     });
+
+    // Optional phone number capture — visitor can leave their number for a callback.
+    var form = document.getElementById('phoneForm');
+    if(form){
+      form.addEventListener('submit',function(e){
+        e.preventDefault();
+        var phone = document.getElementById('phoneInput').value.trim();
+        if(!phone) return;
+        var btn = document.getElementById('phoneSubmit');
+        btn.disabled = true; btn.textContent = 'Sending…';
+        fetch('/api/card/contact/' + encodeURIComponent(cardId),{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({phone:phone})
+        }).then(function(r){return r.json();}).then(function(res){
+          if(res.ok){
+            form.innerHTML = '<p style="font-size:3.4cqw;color:#FF7815;font-weight:600;padding:2cqw 0">Thanks! ' + esc(d.name||'we') + ' will reach out soon.</p>';
+          } else { btn.disabled = false; btn.textContent = 'Submit'; alert('Could not send. Please try again.'); }
+        }).catch(function(){ btn.disabled = false; btn.textContent = 'Submit'; alert('Could not send. Please try again.'); });
+      });
+    }
   }
 })();
 </script>

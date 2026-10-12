@@ -37,6 +37,7 @@ tbody tr:last-child td{border-bottom:none}
 .event_badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:.7rem;font-weight:700}
 .event_scan{background:rgba(255,113,16,.12);color:#FF7110}
 .event_share{background:rgba(30,30,30,.08);color:#1E1E1E}
+.event_contact{background:rgba(0,128,0,.12);color:#2e7d32}
 .spinner_wrap{text-align:center;padding:60px 20px;color:#6B6B6B}
 .spinner{width:32px;height:32px;border:3px solid #E0E0E0;border-top-color:#FF7110;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 12px}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -55,6 +56,7 @@ tbody tr:last-child td{border-bottom:none}
   <div class="summary" id="summary">
     <div class="summary_card"><strong id="sumScans">—</strong><span>Total Scans</span></div>
     <div class="summary_card"><strong id="sumShares">—</strong><span>Total Shares</span></div>
+    <div class="summary_card"><strong id="sumContacts">—</strong><span>Contacts</span></div>
     <div class="summary_card"><strong id="sumToday">—</strong><span>Today</span></div>
   </div>
   <div class="toolbar">
@@ -64,6 +66,7 @@ tbody tr:last-child td{border-bottom:none}
         <button class="filter_btn active" data-filter="all">All</button>
         <button class="filter_btn" data-filter="scan">Scans</button>
         <button class="filter_btn" data-filter="share">Shares</button>
+        <button class="filter_btn" data-filter="contact">Contacts</button>
       </div>
       <a class="download_btn" id="downloadBtn" href="/api/card/scans/export">
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
@@ -82,6 +85,8 @@ tbody tr:last-child td{border-bottom:none}
         <tr>
           <th>Date & Time</th>
           <th>Event</th>
+          <th>Phone</th>
+          <th>Location</th>
           <th>Device</th>
           <th>OS</th>
           <th>Browser</th>
@@ -126,8 +131,9 @@ tbody tr:last-child td{border-bottom:none}
 
   function render(){
     var rows = allRows;
-    if(currentFilter === 'scan') rows = allRows.filter(function(r){return r.type !== 'share';});
+    if(currentFilter === 'scan') rows = allRows.filter(function(r){return r.type !== 'share' && r.type !== 'contact';});
     else if(currentFilter === 'share') rows = allRows.filter(function(r){return r.type === 'share';});
+    else if(currentFilter === 'contact') rows = allRows.filter(function(r){return r.type === 'contact';});
 
     var tbody = document.getElementById('tbody');
     tbody.innerHTML = '';
@@ -142,10 +148,15 @@ tbody tr:last-child td{border-bottom:none}
     rows.forEach(function(r){
       var info = parseUA(r.ua);
       var isShare = r.type === 'share';
+      var isContact = r.type === 'contact';
+      var badge = isShare ? 'event_share' : isContact ? 'event_contact' : 'event_scan';
+      var label = isShare ? 'Share' : isContact ? 'Contact' : 'Scan';
       var tr = document.createElement('tr');
       tr.innerHTML =
         '<td>'+fmtDate(r.at)+'</td>'+
-        '<td><span class="event_badge '+(isShare?'event_share':'event_scan')+'">'+(isShare?'Share':'Scan')+'</span></td>'+
+        '<td><span class="event_badge '+badge+'">'+label+'</span></td>'+
+        '<td>'+(r.phone || '—')+'</td>'+
+        '<td>'+(r.location || '—')+'</td>'+
         '<td>'+info.device+'</td>'+
         '<td>'+info.os+'</td>'+
         '<td>'+info.browser+'</td>'+
@@ -158,8 +169,10 @@ tbody tr:last-child td{border-bottom:none}
     document.getElementById('loading').style.display = 'none';
     if(!d.ok || !d.scans){ document.getElementById('empty').style.display='block'; return; }
     allRows = d.scans;
-    document.getElementById('sumScans').textContent = (d.total - (d.shares || 0));
+    var contactCount = allRows.filter(function(s){return s.type === 'contact';}).length;
+    document.getElementById('sumScans').textContent = (d.total - (d.shares || 0) - contactCount);
     document.getElementById('sumShares').textContent = (d.shares || 0);
+    document.getElementById('sumContacts').textContent = contactCount;
     var today = new Date(); today.setHours(0,0,0,0);
     var todayISO = today.toISOString().slice(0,10);
     document.getElementById('sumToday').textContent = allRows.filter(function(s){

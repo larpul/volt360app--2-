@@ -337,6 +337,29 @@ async function analyzeBill(buffer, mime) {
     };
 }
 
+// Look up approximate location from the visitor's IP address using ip-api.com (free, no key).
+async function ipLocation(ip) {
+    if (!ip || ip === '127.0.0.1' || ip.startsWith('10.') || ip.startsWith('172.') || ip.startsWith('192.168.')) {
+        return '';
+    }
+    try {
+        var controller = new AbortController();
+        var timer = setTimeout(function () { controller.abort(); }, 4000);
+        var resp = await fetch('http://ip-api.com/json/' + ip + '?fields=city,regionName,country', { signal: controller.signal });
+        clearTimeout(timer);
+        var data = await resp.json();
+        if (data && (data.city || data.regionName)) {
+            return [data.city, data.regionName, data.country].filter(Boolean).join(', ');
+        }
+    } catch (e) { /* non-blocking */ }
+    return '';
+}
+
+// Extract the visitor's real IP from nginx proxy headers.
+function clientIp(req) {
+    return req.headers['x-real-ip'] || (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket.remoteAddress || '';
+}
+
 function sendJson(res, status, payload) {
     const body = JSON.stringify(payload);
     res.writeHead(status, {
@@ -513,15 +536,26 @@ const server = http.createServer((req, res) => {
             cardId: cardId,
             at: new Date().toISOString(),
             ua: String(req.headers['user-agent'] || '').slice(0, 300),
-            ref: String(req.headers.referer || '').slice(0, 300)
+            ref: String(req.headers.referer || '').slice(0, 300),
+            ip: clientIp(req),
+            location: ''
         };
         var scans = readJsonFile(SCANS_FILE, []);
         scans.push(scanRecord);
         if (scans.length > 1000) scans.splice(0, scans.length - 1000);
         writeJsonFile(SCANS_FILE, scans);
-        // Fire-and-forget: log the scan to Google Sheets without blocking the response.
+        // Fire-and-forget: look up the visitor's location from their IP, then log to Sheets.
         if (sheets.isConfigured()) {
-            sheets.logScan(scanRecord);
+            ipLocation(scanRecord.ip).then(function (loc) {
+                if (loc) {
+                    scanRecord.location = loc;
+                    // Update the stored record in place.
+                    var fresh = readJsonFile(SCANS_FILE, []);
+                    var idx = fresh.length - 1;
+                    if (idx >= 0 && fresh[idx].at === scanRecord.at) { fresh[idx].location = loc; writeJsonFile(SCANS_FILE, fresh); }
+                }
+                sheets.logScan(scanRecord);
+            }).catch(function () { sheets.logScan(scanRecord); });
         }
         sendJson(res, 200, {
             ok: true,
@@ -559,6 +593,41 @@ const server = http.createServer((req, res) => {
         });
         return;
     }
+    // Record a contact request (visitor leaves their phone number on the card page).
+    if (req.method === 'POST' && url.pathname.startsWith('/api/card/contact/')) {
+        var cardId = decodeURIComponent(url.pathname.slice('/api/card/contact/'.length));
+        var card = readJsonFile(CARD_FILE, null);
+        if (!card || card.id !== cardId) {
+            sendJson(res, 404, { ok: false, message: 'Card not found.' });
+            return;
+        }
+        readJsonBody(req, 4096).then(function (body) {
+            var phone = String((body && body.phone) || '').slice(0, 40);
+            var contactRecord = {
+                cardId: cardId,
+                at: new Date().toISOString(),
+                type: 'contact',
+                phone: phone,
+                ua: String(req.headers['user-agent'] || '').slice(0, 300),
+                ref: String(req.headers.referer || '').slice(0, 300),
+                ip: clientIp(req),
+                location: ''
+            };
+            var scans = readJsonFile(SCANS_FILE, []);
+            scans.push(contactRecord);
+            if (scans.length > 1000) scans.splice(0, scans.length - 1000);
+            writeJsonFile(SCANS_FILE, scans);
+            // Fire-and-forget: look up location, then log to Google Sheets.
+            if (sheets.isConfigured()) {
+                ipLocation(contactRecord.ip).then(function (loc) {
+                    contactRecord.location = loc;
+                    sheets.logContact(contactRecord);
+                }).catch(function () { sheets.logContact(contactRecord); });
+            }
+            sendJson(res, 200, { ok: true });
+        });
+        return;
+    }
     // Export all scan and share records as a CSV download (same data logged to Google Sheets).
     if (req.method === 'GET' && url.pathname === '/api/card/scans/export') {
         var card = readJsonFile(CARD_FILE, null);
@@ -567,12 +636,14 @@ const server = http.createServer((req, res) => {
         // Sort newest first so the CSV reads the same way the dashboard does.
         myScans.sort(function (a, b) { return (b.at || '') < (a.at || '') ? -1 : (b.at || '') > (a.at || '') ? 1 : 0; });
         var info = sheets.parseUserAgent;
-        var rows = [['Timestamp', 'Event', 'Device', 'OS', 'Browser', 'Method', 'User Agent', 'Referrer']];
+        var rows = [['Timestamp', 'Event', 'Phone', 'Location', 'Device', 'OS', 'Browser', 'Method', 'User Agent', 'Referrer']];
         myScans.forEach(function (s) {
             var ua = info(s.ua);
             rows.push([
                 s.at || '',
-                s.type === 'share' ? 'Share' : 'Scan',
+                s.type === 'share' ? 'Share' : s.type === 'contact' ? 'Contact' : 'Scan',
+                s.phone || '',
+                s.location || '',
                 ua.device,
                 ua.os,
                 ua.browser,

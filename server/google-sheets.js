@@ -150,15 +150,17 @@ async function logScan(scan) {
             info.browser,
             scan.ua || '',
             scan.ref || '',
-            'Scan'
+            'Scan',
+            '',
+            scan.phone || '',
+            scan.location || ''
         ]);
     } catch (err) {
         console.error('Google Sheets logScan error:', String((err && err.message) || err));
     }
 }
 
-// Log a share event to Google Sheets.  Same columns as a scan plus a share
-// method column, with 'Share' in the event-type column.
+// Log a share event to Google Sheets.
 async function logShare(share) {
     try {
         var info = parseUserAgent(share.ua);
@@ -171,10 +173,34 @@ async function logShare(share) {
             share.ua || '',
             share.ref || '',
             'Share',
-            share.method || ''
+            share.method || '',
+            '',
+            share.location || ''
         ]);
     } catch (err) {
         console.error('Google Sheets logShare error:', String((err && err.message) || err));
+    }
+}
+
+// Log a contact request (visitor left their phone number) to Google Sheets.
+async function logContact(contact) {
+    try {
+        var info = parseUserAgent(contact.ua);
+        await appendRow([
+            contact.at || new Date().toISOString(),
+            contact.cardId || '',
+            info.device,
+            info.os,
+            info.browser,
+            contact.ua || '',
+            contact.ref || '',
+            'Contact',
+            '',
+            contact.phone || '',
+            contact.location || ''
+        ]);
+    } catch (err) {
+        console.error('Google Sheets logContact error:', String((err && err.message) || err));
     }
 }
 
@@ -187,4 +213,4 @@ function getSheetUrl() {
     return 'https://docs.google.com/spreadsheets/d/' + id + '/edit';
 }
 
-module.exports = { isConfigured, appendRow, parseUserAgent, logScan, logShare, getSheetUrl };
+module.exports = { isConfigured, appendRow, parseUserAgent, logScan, logShare, logContact, getSheetUrl };
