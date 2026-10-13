@@ -328,7 +328,7 @@ a:focus-visible,button:focus-visible,input:focus-visible{
     var name=d.name||'Unknown';
     var photoHtml=d.photo
       ?'<img src="'+esc(d.photo)+'" alt="Portrait of '+esc(name)+'">'
-      :'<div class="hero-placeholder" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1A1A1A,#3a3a3a);color:#F2F0E9;font-family:'Uber Move Text',sans-serif;font-size:8rem;font-weight:700">'+esc(initials(name))+'</div>';
+      :'<div class="hero-placeholder" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1A1A1A,#3a3a3a);color:#F2F0E9;font-family:\"Uber Move Text\",sans-serif;font-size:8rem;font-weight:700">'+esc(initials(name))+'</div>';
 
     root.innerHTML=
       '<div class="spine" aria-hidden="true">'+esc(name)+'<span class="dot"></span>Digital Card</div>'+
