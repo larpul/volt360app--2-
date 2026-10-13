@@ -12,6 +12,16 @@
       "name": "GOOGLE_MAPS_API_KEY",
       "description": "Google Maps/Cloud API key for the Solar API roof data and satellite tiles, also served to the browser for map display. Optional at boot — without it the roof scan reports 'not configured'.",
       "requiredAtBoot": false
+    },
+    {
+      "name": "RESEND_API_KEY",
+      "description": "Resend API key for sending booking notification emails. Create a free account at resend.com and generate an API key. Without it, bookings are still stored and logged to Google Sheets, but no email alert is sent.",
+      "requiredAtBoot": false
+    },
+    {
+      "name": "NOTIFICATION_EMAIL",
+      "description": "The email address where you want to receive instant alerts whenever someone books a meeting through your scheduling tool.",
+      "requiredAtBoot": false
     }
   ]
 }

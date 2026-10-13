@@ -204,6 +204,28 @@ async function logContact(contact) {
     }
 }
 
+// Log a booking request (visitor selected a date/time) to Google Sheets.
+async function logBooking(booking) {
+    try {
+        var info = parseUserAgent(booking.ua);
+        await appendRow([
+            booking.at || new Date().toISOString(),
+            booking.cardId || '',
+            info.device,
+            info.os,
+            info.browser,
+            booking.ua || '',
+            booking.ref || '',
+            'Booking',
+            (booking.date || '') + ' ' + (booking.time || ''),
+            booking.email || '',
+            booking.location || ''
+        ]);
+    } catch (err) {
+        console.error('Google Sheets logBooking error:', String((err && err.message) || err));
+    }
+}
+
 function getSheetUrl() {
     if (!SPREADSHEET_ID) return '';
     // The env var may be a bare ID or a full Google Sheets URL — extract the ID either way.
@@ -213,4 +235,4 @@ function getSheetUrl() {
     return 'https://docs.google.com/spreadsheets/d/' + id + '/edit';
 }
 
-module.exports = { isConfigured, appendRow, parseUserAgent, logScan, logShare, logContact, getSheetUrl };
+module.exports = { isConfigured, appendRow, parseUserAgent, logScan, logShare, logContact, logBooking, getSheetUrl };
