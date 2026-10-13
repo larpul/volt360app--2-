@@ -44,6 +44,9 @@ const CHAT_FILE = path.join(path.dirname(DATA_DIR), 'chat.json');
 const sheets = require('./google-sheets');
 const email = require('./email');
 
+// WebSocket support for real-time team chat.
+const { attachWebSocket } = require('./ws-chat');
+
 function readJsonFile(filePath, fallback) {
     try { return JSON.parse(fs.readFileSync(filePath, 'utf8')); }
     catch (e) { return fallback; }
@@ -830,7 +833,7 @@ const server = http.createServer((req, res) => {
         sendJson(res, 200, { ok: true, messages: messages.slice(-200) });
         return;
     }
-    // Post a new chat message.
+    // Post a new chat message. Also broadcasts to all WebSocket clients.
     if (req.method === 'POST' && url.pathname === '/api/chat/messages') {
         readJsonBody(req, 16 * 1024).then(function (body) {
             if (!body || !body.name || !body.text) {
@@ -847,6 +850,7 @@ const server = http.createServer((req, res) => {
             messages.push(msg);
             if (messages.length > 1000) messages.splice(0, messages.length - 1000);
             writeJsonFile(CHAT_FILE, messages);
+            if (wsBroadcast) wsBroadcast(JSON.stringify({ type: 'message', message: msg }));
             sendJson(res, 200, { ok: true, message: msg });
         });
         return;
@@ -854,5 +858,27 @@ const server = http.createServer((req, res) => {
 
     sendJson(res, 404, { error: 'not found' });
 });
+
+// Attach WebSocket support for real-time chat.
+var wsBroadcast = null;
+var { broadcast } = attachWebSocket(server, function (client, text) {
+    // Messages received via WebSocket are also persisted and broadcast.
+    try {
+        var data = JSON.parse(text);
+        if (!data.name || !data.text) return;
+        var messages = readJsonFile(CHAT_FILE, []);
+        var msg = {
+            id: 'msg_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+            name: String(data.name).slice(0, 80),
+            text: String(data.text).slice(0, 2000),
+            at: new Date().toISOString()
+        };
+        messages.push(msg);
+        if (messages.length > 1000) messages.splice(0, messages.length - 1000);
+        writeJsonFile(CHAT_FILE, messages);
+        broadcast(JSON.stringify({ type: 'message', message: msg }));
+    } catch (e) { /* ignore malformed frames */ }
+});
+wsBroadcast = broadcast;
 
 server.listen(PORT, '0.0.0.0', () => console.log('uploads api listening on ' + PORT));

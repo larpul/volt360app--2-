@@ -66,7 +66,8 @@ body{font-family:"Hanken Grotesk",-apple-system,BlinkMacSystemFont,"Helvetica Ne
 var myName = localStorage.getItem('chat_name') || '';
 document.getElementById('nameInput').value = myName;
 var lastTs = null;
-var pollTimer = null;
+var ws = null;
+var wsReconnectTimer = null;
 
 function fmtTime(iso) {
   var d = new Date(iso);
@@ -91,25 +92,38 @@ function shouldShowDayDivider(msg, prevMsg) {
   return new Date(msg.at).toDateString() !== new Date(prevMsg.at).toDateString();
 }
 
-function renderMessages(messages, append) {
+function appendMessage(m) {
   var area = document.getElementById('chatArea');
-  if (!append) {
-    area.innerHTML = '';
-    if (!messages.length) {
-      area.innerHTML = '<div class="empty"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>No messages yet. Say hi to the team!</div>';
-      return;
-    }
-  }
-  if (!messages.length && !append) return;
+  // Remove empty placeholder if present
+  var empty = area.querySelector('.empty');
+  if (empty) area.innerHTML = '';
 
+  var prev = lastTs ? {at: lastTs} : null;
   var html = '';
-  var allMsgs = append ? messages : messages;
-  for (var i = 0; i < allMsgs.length; i++) {
-    var m = allMsgs[i];
-    var prev = i > 0 ? allMsgs[i-1] : (append ? {at: lastTs} : null);
-    if (append && i === 0 && lastTs) {
-      prev = {at: lastTs};
-    }
+  if (shouldShowDayDivider(m, prev)) {
+    html += '<div class="day_divider"><span>' + fmtDay(m.at) + '</span></div>';
+  }
+  var mine = m.name === myName;
+  html += '<div class="msg ' + (mine ? 'mine' : 'other') + '">'
+    + '<div class="bubble">' + esc(m.text) + '</div>'
+    + '<div class="meta">' + (mine ? '' : '<strong>' + esc(m.name) + '</strong> · ') + fmtTime(m.at) + '</div>'
+    + '</div>';
+  area.insertAdjacentHTML('beforeend', html);
+  area.scrollTop = area.scrollHeight;
+  lastTs = m.at;
+}
+
+function renderMessages(messages) {
+  var area = document.getElementById('chatArea');
+  area.innerHTML = '';
+  if (!messages.length) {
+    area.innerHTML = '<div class="empty"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>No messages yet. Say hi to the team!</div>';
+    return;
+  }
+  var html = '';
+  for (var i = 0; i < messages.length; i++) {
+    var m = messages[i];
+    var prev = i > 0 ? messages[i-1] : null;
     if (shouldShowDayDivider(m, prev)) {
       html += '<div class="day_divider"><span>' + fmtDay(m.at) + '</span></div>';
     }
@@ -119,30 +133,55 @@ function renderMessages(messages, append) {
       + '<div class="meta">' + (mine ? '' : '<strong>' + esc(m.name) + '</strong> · ') + fmtTime(m.at) + '</div>'
       + '</div>';
   }
-  if (append) {
-    area.insertAdjacentHTML('beforeend', html);
-  } else {
-    area.innerHTML = html;
-  }
-  // Scroll to bottom
+  area.innerHTML = html;
   area.scrollTop = area.scrollHeight;
-  if (messages.length) lastTs = messages[messages.length - 1].at;
+  lastTs = messages[messages.length - 1].at;
 }
 
+// Load existing messages on page open, then connect WebSocket for live updates.
 async function loadMessages() {
   try {
-    var url = '/api/chat/messages';
-    if (lastTs) url += '?since=' + encodeURIComponent(lastTs);
-    var resp = await fetch(url);
+    var resp = await fetch('/api/chat/messages');
     var data = await resp.json();
-    var msgs = data.messages || [];
-    if (msgs.length) {
-      var isFirstLoad = lastTs === null;
-      renderMessages(msgs, !isFirstLoad);
-    } else if (lastTs === null) {
-      renderMessages([], false);
-    }
-  } catch(e) { /* will retry on next poll */ }
+    renderMessages(data.messages || []);
+  } catch(e) {
+    document.getElementById('chatArea').innerHTML = '<div class="empty">Could not load messages.</div>';
+  }
+}
+
+function connectWebSocket() {
+  var proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+  ws = new WebSocket(proto + '//' + location.host + '/api/chat/ws');
+
+  ws.onmessage = function(event) {
+    try {
+      var data = JSON.parse(event.data);
+      if (data.type === 'message' && data.message) {
+        appendMessage(data.message);
+      }
+    } catch(e) {}
+  };
+
+  ws.onclose = function() {
+    ws = null;
+    setLiveDot(false);
+    // Reconnect after 3 seconds
+    if (wsReconnectTimer) clearTimeout(wsReconnectTimer);
+    wsReconnectTimer = setTimeout(connectWebSocket, 3000);
+  };
+
+  ws.onerror = function() {
+    // onclose will fire and handle reconnection
+  };
+
+  ws.onopen = function() {
+    setLiveDot(true);
+  };
+}
+
+function setLiveDot(connected) {
+  var dot = document.querySelector('.header .dot');
+  if (dot) dot.style.background = connected ? '#4caf50' : '#f44336';
 }
 
 function send() {
@@ -157,23 +196,23 @@ function send() {
   msgEl.value = '';
   msgEl.focus();
 
-  fetch('/api/chat/messages', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name: name, text: text })
-  }).then(function(r) { return r.json(); }).then(function(data) {
-    if (data.ok) {
-      loadMessages();
-    }
-  }).catch(function() {
-    alert('Could not send message. Check your connection.');
-    msgEl.value = text;
-  });
+  // Send via WebSocket if connected, otherwise fall back to HTTP POST
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ name: name, text: text }));
+  } else {
+    fetch('/api/chat/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: name, text: text })
+    }).catch(function() {
+      alert('Could not send message. Check your connection.');
+      msgEl.value = text;
+    });
+  }
 }
 
-// Poll for new messages every 3 seconds
-loadMessages();
-pollTimer = setInterval(loadMessages, 3000);
+// Load history, then connect WebSocket for real-time updates
+loadMessages().then(connectWebSocket);
 </script>
 </body>
 </html>
