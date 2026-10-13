@@ -35,6 +35,11 @@ const scanCache = new Map();
 const CARD_FILE = path.join(path.dirname(DATA_DIR), 'card.json');
 const SCANS_FILE = path.join(path.dirname(DATA_DIR), 'scans.json');
 
+// ---- Sales Reps directory & Team Chat ----
+// Stored as JSON files next to the other app data.
+const REPS_FILE = path.join(path.dirname(DATA_DIR), 'reps.json');
+const CHAT_FILE = path.join(path.dirname(DATA_DIR), 'chat.json');
+
 // Google Sheets integration — each QR scan is logged as a new spreadsheet row.
 const sheets = require('./google-sheets');
 const email = require('./email');
@@ -743,6 +748,106 @@ const server = http.createServer((req, res) => {
             total: myScans.length,
             shares: shareCount,
             scans: myScans.slice(-50).reverse()
+        });
+        return;
+    }
+
+    // ---- Sales Reps directory ----
+    // List all sales reps.
+    if (req.method === 'GET' && url.pathname === '/api/reps') {
+        var reps = readJsonFile(REPS_FILE, []);
+        sendJson(res, 200, { ok: true, reps: reps });
+        return;
+    }
+    // Add a new sales rep.
+    if (req.method === 'POST' && url.pathname === '/api/reps') {
+        readJsonBody(req, 16 * 1024).then(function (body) {
+            if (!body || !body.name) {
+                sendJson(res, 400, { ok: false, message: 'Name is required.' });
+                return;
+            }
+            var reps = readJsonFile(REPS_FILE, []);
+            var rep = {
+                id: 'rep_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+                name: String(body.name).slice(0, 120),
+                email: String(body.email || '').slice(0, 200),
+                phone: String(body.phone || '').slice(0, 40),
+                region: String(body.region || '').slice(0, 120),
+                role: String(body.role || 'Sales Rep').slice(0, 80),
+                status: String(body.status || 'Active').slice(0, 30),
+                joinedAt: new Date().toISOString()
+            };
+            reps.push(rep);
+            writeJsonFile(REPS_FILE, reps);
+            sendJson(res, 200, { ok: true, rep: rep });
+        });
+        return;
+    }
+    // Update an existing sales rep.
+    if (req.method === 'PUT' && url.pathname.startsWith('/api/reps/')) {
+        var repId = decodeURIComponent(url.pathname.slice('/api/reps/'.length));
+        readJsonBody(req, 16 * 1024).then(function (body) {
+            if (!body) { sendJson(res, 400, { ok: false, message: 'Invalid data.' }); return; }
+            var reps = readJsonFile(REPS_FILE, []);
+            var idx = reps.findIndex(function (r) { return r.id === repId; });
+            if (idx === -1) { sendJson(res, 404, { ok: false, message: 'Rep not found.' }); return; }
+            var rep = reps[idx];
+            if (body.name) rep.name = String(body.name).slice(0, 120);
+            if (body.email !== undefined) rep.email = String(body.email).slice(0, 200);
+            if (body.phone !== undefined) rep.phone = String(body.phone).slice(0, 40);
+            if (body.region !== undefined) rep.region = String(body.region).slice(0, 120);
+            if (body.role) rep.role = String(body.role).slice(0, 80);
+            if (body.status) rep.status = String(body.status).slice(0, 30);
+            rep.updatedAt = new Date().toISOString();
+            reps[idx] = rep;
+            writeJsonFile(REPS_FILE, reps);
+            sendJson(res, 200, { ok: true, rep: rep });
+        });
+        return;
+    }
+    // Delete a sales rep.
+    if (req.method === 'DELETE' && url.pathname.startsWith('/api/reps/')) {
+        var repId = decodeURIComponent(url.pathname.slice('/api/reps/'.length));
+        var reps = readJsonFile(REPS_FILE, []);
+        var filtered = reps.filter(function (r) { return r.id !== repId; });
+        if (filtered.length === reps.length) {
+            sendJson(res, 404, { ok: false, message: 'Rep not found.' });
+            return;
+        }
+        writeJsonFile(REPS_FILE, filtered);
+        sendJson(res, 200, { ok: true });
+        return;
+    }
+
+    // ---- Team Chat ----
+    // Get chat messages (optionally only those after ?since=ISO timestamp).
+    if (req.method === 'GET' && url.pathname === '/api/chat/messages') {
+        var messages = readJsonFile(CHAT_FILE, []);
+        var since = url.searchParams.get('since');
+        if (since) {
+            messages = messages.filter(function (m) { return m.at > since; });
+        }
+        sendJson(res, 200, { ok: true, messages: messages.slice(-200) });
+        return;
+    }
+    // Post a new chat message.
+    if (req.method === 'POST' && url.pathname === '/api/chat/messages') {
+        readJsonBody(req, 16 * 1024).then(function (body) {
+            if (!body || !body.name || !body.text) {
+                sendJson(res, 400, { ok: false, message: 'Name and text are required.' });
+                return;
+            }
+            var messages = readJsonFile(CHAT_FILE, []);
+            var msg = {
+                id: 'msg_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+                name: String(body.name).slice(0, 80),
+                text: String(body.text).slice(0, 2000),
+                at: new Date().toISOString()
+            };
+            messages.push(msg);
+            if (messages.length > 1000) messages.splice(0, messages.length - 1000);
+            writeJsonFile(CHAT_FILE, messages);
+            sendJson(res, 200, { ok: true, message: msg });
         });
         return;
     }

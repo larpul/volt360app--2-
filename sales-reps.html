@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Sales Reps — Solar360</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Hanken Grotesk",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;background:#F4F5F7;color:#1E1E1E;min-height:100vh}
+.header{background:linear-gradient(135deg,#FF7110 0%,#FF9D4D 100%);padding:24px 20px;color:#fff;box-shadow:0 4px 20px rgba(255,113,16,.3)}
+.header h1{font-size:1.5rem;font-weight:700}
+.header p{margin-top:4px;font-size:.85rem;opacity:.9}
+.back_link{display:inline-flex;align-items:center;gap:4px;margin-top:12px;color:rgba(255,255,255,.9);font-size:.82rem;font-weight:600;text-decoration:none}
+.back_link svg{width:16px;height:16px}
+.container{max-width:960px;margin:0 auto;padding:20px}
+.toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+.toolbar h2{font-size:1.1rem;font-weight:600}
+.add_btn{padding:8px 18px;border:none;border-radius:20px;background:#FF7110;color:#fff;font-family:inherit;font-size:.82rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px}
+.add_btn:active{opacity:.85}
+.add_btn svg{width:16px;height:16px}
+.summary{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.summary_card{flex:1;min-width:120px;padding:16px;border-radius:14px;background:#fff;box-shadow:0 8px 16px -8px rgba(0,0,0,.1)}
+.summary_card strong{display:block;font-size:2rem;font-weight:700;color:#FF7110;line-height:1}
+.summary_card span{display:block;margin-top:4px;font-size:.75rem;color:#6B6B6B;font-weight:600}
+.cards{display:flex;flex-direction:column;gap:12px}
+.rep_card{background:#fff;border-radius:14px;box-shadow:0 8px 16px -8px rgba(0,0,0,.1);padding:16px 18px;display:flex;align-items:center;gap:14px}
+.rep_avatar{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#FF7110,#FF9D4D);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.1rem;flex-shrink:0}
+.rep_info{flex:1;min-width:0}
+.rep_info h3{font-size:.95rem;font-weight:600;margin-bottom:2px}
+.rep_info p{font-size:.78rem;color:#6B6B6B;display:flex;flex-wrap:wrap;gap:6px 12px}
+.rep_info p span{display:inline-flex;align-items:center;gap:3px}
+.rep_badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:.7rem;font-weight:700;flex-shrink:0}
+.badge_active{background:rgba(46,125,50,.12);color:#2e7d32}
+.badge_inactive{background:rgba(0,0,0,.08);color:#6B6B6B}
+.badge_onleave{background:rgba(255,193,7,.15);color:#f9a825}
+.rep_actions{display:flex;gap:6px;flex-shrink:0}
+.icon_btn{width:32px;height:32px;border:1px solid #E0E0E0;border-radius:8px;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#6B6B6B;transition:all .2s}
+.icon_btn:active{background:#F4F5F7}
+.icon_btn.delete:active{background:#fee;color:#c62828;border-color:#c62828}
+.icon_btn svg{width:16px;height:16px}
+.spinner_wrap{text-align:center;padding:60px 20px;color:#6B6B6B}
+.spinner{width:32px;height:32px;border:3px solid #E0E0E0;border-top-color:#FF7110;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:40px 20px;color:#6B6B6B;font-size:.9rem}
+/* Modal */
+.modal_overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:999;padding:20px}
+.modal_overlay.show{display:flex}
+.modal{background:#fff;border-radius:16px;width:100%;max-width:420px;overflow:hidden}
+.modal_head{padding:18px 20px;border-bottom:1px solid #F0F0F0;display:flex;align-items:center;justify-content:space-between}
+.modal_head h3{font-size:1.05rem;font-weight:600}
+.modal_close{width:30px;height:30px;border:none;background:none;cursor:pointer;font-size:1.4rem;color:#999;line-height:1}
+.modal_body{padding:20px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:.78rem;font-weight:600;color:#6B6B6B;margin-bottom:4px}
+.field input,.field select{width:100%;padding:10px 12px;border:1px solid #E0E0E0;border-radius:10px;font-family:inherit;font-size:.88rem;color:#1E1E1E;background:#fff}
+.field input:focus,.field select:focus{outline:none;border-color:#FF7110}
+.modal_foot{padding:16px 20px;border-top:1px solid #F0F0F0;display:flex;gap:10px;justify-content:flex-end}
+.btn_cancel{padding:8px 18px;border:1px solid #E0E0E0;border-radius:20px;background:#fff;font-family:inherit;font-size:.85rem;font-weight:600;cursor:pointer;color:#6B6B6B}
+.btn_save{padding:8px 22px;border:none;border-radius:20px;background:#FF7110;font-family:inherit;font-size:.85rem;font-weight:600;cursor:pointer;color:#fff}
+.btn_save:active{opacity:.85}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>Sales Reps</h1>
+  <p>Team directory — everyone on the sales floor</p>
+  <a class="back_link" href="/dashboard"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>Back to Dashboard</a>
+</div>
+<div class="container">
+  <div class="summary" id="summary">
+    <div class="summary_card"><strong id="sumTotal">—</strong><span>Total Reps</span></div>
+    <div class="summary_card"><strong id="sumActive">—</strong><span>Active</span></div>
+    <div class="summary_card"><strong id="sumRegions">—</strong><span>Regions</span></div>
+  </div>
+  <div class="toolbar">
+    <h2>Rep Directory</h2>
+    <button class="add_btn" id="addBtn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>Add Rep</button>
+  </div>
+  <div id="repList">
+    <div class="spinner_wrap"><div class="spinner"></div>Loading reps…</div>
+  </div>
+</div>
+
+<!-- Add/Edit Modal -->
+<div class="modal_overlay" id="modal">
+  <div class="modal">
+    <div class="modal_head">
+      <h3 id="modalTitle">Add Sales Rep</h3>
+      <button class="modal_close" onclick="closeModal()">&times;</button>
+    </div>
+    <div class="modal_body">
+      <input type="hidden" id="repId">
+      <div class="field"><label>Name</label><input type="text" id="fName" placeholder="Jane Smith"></div>
+      <div class="field"><label>Email</label><input type="email" id="fEmail" placeholder="jane@volt360.com"></div>
+      <div class="field"><label>Phone</label><input type="tel" id="fPhone" placeholder="(555) 123-4567"></div>
+      <div class="field"><label>Region</label><input type="text" id="fRegion" placeholder="North Jersey"></div>
+      <div class="field"><label>Role</label>
+        <select id="fRole">
+          <option>Sales Rep</option>
+          <option>Senior Rep</option>
+          <option>Team Lead</option>
+          <option>Field Agent</option>
+          <option>Sales Manager</option>
+        </select>
+      </div>
+      <div class="field"><label>Status</label>
+        <select id="fStatus">
+          <option>Active</option>
+          <option>On Leave</option>
+          <option>Inactive</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal_foot">
+      <button class="btn_cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn_save" id="saveBtn">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var reps = [];
+var lastTs = 0;
+
+function initials(name) {
+  return (name || '').split(/\s+/).filter(Boolean).map(function(w){return w[0]}).join('').slice(0,2).toUpperCase() || '?';
+}
+function badgeClass(status) {
+  if (status === 'Active') return 'badge_active';
+  if (status === 'On Leave') return 'badge_onleave';
+  return 'badge_inactive';
+}
+function fmtDate(iso) {
+  if (!iso) return '';
+  var d = new Date(iso);
+  return d.toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'});
+}
+
+async function loadReps() {
+  try {
+    var resp = await fetch('/api/reps');
+    var data = await resp.json();
+    reps = data.reps || [];
+    render();
+  } catch(e) {
+    document.getElementById('repList').innerHTML = '<div class="empty">Could not load reps. Check your connection.</div>';
+  }
+}
+
+function render() {
+  document.getElementById('sumTotal').textContent = reps.length;
+  document.getElementById('sumActive').textContent = reps.filter(function(r){return r.status === 'Active'}).length;
+  var regions = {};
+  reps.forEach(function(r){ if(r.region) regions[r.region] = true; });
+  document.getElementById('sumRegions').textContent = Object.keys(regions).length;
+
+  if (!reps.length) {
+    document.getElementById('repList').innerHTML = '<div class="empty">No sales reps yet. Tap "Add Rep" to create the first one.</div>';
+    return;
+  }
+
+  var html = '<div class="cards">';
+  reps.forEach(function(r) {
+    html += '<div class="rep_card">'
+      + '<div class="rep_avatar">' + initials(r.name) + '</div>'
+      + '<div class="rep_info">'
+      + '<h3>' + esc(r.name) + '</h3>'
+      + '<p>'
+      + (r.role ? '<span>' + esc(r.role) + '</span>' : '')
+      + (r.region ? '<span>📍 ' + esc(r.region) + '</span>' : '')
+      + (r.email ? '<span>✉ ' + esc(r.email) + '</span>' : '')
+      + (r.phone ? '<span>☎ ' + esc(r.phone) + '</span>' : '')
+      + (r.joinedAt ? '<span>Joined ' + fmtDate(r.joinedAt) + '</span>' : '')
+      + '</p>'
+      + '</div>'
+      + '<span class="rep_badge ' + badgeClass(r.status) + '">' + esc(r.status || 'Active') + '</span>'
+      + '<div class="rep_actions">'
+      + '<button class="icon_btn" onclick="editRep(\'' + r.id + '\')" title="Edit"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>'
+      + '<button class="icon_btn delete" onclick="deleteRep(\'' + r.id + '\')" title="Delete"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button>'
+      + '</div>'
+      + '</div>';
+  });
+  html += '</div>';
+  document.getElementById('repList').innerHTML = html;
+}
+
+function esc(s) {
+  var d = document.createElement('div');
+  d.textContent = s || '';
+  return d.innerHTML;
+}
+
+function openModal() {
+  document.getElementById('modal').classList.add('show');
+}
+function closeModal() {
+  document.getElementById('modal').classList.remove('show');
+  document.getElementById('repId').value = '';
+  document.getElementById('fName').value = '';
+  document.getElementById('fEmail').value = '';
+  document.getElementById('fPhone').value = '';
+  document.getElementById('fRegion').value = '';
+  document.getElementById('fRole').value = 'Sales Rep';
+  document.getElementById('fStatus').value = 'Active';
+  document.getElementById('modalTitle').textContent = 'Add Sales Rep';
+}
+
+function editRep(id) {
+  var r = reps.find(function(x){return x.id === id});
+  if (!r) return;
+  document.getElementById('repId').value = r.id;
+  document.getElementById('fName').value = r.name || '';
+  document.getElementById('fEmail').value = r.email || '';
+  document.getElementById('fPhone').value = r.phone || '';
+  document.getElementById('fRegion').value = r.region || '';
+  document.getElementById('fRole').value = r.role || 'Sales Rep';
+  document.getElementById('fStatus').value = r.status || 'Active';
+  document.getElementById('modalTitle').textContent = 'Edit Rep';
+  openModal();
+}
+
+async function deleteRep(id) {
+  if (!confirm('Remove this sales rep from the directory?')) return;
+  try {
+    await fetch('/api/reps/' + id, { method: 'DELETE' });
+    await loadReps();
+  } catch(e) {
+    alert('Could not delete rep.');
+  }
+}
+
+document.getElementById('addBtn').addEventListener('click', function() {
+  closeModal();
+  openModal();
+});
+
+document.getElementById('saveBtn').addEventListener('click', async function() {
+  var name = document.getElementById('fName').value.trim();
+  if (!name) { alert('Name is required.'); return; }
+  var body = {
+    name: name,
+    email: document.getElementById('fEmail').value.trim(),
+    phone: document.getElementById('fPhone').value.trim(),
+    region: document.getElementById('fRegion').value.trim(),
+    role: document.getElementById('fRole').value,
+    status: document.getElementById('fStatus').value
+  };
+  var id = document.getElementById('repId').value;
+  try {
+    if (id) {
+      await fetch('/api/reps/' + id, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    } else {
+      await fetch('/api/reps', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    }
+    closeModal();
+    await loadReps();
+  } catch(e) {
+    alert('Could not save rep.');
+  }
+});
+
+document.getElementById('modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+loadReps();
+</script>
+</body>
+</html>
