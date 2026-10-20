@@ -166,7 +166,7 @@
             base.name = profile.name;
             base.phone = profile.phone;
             base.email = profile.email;
-            base.photo = window.location.origin + '/assets/images/profile.png';
+            base.photo = window.location.origin + '/assets/images/default-avatar.svg';
         }
         for (var i = 0; i < FIELDS.length; i++) {
             var input = root.querySelector('[data-field="' + FIELDS[i] + '"]');
@@ -180,7 +180,7 @@
             var input = root.querySelector('[data-field="' + FIELDS[i] + '"]');
             if (input) data[FIELDS[i]] = input.value.trim();
         }
-        data.photo = (cardData && cardData.photo) || (window.location.origin + '/assets/images/profile.png');
+        data.photo = (cardData && cardData.photo) || (window.location.origin + '/assets/images/default-avatar.svg');
         return data;
     }
 
