@@ -528,11 +528,15 @@ const server = http.createServer((req, res) => {
             sendJson(res, 400, { configured: true, parcels: [], message: 'lat and lng are required.' });
             return;
         }
-        const radius = Math.min(Math.max(Math.round(Number(url.searchParams.get('radius')) || 800), 50), 32000);
+        // Regrid rejects a lookup whose search area is over 386 square miles, so the
+        // radius is capped at 16 km (radius ~ 310 sq mi) to keep wide map views valid.
+        const radius = Math.min(Math.max(Math.round(Number(url.searchParams.get('radius')) || 800), 50), 16000);
         const limit = Math.min(Math.max(Math.round(Number(url.searchParams.get('limit')) || 50), 1), 200);
         regridParcelsNear(lat, lng, radius, limit)
             .then(payload => {
-                sendJson(res, payload.ok ? 200 : 502, {
+                // Always 200: the map reads the body, and a non-2xx would make the
+                // browser client report a generic "could not reach" instead of this message.
+                sendJson(res, 200, {
                     configured: true,
                     parcels: payload.parcels || [],
                     message: payload.message || '',

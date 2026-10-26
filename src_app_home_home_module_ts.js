@@ -908,7 +908,8 @@ let HomePage = class HomePage {
         const metersPerPixel = 156543.03392 * Math.cos(lat * Math.PI / 180) / Math.pow(2, zoom || this.mapDefaultZoom);
         const box = this.mapBox();
         const short = Math.min(box.width || 400, box.height || 600);
-        return Math.round(Math.min(Math.max(short / 2 * metersPerPixel, 200), 32000));
+        // Capped at 16 km: Regrid rejects a search area larger than 386 square miles.
+        return Math.round(Math.min(Math.max(short / 2 * metersPerPixel, 200), 16000));
     }
     loadParcels() {
         if (!this.parcelsOn) {

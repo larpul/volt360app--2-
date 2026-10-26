@@ -33,9 +33,18 @@ same-origin, so all traffic goes through port 3000.
   handles client-side Angular routes.
 - **Uploads volume**: `uploads_data` Docker volume mounted at `/data/uploads`
   in the `api` service for file storage.
-- **Secrets**: `GEMINI_API_KEY` and `GOOGLE_MAPS_API_KEY` are delivered via
-  `/run/base44/app.env` (env_file). Both are optional at boot — the app starts
-  and the AI/solar features report "not configured" without them.
+- **Secrets**: `GEMINI_API_KEY`, `GOOGLE_MAPS_API_KEY` and `REGRID_API_TOKEN`
+  are delivered via `/run/base44/app.env` (env_file). All are optional at boot —
+  the app starts and the AI/solar/parcel features report "not configured"
+  without them.
+- **Regrid parcel layer**: `/api/regrid/parcels` proxies `app.regrid.com`
+  server-side (the token never reaches the browser). Regrid rejects a lookup
+  whose search area is over 386 sq mi, so both the server (`radius` clamp) and
+  the map's `parcelRadius()` cap the radius at 16 km. The endpoint always
+  answers `200` with a `message`, because the Angular client shows a generic
+  "could not reach" for any non-2xx. Coverage depends on the Regrid plan —
+  with the current token Dallas, TX returns parcels while other metros return
+  none, and the map then reads "No Regrid parcels in this view".
 
 ## Verify it works
 
@@ -44,6 +53,9 @@ docker compose -f docker-compose.base44.yml up -d
 curl -s http://localhost:3000/                    # → 200, index.html
 curl -s http://localhost:3000/api/health          # → {"ok":true}
 curl -s http://localhost:3000/api/solar/status    # → solar/ai configured flags
+curl -s http://localhost:3000/api/regrid/status    # → {"configured":true} with a token
+curl -s "http://localhost:3000/api/regrid/parcels?lat=32.7767&lng=-96.7970&radius=800"
+                                                   # → parcel records in Dallas, TX
 ```
 
 The app redirects to `/sign-in` (auth gate). The sign-in page should render
