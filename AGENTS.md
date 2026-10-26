@@ -66,7 +66,18 @@ same-origin, so all traffic goes through port 3000.
   Richardson (Dallas County, TX) return 50 parcels at `radius=400`;
   Cincinnati, Columbus, Cleveland, NYC, Chicago, Houston, Austin, Fort Worth,
   Denton and McKinney return 200 with empty FeatureCollections, and Cincinnati
-  stays empty at the 16 km cap. On an empty answer the API now returns a message saying the token may
+  stays empty at the 16 km cap.
+
+  On boot the api logs `[regrid] token loaded` with the token's presence, length,
+  a SHA-256 fingerprint (first 12 hex chars — the token itself is never logged),
+  its JWT expiry and whether it is a **sandbox** token (`cap` contains `sb`).
+  Every `lookup` line repeats the same fingerprint, so after replacing
+  `REGRID_API_TOKEN` the logs show at once whether the new token is the one in
+  use. The token in place during this investigation was a sandbox token
+  (`186b5b54ac5f`, expiring 2026-11-25) covering Dallas County, TX only.
+  Cincinnati needs a token from a paid Regrid plan (Standard/Premium, nationwide
+  US) at https://app.regrid.com/api/plans — no code change can add that coverage
+  from a sandbox key. On an empty answer the API now returns a message saying the token may
   not cover the county, and the map shows that instead of a bare "no parcels" line.
 
 ## Verify it works

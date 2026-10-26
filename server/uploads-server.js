@@ -6,6 +6,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 
 const PORT = Number(process.env.PORT || 4000);
 const DATA_DIR = process.env.DATA_DIR || '/data/uploads';
@@ -393,6 +394,32 @@ function regridParcel(feature) {
     };
 }
 
+// Which token is loaded, without exposing it: a SHA-256 prefix plus the JWT's expiry
+// and whether Regrid issued it as a sandbox token. A sandbox token ("sb" capability)
+// carries only a handful of counties - the one in use answers in Dallas County, TX
+// and nowhere else, Cincinnati / Hamilton County, OH included.
+function regridTokenInfo(token) {
+    const info = { present: !!token, length: token.length, fingerprint: '', expires: null, sandbox: false };
+    if (!token) {
+        return info;
+    }
+    info.fingerprint = crypto.createHash('sha256').update(token).digest('hex').slice(0, 12);
+    const parts = token.split('.');
+    if (parts.length === 3) {
+        try {
+            const claims = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8'));
+            if (claims.exp) {
+                info.expires = new Date(claims.exp * 1000).toISOString();
+            }
+            info.sandbox = String(claims.cap || '').split(':').indexOf('sb') !== -1;
+        } catch (error) {
+            // Opaque token - the fingerprint alone still tells us which one is loaded.
+        }
+    }
+    return info;
+}
+const REGRID_TOKEN_INFO = regridTokenInfo(REGRID_TOKEN);
+
 // Diagnostic logging for parcel lookups. Never logs the token or request headers -
 // only the query (lat/lon/radius), Regrid's status and a short body excerpt, so an
 // empty answer can be traced to "token does not cover this county" or a bad query.
@@ -434,8 +461,9 @@ async function regridParcelsNear(lat, lng, radius, limit) {
         lng,
         radius,
         limit,
-        tokenPresent: !!REGRID_TOKEN,
-        tokenLength: REGRID_TOKEN.length
+        token: REGRID_TOKEN_INFO.fingerprint,
+        sandbox: REGRID_TOKEN_INFO.sandbox,
+        tokenExpires: REGRID_TOKEN_INFO.expires
     });
     const startedAt = Date.now();
     const controller = new AbortController();
@@ -943,5 +971,9 @@ const server = http.createServer((req, res) => {
 
     sendJson(res, 404, { error: 'not found' });
 });
+
+// Says which Regrid token this process picked up, so a replaced token is verifiable
+// from the logs (fingerprint + expiry + sandbox flag, never the token itself).
+regridLog('info', 'token loaded', REGRID_TOKEN_INFO);
 
 server.listen(PORT, '0.0.0.0', () => console.log('uploads api listening on ' + PORT));
