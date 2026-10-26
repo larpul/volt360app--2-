@@ -64,6 +64,10 @@ with the Volt360 sidebar and sign-in form.
   editing `nginx.base44.conf` applies the new headers.
 - `server/uploads-server.js`: edit, then `docker compose -f
   docker-compose.base44.yml restart api` to pick up changes.
+- The default landing route is `/dashboard`: the `''` route in the routing
+  module (webpack module 809 in `main.js`) redirects there, and the
+  verification page's continue action also lands on it. The sign-in page is
+  still reachable at `/sign-in`, it is just no longer the entry point.
 - The bottom tab bar lives in the app shell, not in the pages: its markup is
   inside the `ion-app` template string (webpack module 721 in `main.js`, search
   for `app-tab-bar`), its navigation helpers (`tabGo`, `tabActive`,
