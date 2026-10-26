@@ -53,5 +53,9 @@ with the Volt360 sidebar and sign-in form.
 
 - Static files (`*.js`, `*.css`, `index.html`): edit directly; changes appear
   on page reload (no build step, no hot reload — call `reload_preview`).
+- Replaced images (e.g. `assets/images/profile.png`) keep the same URL, so the
+  nginx server block sends `Cache-Control: no-cache` for `.png/.jpg/.svg/.webp/.ico`
+  and the avatar references carry a `?v=N` suffix. Bump that suffix when swapping
+  an image so browsers pick up the new file immediately.
 - `server/uploads-server.js`: edit, then `docker compose -f
   docker-compose.base44.yml restart api` to pick up changes.
