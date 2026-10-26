@@ -536,11 +536,16 @@ const server = http.createServer((req, res) => {
             .then(payload => {
                 // Always 200: the map reads the body, and a non-2xx would make the
                 // browser client report a generic "could not reach" instead of this message.
+                const parcels = payload.parcels || [];
                 sendJson(res, 200, {
                     configured: true,
-                    parcels: payload.parcels || [],
-                    message: payload.message || '',
-                    count: (payload.parcels || []).length
+                    parcels: parcels,
+                    // An empty answer is usually a token that does not cover this county
+                    // (Regrid's trial token only covers a handful), so say that instead of
+                    // leaving the map with a bare "no parcels" line.
+                    message: payload.message || (parcels.length ? '' :
+                        'No Regrid parcels in this view - if this area should have parcel data, your Regrid token may not cover this county.'),
+                    count: parcels.length
                 });
             })
             .catch(error => sendJson(res, 500, {

@@ -46,8 +46,13 @@ same-origin, so all traffic goes through port 3000.
   pin per parcel plus a scrollable "Regrid parcels in view" list (address,
   acreage, owner); tapping a row flies to the parcel and opens its record card
   with owner, parcel number, land use, zoning and year built. Coverage depends on the Regrid plan —
-  with the current token Dallas, TX returns parcels while other metros return
-  none, and the map then reads "No Regrid parcels in this view".
+  the current token returns records only in Dallas County, TX (Regrid's free
+  sandbox token is limited to a few counties), so Cincinnati / Hamilton County,
+  OH and every other metro tested come back empty. The lookup is location-correct
+  (it queries the map's own center), so Cincinnati parcels need a token whose
+  plan covers Ohio — Regrid's Standard/Premium plans include nationwide US
+  access. On an empty answer the API now returns a message saying the token may
+  not cover the county, and the map shows that instead of a bare "no parcels" line.
 
 ## Verify it works
 
