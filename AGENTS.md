@@ -59,3 +59,13 @@ with the Volt360 sidebar and sign-in form.
   an image so browsers pick up the new file immediately.
 - `server/uploads-server.js`: edit, then `docker compose -f
   docker-compose.base44.yml restart api` to pick up changes.
+- The bottom tab bar lives in the app shell, not in the pages: its markup is
+  inside the `ion-app` template string (webpack module 721 in `main.js`, search
+  for `app-tab-bar`), its navigation helpers (`tabGo`, `tabActive`,
+  `showTabBar`) and the `Router` injection are in the same module's
+  `AppComponent`, and its styles are at the end of `styles.css`
+  (`.app-tab-bar`). Tabs: Dashboard → `/dashboard`, Follow ups → `/leads`,
+  Map → `/home`, Settings → `/settings`. It is hidden on `/`, `/sign-in`,
+  `/sign-up` and `/verification`, and from 992px up it is offset past the
+  pinned side menu (`left: max(270px, 28%)`, matching ion-split-pane's side
+  width).
