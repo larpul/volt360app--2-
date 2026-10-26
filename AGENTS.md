@@ -74,5 +74,8 @@ with the Volt360 sidebar and sign-in form.
   `/sign-up` and `/verification`, and from 992px up it is offset past the
   pinned side menu (`left: max(282px, calc(28% + 12px))`, matching
   ion-split-pane's side width plus the bar's own 12px inset). The bar is a
-  floating dark pill (`#1c1c21`) inset 12px from the edges; the active tab is a
+  floating dark pill (`#1e1c25`) inset 12px from the edges; the active tab is a
   white pill showing its icon and label, inactive tabs show icons only.
+- `index.html` itself is served with `Cache-Control: no-cache` (the SPA fallback
+  location), because a cached shell keeps requesting stale `?v=N` bundles and
+  makes the preview look out of date.
