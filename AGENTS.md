@@ -72,5 +72,7 @@ with the Volt360 sidebar and sign-in form.
   (`.app-tab-bar`). Tabs: Dashboard → `/dashboard`, Follow ups → `/leads`,
   Map → `/home`, Settings → `/settings`. It is hidden on `/`, `/sign-in`,
   `/sign-up` and `/verification`, and from 992px up it is offset past the
-  pinned side menu (`left: max(270px, 28%)`, matching ion-split-pane's side
-  width).
+  pinned side menu (`left: max(282px, calc(28% + 12px))`, matching
+  ion-split-pane's side width plus the bar's own 12px inset). The bar is a
+  floating dark pill (`#1c1c21`) inset 12px from the edges; the active tab is a
+  white pill showing its icon and label, inactive tabs show icons only.
