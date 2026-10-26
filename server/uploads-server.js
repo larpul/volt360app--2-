@@ -393,10 +393,32 @@ function regridParcel(feature) {
     };
 }
 
+// Diagnostic logging for parcel lookups. Never logs the token or request headers -
+// only the query (lat/lon/radius), Regrid's status and a short body excerpt, so an
+// empty answer can be traced to "token does not cover this county" or a bad query.
+function regridLog(level, event, detail) {
+    const line = '[regrid] ' + event + (detail ? ' ' + JSON.stringify(detail) : '');
+    if (level === 'warn') {
+        console.warn(line);
+    } else {
+        console.log(line);
+    }
+}
+
+// A bounded, single-line snippet of Regrid's raw answer for the log.
+function regridSnippet(text) {
+    return String(text || '').replace(/\s+/g, ' ').slice(0, 300);
+}
+
 async function regridParcelsNear(lat, lng, radius, limit) {
     const key = [lat.toFixed(4), lng.toFixed(4), radius, limit].join('|');
     const cached = parcelCache.get(key);
     if (cached && Date.now() - cached.at < PARCEL_CACHE_MS) {
+        regridLog('info', 'cache hit', {
+            lat, lng, radius, limit,
+            parcels: (cached.payload.parcels || []).length,
+            ageSeconds: Math.round((Date.now() - cached.at) / 1000)
+        });
         return cached.payload;
     }
     const url = new URL('/api/v2/parcels/point', REGRID_API_BASE);
@@ -405,6 +427,17 @@ async function regridParcelsNear(lat, lng, radius, limit) {
     url.searchParams.set('radius', String(radius));
     url.searchParams.set('limit', String(limit));
     url.searchParams.set('return_geometry', 'false');
+    regridLog('info', 'lookup', {
+        host: url.host,
+        path: url.pathname,
+        lat,
+        lng,
+        radius,
+        limit,
+        tokenPresent: !!REGRID_TOKEN,
+        tokenLength: REGRID_TOKEN.length
+    });
+    const startedAt = Date.now();
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 15000);
     let response;
@@ -415,19 +448,56 @@ async function regridParcelsNear(lat, lng, radius, limit) {
         });
     } catch (error) {
         clearTimeout(timer);
+        regridLog('warn', 'request failed', {
+            lat, lng, radius, ms: Date.now() - startedAt,
+            error: String((error && error.message) || error),
+            aborted: !!(error && error.name === 'AbortError')
+        });
         return { ok: false, message: 'Regrid did not answer the parcel lookup.' };
     }
     clearTimeout(timer);
     if (response.status === 401 || response.status === 403) {
+        const rejected = regridSnippet(await response.text().catch(() => ''));
+        regridLog('warn', 'token rejected', { lat, lng, status: response.status, body: rejected });
         return { ok: false, message: 'Regrid rejected the API token - check REGRID_API_TOKEN.' };
     }
     if (!response.ok) {
+        const failed = regridSnippet(await response.text().catch(() => ''));
+        regridLog('warn', 'non-ok answer', {
+            lat, lng, status: response.status, ms: Date.now() - startedAt, body: failed
+        });
         return { ok: false, message: 'Regrid answered ' + response.status + ' for the parcel lookup.' };
     }
     const body = await response.json().catch(() => null);
     const features = (body && body.parcels && body.parcels.features) || [];
     const parcels = features.map(regridParcel).filter(Boolean);
     const payload = { ok: true, parcels };
+    if (!parcels.length) {
+        // The interesting case: Regrid answered 200 but nothing came back. Log the
+        // shape of the answer (feature count, top-level keys, any message/meta) and
+        // the raw snippet so "no coverage" is distinguishable from "bad query".
+        const unusable = features.length - parcels.length;
+        regridLog('warn', 'empty result', {
+            lat,
+            lng,
+            radius,
+            limit,
+            status: response.status,
+            ms: Date.now() - startedAt,
+            features: features.length,
+            unusableFeatures: unusable > 0 ? unusable : undefined,
+            bodyKeys: body && typeof body === 'object' ? Object.keys(body) : null,
+            parcelsKeys: body && body.parcels && typeof body.parcels === 'object' ? Object.keys(body.parcels) : null,
+            message: body && (body.message || body.error || body.detail) || undefined,
+            meta: body && body.meta ? body.meta : undefined,
+            body: regridSnippet(JSON.stringify(body))
+        });
+    } else {
+        regridLog('info', 'result', {
+            lat, lng, radius, limit, status: response.status,
+            ms: Date.now() - startedAt, parcels: parcels.length
+        });
+    }
     parcelCache.set(key, { at: Date.now(), payload });
     return payload;
 }

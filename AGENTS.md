@@ -51,7 +51,22 @@ same-origin, so all traffic goes through port 3000.
   OH and every other metro tested come back empty. The lookup is location-correct
   (it queries the map's own center), so Cincinnati parcels need a token whose
   plan covers Ohio — Regrid's Standard/Premium plans include nationwide US
-  access. On an empty answer the API now returns a message saying the token may
+  access.
+
+  **Diagnostic logging** (added to trace exactly this): `regridParcelsNear()`
+  prints `[regrid]` lines to the `api` container's stdout — a `lookup` line with
+  host, endpoint, lat/lng/radius/limit and the token's presence/length (never the
+  token itself), then `result` (parcel count), `empty result` (HTTP status,
+  feature counts, response keys, any message/meta and a 300-char body snippet),
+  `non-ok answer`, `token rejected`, `request failed` or `cache hit`. Read them
+  with `docker compose -f docker-compose.base44.yml logs api | grep regrid`.
+  A covered area answers `{"parcels":{"type":"FeatureCollection","features":[]}}`
+  with **200** and zero features — that is Regrid saying "no records here", not a
+  proxy fault. Measured with the current token: Dallas, Irving, Garland and
+  Richardson (Dallas County, TX) return 50 parcels at `radius=400`;
+  Cincinnati, Columbus, Cleveland, NYC, Chicago, Houston, Austin, Fort Worth,
+  Denton and McKinney return 200 with empty FeatureCollections, and Cincinnati
+  stays empty at the 16 km cap. On an empty answer the API now returns a message saying the token may
   not cover the county, and the map shows that instead of a bare "no parcels" line.
 
 ## Verify it works
