@@ -42,7 +42,10 @@ same-origin, so all traffic goes through port 3000.
   whose search area is over 386 sq mi, so both the server (`radius` clamp) and
   the map's `parcelRadius()` cap the radius at 16 km. The endpoint always
   answers `200` with a `message`, because the Angular client shows a generic
-  "could not reach" for any non-2xx. Coverage depends on the Regrid plan —
+  "could not reach" for any non-2xx. When parcels come back the map draws a
+  pin per parcel plus a scrollable "Regrid parcels in view" list (address,
+  acreage, owner); tapping a row flies to the parcel and opens its record card
+  with owner, parcel number, land use, zoning and year built. Coverage depends on the Regrid plan —
   with the current token Dallas, TX returns parcels while other metros return
   none, and the map then reads "No Regrid parcels in this view".
 
