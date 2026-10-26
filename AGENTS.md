@@ -57,6 +57,11 @@ with the Volt360 sidebar and sign-in form.
   nginx server block sends `Cache-Control: no-cache` for `.png/.jpg/.svg/.webp/.ico`
   and the avatar references carry a `?v=N` suffix. Bump that suffix when swapping
   an image so browsers pick up the new file immediately.
+- Browsers heuristically cache `main.js` and `styles.css`, so an edited bundle
+  can stay stale. `index.html` loads them with a `?v=N` suffix — bump `N` after
+  changing `main.js` or `styles.css`. nginx also sends `Cache-Control: no-cache`
+  for `.js`/`.css`/images, so reloading nginx (`exec web nginx -s reload`) after
+  editing `nginx.base44.conf` applies the new headers.
 - `server/uploads-server.js`: edit, then `docker compose -f
   docker-compose.base44.yml restart api` to pick up changes.
 - The bottom tab bar lives in the app shell, not in the pages: its markup is
