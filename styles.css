@@ -2305,8 +2305,8 @@ ion-toast::part(button) {
 /* Volt 360 AI Assistant: the floating AI helper and its new-message bell, on every page.
    solar360-assist.js builds this markup outside the Angular app (appended to <body>),
    so it is present whatever route is showing; the colours follow the app's theme
-   variables, so the dark theme keeps working. It is docked above the Home map's pin
-   legend, which sits along the bottom of that page. */
+   variables, so the dark theme keeps working. It sits at the bottom of the Home map,
+   clear of the status legend docked on the map's left side. */
 .assist_root {
   position: relative;
   z-index: 9500;

@@ -95,6 +95,10 @@ with the Volt360 sidebar and sign-in form.
   ion-split-pane's side width plus the bar's own 12px inset). The bar is a
   floating dark pill (`#1e1c25`) inset 12px from the edges; the active tab is a
   white pill showing its icon and label, inactive tabs show icons only.
+- The Home map's status legend lives in `src_app_home_home_module_ts.js`
+  (search `pin_legend_dock`): a vertical card pinned to the map's left side
+  (`top: 148px; left: 12px`, pushed past the side menu from 992px up) instead
+  of a bottom footer, and it slides out of view while the spot slider is open.
 - `index.html` itself is served with `Cache-Control: no-cache` (the SPA fallback
   location), because a cached shell keeps requesting stale `?v=N` bundles and
   makes the preview look out of date.
