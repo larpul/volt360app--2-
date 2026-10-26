@@ -110,14 +110,7 @@ __webpack_require__.r(__webpack_exports__);
 
 // The status palette is the one the map's filter panel uses, so the Dashboard speaks the
 // same colour language as the pins.
-const STATUS_TILES = [
-    { name: 'In Progress', colour: 'blue', swatch: '#b7e06b' },
-    { name: 'Installed', colour: 'green', swatch: '#FF7110' },
-    { name: 'Cancelled', colour: 'red', swatch: '#e87869' },
-    { name: 'New', colour: 'yellow', swatch: '#f5f5f5' },
-    { name: 'Not Home', colour: 'gray', swatch: '#f5f5f5' },
-    { name: 'Renter', colour: 'violet', swatch: '#f5f5f5' }
-];
+const STATUS_TILES = src_app_inquiry_store__WEBPACK_IMPORTED_MODULE_5__.STATUS_TILES;
 // Sales commission is a flat rate per watt of installed system size ($0.10/W = $100/kW).
 const COMMISSION_PER_WATT = 0.1;
 const RECENT_LIMIT = 5;
@@ -204,14 +197,14 @@ let DashboardPage = class DashboardPage {
         this.pipelineStages.forEach(stage => {
             stage.commissionWidth = this.commissionTotal ? stage.amount / this.commissionTotal * 100 : 0;
         });
-        this.installedCount = this.countFor('Installed');
-        this.inProgressCount = this.countFor('In Progress');
+        this.installedCount = this.countFor('Sat (sale)');
+        this.inProgressCount = this.countFor('Appt set') + this.countFor('Sat (follow up)');
         this.progressPercent = this.totalInquiries ? Math.round(this.installedCount / this.totalInquiries * 100) : 0;
-        const notStarted = this.totalInquiries - this.installedCount - this.inProgressCount - this.countFor('Cancelled');
+        const notStarted = this.totalInquiries - this.installedCount - this.inProgressCount - this.countFor('Sat (no sale)');
         this.progressSegments = [
-            { name: 'Installed', swatch: '#FF7110', count: this.installedCount },
-            { name: 'In Progress', swatch: '#b7e06b', count: this.inProgressCount },
-            { name: 'Cancelled', swatch: '#e87869', count: this.countFor('Cancelled') },
+            { name: 'Sat (sale)', swatch: '#FF7110', count: this.installedCount },
+            { name: 'In progress', swatch: '#b7e06b', count: this.inProgressCount },
+            { name: 'Sat (no sale)', swatch: '#e87869', count: this.countFor('Sat (no sale)') },
             { name: 'Not started', swatch: 'var(--border-line-color)', count: notStarted > 0 ? notStarted : 0 }
         ].map(segment => Object.assign(segment, {
             width: this.totalInquiries ? segment.count / this.totalInquiries * 100 : 0
@@ -420,7 +413,7 @@ let DashboardPage = class DashboardPage {
     }
     statusOf(data, inquiryId) {
         const note = data.notes[inquiryId];
-        return note && note.status ? note.status : 'Renter';
+        return note && note.status ? note.status : 'Not answered';
     }
     countFor(status) {
         const entry = this.statusSummary.find(item => item.name === status);

@@ -133,3 +133,15 @@ with the Volt360 sidebar and sign-in form.
 - `index.html` itself is served with `Cache-Control: no-cache` (the SPA fallback
   location), because a cached shell keeps requesting stale `?v=N` bundles and
   makes the preview look out of date.
+- The prospect statuses are one shared list: `STATUS_TILES` in `main.js`
+  (webpack module `./src/app/inquiry-store.ts`, exported next to
+  `PIPELINE_STAGES`). It holds the 14 canvassing dispositions (Not answered …
+  Reschedule) with a `colour` (map pin / filter-tile palette id: `gray`, `red`,
+  `yellow`, `violet`, `blue`, `green`) and the matching hex `swatch`. The Home
+  map's filter panel and pin legend (`src_app_home_home_module_ts.js`), and the
+  Dashboard's Status overview / Install progress cards
+  (`src_app_dashboard_dashboard_module_ts.js`) all read it, so adding a status
+  means editing that one array plus the tile/pin CSS if a new colour id is
+  needed. `HOUSE_SAMPLES` in the same module carries the seeded houses' status
+  and colour and must use names from that list. The map legend lists only the
+  statuses some pin currently carries.

@@ -143,7 +143,7 @@ const initialsOf = (name) => String(name || '')
 const stageFor = (note) => {
     const pipeline = note.pipelineStage;
     if (pipeline === 'Closed won') {
-        return note.status === 'Installed' ? 'Installed' : 'Sold';
+        return 'Sold';
     }
     if (pipeline === 'Proposal sent' || pipeline === 'Negotiation') {
         return 'Proposal';
@@ -159,7 +159,7 @@ const qualFor = (note) => {
     const text = String(note.decisionReason || '') + ' ' + String(note.technicianNotes || '');
     const bills = note.electricBills || [];
     return {
-        homeowner: note.status === 'Renter' ? 'Renter' : (note.status === 'New' ? 'Unknown' : 'Owner'),
+        homeowner: note.status === 'Renters' ? 'Renter' : (note.status === 'Not answered' ? 'Unknown' : 'Owner'),
         roof: /new roof/i.test(text) ? 'New (0-5 yrs)' : 'Not assessed',
         utility: bills.length ? 'Duke Energy' : 'Not captured',
         credit: /credit check failed/i.test(text) ? 'Failed' : 'Not checked'
