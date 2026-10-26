@@ -356,6 +356,82 @@ async function ipLocation(ip) {
     return '';
 }
 
+// ---- Regrid parcels: nationwide parcel, owner and zoning data for the map ----
+// The token is server-side only and travels as a Bearer header, never in a URL the
+// browser can see. REGRID_API_BASE exists so the endpoint can be pointed at a test
+// double (or a proxy) instead of the live Regrid service.
+const REGRID_TOKEN = process.env.REGRID_API_TOKEN || '';
+const REGRID_API_BASE = process.env.REGRID_API_BASE || 'https://app.regrid.com';
+const PARCEL_CACHE_MS = 10 * 60 * 1000;
+const parcelCache = new Map();
+
+// Regrid returns GeoJSON; the map only needs the attribute pin plus its centroid.
+function regridParcel(feature) {
+    const props = (feature && feature.properties) || {};
+    const fields = props.fields || {};
+    const lat = Number(fields.lat);
+    const lng = Number(fields.lon);
+    if (!isFinite(lat) || !isFinite(lng)) {
+        return null;
+    }
+    const acreage = Number(fields.ll_gisacre || fields.gisacre || 0);
+    return {
+        id: fields.ll_uuid || fields.path || '',
+        address: props.headline || fields.address || fields.saddno + ' ' + fields.saddstr || '',
+        owner: fields.owner || '',
+        acreage: acreage > 0 ? Number(acreage.toFixed(2)) : null,
+        parcelNumber: fields.parcelnumb || '',
+        landUse: fields.usedesc || fields.lbcs_activity_desc || '',
+        zoning: fields.zoning_description || fields.zoning || '',
+        yearBuilt: fields.yearbuilt ? Number(fields.yearbuilt) : null,
+        city: fields.scity || fields.city || '',
+        state: fields.state2 || '',
+        county: fields.county || '',
+        path: fields.path || '',
+        lat,
+        lng
+    };
+}
+
+async function regridParcelsNear(lat, lng, radius, limit) {
+    const key = [lat.toFixed(4), lng.toFixed(4), radius, limit].join('|');
+    const cached = parcelCache.get(key);
+    if (cached && Date.now() - cached.at < PARCEL_CACHE_MS) {
+        return cached.payload;
+    }
+    const url = new URL('/api/v2/parcels/point', REGRID_API_BASE);
+    url.searchParams.set('lat', String(lat));
+    url.searchParams.set('lon', String(lng));
+    url.searchParams.set('radius', String(radius));
+    url.searchParams.set('limit', String(limit));
+    url.searchParams.set('return_geometry', 'false');
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 15000);
+    let response;
+    try {
+        response = await fetch(url, {
+            signal: controller.signal,
+            headers: { accept: 'application/json', authorization: 'Bearer ' + REGRID_TOKEN }
+        });
+    } catch (error) {
+        clearTimeout(timer);
+        return { ok: false, message: 'Regrid did not answer the parcel lookup.' };
+    }
+    clearTimeout(timer);
+    if (response.status === 401 || response.status === 403) {
+        return { ok: false, message: 'Regrid rejected the API token - check REGRID_API_TOKEN.' };
+    }
+    if (!response.ok) {
+        return { ok: false, message: 'Regrid answered ' + response.status + ' for the parcel lookup.' };
+    }
+    const body = await response.json().catch(() => null);
+    const features = (body && body.parcels && body.parcels.features) || [];
+    const parcels = features.map(regridParcel).filter(Boolean);
+    const payload = { ok: true, parcels };
+    parcelCache.set(key, { at: Date.now(), payload });
+    return payload;
+}
+
 // Extract the visitor's real IP from nginx proxy headers.
 function clientIp(req) {
     return req.headers['x-real-ip'] || (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket.remoteAddress || '';
@@ -429,6 +505,45 @@ const server = http.createServer((req, res) => {
         roofScan(lat, lng)
             .then(payload => sendJson(res, 200, payload))
             .catch(error => sendJson(res, 500, { ok: false, code: 'scan_failed', message: String((error && error.message) || error) }));
+        return;
+    }
+    // Whether the map can show Regrid parcel pins.
+    if (req.method === 'GET' && url.pathname === '/api/regrid/status') {
+        sendJson(res, 200, { configured: !!REGRID_TOKEN });
+        return;
+    }
+    // Parcels around the middle of the map view, one pin per parcel.
+    if (req.method === 'GET' && url.pathname === '/api/regrid/parcels') {
+        if (!REGRID_TOKEN) {
+            sendJson(res, 200, {
+                configured: false,
+                parcels: [],
+                message: 'Regrid isn\'t connected yet - add your Regrid API token to show parcel pins.'
+            });
+            return;
+        }
+        const lat = Number(url.searchParams.get('lat'));
+        const lng = Number(url.searchParams.get('lng'));
+        if (!isFinite(lat) || !isFinite(lng)) {
+            sendJson(res, 400, { configured: true, parcels: [], message: 'lat and lng are required.' });
+            return;
+        }
+        const radius = Math.min(Math.max(Math.round(Number(url.searchParams.get('radius')) || 800), 50), 32000);
+        const limit = Math.min(Math.max(Math.round(Number(url.searchParams.get('limit')) || 50), 1), 200);
+        regridParcelsNear(lat, lng, radius, limit)
+            .then(payload => {
+                sendJson(res, payload.ok ? 200 : 502, {
+                    configured: true,
+                    parcels: payload.parcels || [],
+                    message: payload.message || '',
+                    count: (payload.parcels || []).length
+                });
+            })
+            .catch(error => sendJson(res, 500, {
+                configured: true,
+                parcels: [],
+                message: String((error && error.message) || error)
+            }));
         return;
     }
     // Volt 360 AI Assistant: one turn of the floating chat bubble's conversation.

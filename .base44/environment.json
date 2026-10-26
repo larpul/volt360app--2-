@@ -22,6 +22,11 @@
       "name": "NOTIFICATION_EMAIL",
       "description": "The email address where you want to receive instant alerts whenever someone books a meeting through your scheduling tool.",
       "requiredAtBoot": false
+    },
+    {
+      "name": "REGRID_API_TOKEN",
+      "description": "Regrid API token for the parcel layer on the map (owner, acreage, zoning and parcel number pins). Copy it from your Regrid account dashboard at regrid.com (Account -> API tokens). Optional at boot — without it the map's Parcels button reports that Regrid is not connected.",
+      "requiredAtBoot": false
     }
   ]
 }

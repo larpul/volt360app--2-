@@ -3032,3 +3032,77 @@ ion-toast::part(button) {
     left: max(282px, calc(28% + 12px));
   }
 }
+
+/* Regrid parcel layer on the map: the layer toggle sits above the tab bar,
+   and each parcel marker opens an info card with the Regrid record. */
+.parcel_toggle {
+  position: fixed;
+  left: 14px;
+  bottom: 84px;
+  z-index: 9998;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 15px;
+  border: 0;
+  border-radius: 999px;
+  background: #1e1c25;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 600;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+}
+.parcel_toggle ion-icon {
+  font-size: 1rem;
+}
+.parcel_toggle.on {
+  background: var(--primary);
+}
+.parcel_status {
+  position: fixed;
+  left: 14px;
+  bottom: 124px;
+  z-index: 9998;
+  max-width: 230px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: rgba(30, 28, 37, 0.94);
+  color: #fff;
+  font-size: 0.66rem;
+  line-height: 1.35;
+}
+.parcel_card {
+  min-width: 200px;
+  max-width: 250px;
+  padding: 2px 2px 0;
+  font-family: inherit;
+  color: #1e1c25;
+}
+.parcel_card h3 {
+  margin: 0 0 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--primary);
+}
+.parcel_card .parcel_row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 3px 0;
+  border-bottom: 1px solid #f0eef2;
+  font-size: 0.68rem;
+  line-height: 1.3;
+}
+.parcel_card .parcel_row span {
+  color: #6b6873;
+}
+.parcel_card .parcel_row strong {
+  font-weight: 600;
+  text-align: right;
+}
+.parcel_card .parcel_source {
+  margin: 8px 0 0;
+  font-size: 0.6rem;
+  color: #9a97a1;
+}
