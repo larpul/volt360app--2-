@@ -126,6 +126,24 @@ with the Volt360 sidebar and sign-in form.
   ion-split-pane's side width plus the bar's own 12px inset). The bar is a
   floating dark pill (`#1e1c25`) inset 12px from the edges; the active tab is a
   white pill showing its icon and label, inactive tabs show icons only.
+- The map pin sheet (the "active sheet") is the markup inside the `spots_slider`
+  block of the home template (`src/app/home/home.page.html`, module 3853 in
+  `src_app_home_home_module_ts.js`), with its styles in the same file's module
+  1020 string. Tapping a house pin opens it and shows the status (badge and
+  pill), the homeowner (`ownerName`, falling back to `customerName`), the
+  address, and the phone/email as `tel:` / `mailto:` links. Contact details live
+  on `HOUSE_SAMPLES` in `main.js` (module `./src/app/inquiry-store.ts`) and are
+  copied into each note by the home page and `seedSnapshot`.
+  The green **Arrived** button is the check-in: `checkIn()` stamps
+  `checkInLat`/`checkInLng` (the device's position, or the house pin marked
+  `checkInApprox` when geolocation is denied) and starts the visit timer. While
+  checked in the sheet shows the 14 status chips (`setInquiryStatus`), a notes
+  textarea with **Save note** (`saveVisitNote`) and **Disposition**
+  (`disposition()`), which ends the visit through `checkOut()` - timer stops,
+  `visitMinutes` accumulates, one entry is pushed to the note's `visits` array
+  and a row to `history`, and the visit is written to the persistent VisitLog.
+  `visits` and `history` seed the sheet's "Site visits" and "Property history"
+  lists (newest first). The sheet scrolls inside a 74vh max height.
 - The Home map's status legend lives in `src_app_home_home_module_ts.js`
   (search `pin_legend_dock`): a vertical card pinned to the map's left side
   (`top: 148px; left: 12px`, pushed past the side menu from 992px up) instead
