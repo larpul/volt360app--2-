@@ -168,3 +168,10 @@ with the Volt360 sidebar and sign-in form.
   needed. `HOUSE_SAMPLES` in the same module carries the seeded houses' status
   and colour and must use names from that list. The map legend lists only the
   statuses some pin currently carries.
+- The Sales pipeline page (`src_app_leads_leads_module_ts.js`) opens with an
+  **Activity overview** card: knocks, average knocks per day and conversion
+  rate. Every prospect carries one disposition, so the status summary adds up
+  to the knock total (`buildActivity()` counts the snapshot notes by
+  `STATUS_TILES` name). `CONVERTED_STATUSES` (`Appt set`, `Sat (sale)`) is what
+  the conversion rate counts over, and the daily average divides by `WEEK_DAYS`
+  (7).

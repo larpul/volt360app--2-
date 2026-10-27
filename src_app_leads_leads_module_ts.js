@@ -126,6 +126,11 @@ const CONSULT_TYPES = ['In-home consultation', 'Virtual consultation', 'Phone co
 
 const LEAD_KEY = 'solar360_leads';
 
+// Activity overview: every prospect carries one canvassing disposition, so the status summary
+// adds up to the doors knocked that week. An appointment or a sale counts as converted.
+const CONVERTED_STATUSES = ['Appt set', 'Sat (sale)'];
+const WEEK_DAYS = 7;
+
 const whenLabel = (at) => {
     const iso = String(at || '');
     const month = parseInt(iso.slice(5, 7), 10);
@@ -235,6 +240,37 @@ const template = `<ion-header>
             <h2>{{ leads.length }}</h2>
             <span>prospects tracked</span>
             <p>{{ openLabel }}</p>
+        </div>
+
+        <div class="leads_card activity_card">
+            <div class="card_head d-flex">
+                <h3>Activity overview</h3>
+                <span class="count_pill">This week</span>
+            </div>
+            <div class="activity_stats d-flex">
+                <div class="activity_stat">
+                    <strong>{{ activity.knocks }}</strong>
+                    <span>Knocks</span>
+                </div>
+                <div class="activity_stat">
+                    <strong>{{ activity.avgPerDay }}</strong>
+                    <span>Avg / day</span>
+                </div>
+                <div class="activity_stat">
+                    <strong>{{ activity.conversionRate }}%</strong>
+                    <span>Conversion</span>
+                </div>
+            </div>
+            <p class="activity_note">{{ activity.converted }} of {{ activity.knocks }} knocks converted &middot; {{ activity.avgPerDay }} knocks a day across the last 7 days</p>
+            <div class="activity_row d-flex" *ngFor="let row of activity.statusRows">
+                <span class="activity_dot" [style.background]="row.swatch"></span>
+                <span class="activity_name">{{ row.name }}</span>
+                <span class="activity_count">{{ row.count }}</span>
+            </div>
+            <div class="activity_total d-flex" *ngIf="activity.knocks">
+                <span>Status summary</span>
+                <strong>{{ activity.knocks }} knocks</strong>
+            </div>
         </div>
 
         <div class="leads_card">
@@ -824,6 +860,75 @@ ion-header ion-toolbar ion-title {
 .primary_btn {
   background: var(--primary);
   color: #ffffff;
+}
+.activity_stats {
+  margin: 14px 0 2px 0;
+  gap: 10px;
+}
+.activity_stat {
+  flex: 1 1 0;
+  padding: 12px 8px;
+  border-radius: 12px;
+  background: rgba(255, 113, 16, 0.08);
+  text-align: center;
+}
+.activity_stat strong {
+  display: block;
+  color: var(--text-dark);
+  font-size: 1.35rem !important;
+  font-weight: 700;
+  line-height: 1.1;
+}
+.activity_stat span {
+  display: block;
+  margin-top: 3px;
+  color: var(--text-light2);
+  font-size: 0.66rem !important;
+  font-weight: 600;
+}
+.activity_note {
+  margin: 10px 0 4px 0;
+  color: var(--text-light2);
+  font-size: 0.72rem !important;
+  line-height: 1.45;
+}
+.activity_row {
+  align-items: center;
+  padding: 7px 0;
+  border-top: 1px solid var(--border-line-color);
+}
+.activity_dot {
+  width: 9px;
+  height: 9px;
+  margin-right: 8px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+.activity_name {
+  width: 100%;
+  color: var(--text-dark);
+  font-size: 0.76rem !important;
+  font-weight: 600;
+}
+.activity_count {
+  color: var(--text-light2);
+  font-size: 0.76rem !important;
+  font-weight: 700;
+}
+.activity_total {
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-line-color);
+  color: var(--text-light2);
+  font-size: 0.72rem !important;
+  font-weight: 600;
+}
+.activity_total strong {
+  color: var(--primary);
+  font-size: 0.78rem !important;
+  font-weight: 700;
 }`;
 
 let LeadsPage = class LeadsPage {
@@ -843,6 +948,7 @@ let LeadsPage = class LeadsPage {
         this.activityDraft = { type: 'Call', text: '' };
         this.openLabel = '';
         this.records = {};
+        this.activity = { knocks: 0, avgPerDay: '0.0', converted: 0, conversionRate: 0, statusRows: [] };
     }
     ngOnInit() {
         const data = src_app_inquiry_store__WEBPACK_IMPORTED_MODULE_0__.InquiryStore.snapshot();
@@ -885,6 +991,30 @@ let LeadsPage = class LeadsPage {
         });
         this.filtered = this.stageFilter ? this.leads.filter(lead => lead.stage === this.stageFilter) : this.leads;
         this.buildPipeline();
+        this.buildActivity();
+    }
+    // The week's canvassing: one knock per prospect's disposition, counted by status so the
+    // summary equals the knock total, plus the daily average and the conversion rate.
+    buildActivity() {
+        const notes = this.data.inquiries.map(inquiry => this.data.notes[inquiry.id] || {});
+        const statusRows = src_app_inquiry_store__WEBPACK_IMPORTED_MODULE_0__.STATUS_TILES
+            .map(tile => ({
+                name: tile.name,
+                swatch: tile.swatch,
+                count: notes.filter(note => note.status === tile.name).length
+            }))
+            .filter(row => row.count);
+        const knocks = statusRows.reduce((sum, row) => sum + row.count, 0);
+        const converted = statusRows
+            .filter(row => CONVERTED_STATUSES.indexOf(row.name) >= 0)
+            .reduce((sum, row) => sum + row.count, 0);
+        this.activity = {
+            knocks: knocks,
+            avgPerDay: (knocks / WEEK_DAYS).toFixed(1),
+            converted: converted,
+            conversionRate: knocks ? Math.round(converted / knocks * 100) : 0,
+            statusRows: statusRows
+        };
     }
     buildPipeline() {
         const total = this.leads.length || 1;
