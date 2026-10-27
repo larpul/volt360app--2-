@@ -208,6 +208,10 @@ with the Volt360 sidebar and sign-in form.
   maps the 14 prospect statuses onto the knock outcomes (Appt set / Sat (sale)
   → `appointment`, Follow up / Reschedule / Sat (follow up) → `follow_up`,
   Not answered / DNS → `no_answer`, the rest → `not_interested`).
+- The page's card titles (`.card_head` in `src_app_leads_leads_module_ts.js`)
+  override the global orange `.card_head` bar from `styles.css`: transparent
+  background, dark ink, no side padding, and the count pill stacked under the
+  title on its own line, so the titles read on the white card.
 - The **Team leaderboard** card on the same page ranks every rep's knocks over
   the last 7 days. Knocks are shared through the backend:
   `GET /api/knocks` returns `{days, reps: [{name, knocks}], total}` and

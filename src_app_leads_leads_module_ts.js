@@ -599,14 +599,20 @@ ion-header ion-toolbar ion-title {
   box-shadow: 0 15px 12px -8px rgba(0, 0, 0, 0.1);
 }
 .card_head {
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 6px;
+  padding: 0 0 12px 0;
+  background: transparent;
+  color: var(--text-dark);
 }
 .card_head h3 {
   margin: 0;
   color: var(--text-dark);
-  font-size: 1rem !important;
-  font-weight: 600;
+  font-size: 1.05rem !important;
+  font-weight: 700;
+  letter-spacing: 0.01em;
 }
 .count_pill {
   padding: 3px 10px;
