@@ -143,7 +143,12 @@ with the Volt360 sidebar and sign-in form.
   `visitMinutes` accumulates, one entry is pushed to the note's `visits` array
   and a row to `history`, and the visit is written to the persistent VisitLog.
   `visits` and `history` seed the sheet's "Site visits" and "Property history"
-  lists (newest first). The sheet scrolls inside a 74vh max height.
+  lists (newest first). The sheet scrolls inside a 74vh max height
+  (`.install_notes.note_card` keeps `overflow-y: auto` so the history stays
+  reachable) and docks above the floating tab bar
+  (`bottom: calc(76px + env(safe-area-inset-bottom))` on `.spots_slider.active`)
+  - the page lives in its own stacking context, so a higher `z-index` inside it
+  can never beat the shell's tab bar; offset the sheet instead.
 - The Home map's status legend lives in `src_app_home_home_module_ts.js`
   (search `pin_legend_dock`): a vertical card pinned to the map's left side
   (`top: 148px; left: 12px`, pushed past the side menu from 992px up) instead
