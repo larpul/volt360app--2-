@@ -466,14 +466,14 @@ ion-header ion-toolbar ion-title {
   display: block;
   margin-top: 5px;
   color: rgba(255, 255, 255, 0.85);
-  font-size: 0.72rem !important;
+  font-size: 0.85rem !important;
   font-weight: 600;
   letter-spacing: 0.08em;
 }
 .leads_hero p {
   margin: 10px 0 0 0;
   color: #ffffff;
-  font-size: 0.85rem !important;
+  font-size: 0.95rem !important;
   font-weight: 500;
 }
 .leads_card {
@@ -499,13 +499,13 @@ ion-header ion-toolbar ion-title {
   border-radius: 20px;
   background: rgba(255, 113, 16, 0.12);
   color: var(--primary);
-  font-size: 0.7rem !important;
+  font-size: 0.8rem !important;
   font-weight: 700;
 }
 .pipeline_hint {
   margin: 8px 0 14px 0;
   color: var(--text-light2);
-  font-size: 0.72rem !important;
+  font-size: 0.85rem !important;
   font-weight: 600;
 }
 .pipe_row {
@@ -521,12 +521,12 @@ ion-header ion-toolbar ion-title {
 }
 .pipe_name {
   color: var(--text-dark);
-  font-size: 0.78rem !important;
+  font-size: 0.9rem !important;
   font-weight: 600;
 }
 .pipe_count {
   color: var(--text-light2);
-  font-size: 0.78rem !important;
+  font-size: 0.9rem !important;
   font-weight: 700;
 }
 .pipe_track {
@@ -552,7 +552,7 @@ ion-header ion-toolbar ion-title {
   border-radius: 20px;
   background: var(--bg-white);
   color: var(--text-light2);
-  font-size: 0.72rem !important;
+  font-size: 0.85rem !important;
   font-weight: 600;
 }
 .filter_chip.active {
@@ -563,7 +563,7 @@ ion-header ion-toolbar ion-title {
 .empty_note {
   margin: 12px 0 0 0;
   color: var(--text-light2);
-  font-size: 0.8rem !important;
+  font-size: 0.9rem !important;
   line-height: 1.5;
 }
 .lead_row {
@@ -585,7 +585,7 @@ ion-header ion-toolbar ion-title {
   border-radius: 50%;
   background: rgba(255, 113, 16, 0.12);
   color: var(--primary);
-  font-size: 0.85rem !important;
+  font-size: 0.9rem !important;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -598,13 +598,13 @@ ion-header ion-toolbar ion-title {
 .lead_title h4 {
   margin: 0 0 2px 0;
   color: var(--text-dark);
-  font-size: 0.92rem !important;
+  font-size: 1rem !important;
   font-weight: 600;
 }
 .lead_title p {
   margin: 0;
   color: var(--text-light2);
-  font-size: 0.74rem !important;
+  font-size: 0.85rem !important;
 }
 .stage_chip {
   flex-shrink: 0;
@@ -612,7 +612,7 @@ ion-header ion-toolbar ion-title {
   padding: 5px 11px;
   border-radius: 20px;
   color: #2b2c30;
-  font-size: 0.68rem !important;
+  font-size: 0.78rem !important;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -636,7 +636,7 @@ ion-header ion-toolbar ion-title {
   border-radius: 20px;
   background: rgba(255, 113, 16, 0.08);
   color: var(--text-light2);
-  font-size: 0.68rem !important;
+  font-size: 0.78rem !important;
   font-weight: 600;
 }
 .qual_pill strong {
@@ -653,12 +653,12 @@ ion-header ion-toolbar ion-title {
   align-items: center;
   margin: 0 14px 4px 0;
   color: var(--text-light2);
-  font-size: 0.72rem !important;
+  font-size: 0.82rem !important;
   font-weight: 600;
 }
 .foot_item ion-icon {
   margin-right: 5px;
-  font-size: 0.95rem !important;
+  font-size: 1.05rem !important;
 }
 .foot_item.booked {
   color: var(--primary);
@@ -677,7 +677,7 @@ ion-header ion-toolbar ion-title {
 .body_block h5 {
   margin: 0 0 8px 0;
   color: var(--text-dark);
-  font-size: 0.82rem !important;
+  font-size: 0.95rem !important;
   font-weight: 700;
 }
 .block_head {
@@ -693,7 +693,7 @@ ion-header ion-toolbar ion-title {
   border: 1px solid var(--primary);
   border-radius: 20px;
   color: var(--primary);
-  font-size: 0.68rem !important;
+  font-size: 0.78rem !important;
   font-weight: 700;
 }
 .stage_chips {
@@ -712,14 +712,14 @@ ion-header ion-toolbar ion-title {
 .qual_item span {
   display: block;
   color: var(--text-light2);
-  font-size: 0.66rem !important;
+  font-size: 0.76rem !important;
   font-weight: 600;
 }
 .qual_item strong {
   display: block;
   margin-top: 3px;
   color: var(--text-dark);
-  font-size: 0.78rem !important;
+  font-size: 0.9rem !important;
   font-weight: 700;
 }
 .appt_line {
@@ -727,13 +727,13 @@ ion-header ion-toolbar ion-title {
   align-items: center;
   margin: 0;
   color: var(--text-dark);
-  font-size: 0.78rem !important;
+  font-size: 0.9rem !important;
   font-weight: 600;
 }
 .appt_line ion-icon {
   margin-right: 6px;
   color: var(--primary);
-  font-size: 1rem !important;
+  font-size: 1.15rem !important;
 }
 .timeline {
   border-left: 2px solid var(--border-line-color);
@@ -770,20 +770,20 @@ ion-header ion-toolbar ion-title {
 .tl_body h6 {
   margin: 0;
   color: var(--text-dark);
-  font-size: 0.78rem !important;
+  font-size: 0.9rem !important;
   font-weight: 700;
 }
 .tl_body p {
   margin: 2px 0 0 0;
   color: var(--text-light2);
-  font-size: 0.74rem !important;
+  font-size: 0.85rem !important;
   line-height: 1.4;
 }
 .tl_when {
   display: block;
   margin-top: 3px;
   color: var(--text-light2);
-  font-size: 0.66rem !important;
+  font-size: 0.76rem !important;
   font-weight: 600;
 }
 .sheet_backdrop {
@@ -815,7 +815,7 @@ ion-header ion-toolbar ion-title {
 .sheet_sub {
   margin: 4px 0 14px 0;
   color: var(--text-light2);
-  font-size: 0.78rem !important;
+  font-size: 0.9rem !important;
 }
 .qual_field {
   margin-bottom: 12px;
@@ -824,7 +824,7 @@ ion-header ion-toolbar ion-title {
   display: block;
   margin-bottom: 5px;
   color: var(--text-light2);
-  font-size: 0.7rem !important;
+  font-size: 0.8rem !important;
   font-weight: 600;
 }
 .field {
@@ -836,7 +836,7 @@ ion-header ion-toolbar ion-title {
   background: var(--bg-white);
   color: var(--text-dark);
   font-family: inherit;
-  font-size: 0.85rem !important;
+  font-size: 1rem !important;
 }
 .sheet_actions {
   margin-top: 16px;
@@ -847,7 +847,7 @@ ion-header ion-toolbar ion-title {
   border: 0;
   border-radius: 12px;
   font-family: inherit;
-  font-size: 0.85rem !important;
+  font-size: 1rem !important;
   font-weight: 700;
 }
 .sheet_actions button:first-child {
@@ -883,13 +883,13 @@ ion-header ion-toolbar ion-title {
   display: block;
   margin-top: 3px;
   color: var(--text-light2);
-  font-size: 0.66rem !important;
+  font-size: 0.8rem !important;
   font-weight: 600;
 }
 .activity_note {
   margin: 10px 0 4px 0;
   color: var(--text-light2);
-  font-size: 0.72rem !important;
+  font-size: 0.85rem !important;
   line-height: 1.45;
 }
 .activity_row {
@@ -907,12 +907,12 @@ ion-header ion-toolbar ion-title {
 .activity_name {
   width: 100%;
   color: var(--text-dark);
-  font-size: 0.76rem !important;
+  font-size: 0.88rem !important;
   font-weight: 600;
 }
 .activity_count {
   color: var(--text-light2);
-  font-size: 0.76rem !important;
+  font-size: 0.88rem !important;
   font-weight: 700;
 }
 .activity_total {
@@ -922,12 +922,12 @@ ion-header ion-toolbar ion-title {
   padding-top: 10px;
   border-top: 1px solid var(--border-line-color);
   color: var(--text-light2);
-  font-size: 0.72rem !important;
+  font-size: 0.82rem !important;
   font-weight: 600;
 }
 .activity_total strong {
   color: var(--primary);
-  font-size: 0.78rem !important;
+  font-size: 0.9rem !important;
   font-weight: 700;
 }`;
 
