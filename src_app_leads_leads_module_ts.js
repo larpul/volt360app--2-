@@ -99,19 +99,25 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var src_app_inquiry_store__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! src/app/inquiry-store */ 9200);
 
 // Lead management: the prospects the app already tracks (the map's inquiries), enriched with
-// the CRM half of the sale - qualification, the New -> Qualified -> Proposal -> Sold ->
-// Installed pipeline, the consultation booked for each one, and the sales activity timeline.
+// the CRM half of the sale - qualification, the shared sales pipeline (site survey pending ->
+// RTS), the consultation booked for each one, and the sales activity timeline.
 // The CRM state outlives a reload in localStorage under solar360_leads, keyed by inquiry id;
 // the qualification and the first timeline entries are seeded from the notes the store holds.
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-const LEAD_STAGES = [
-    { name: 'New', swatch: '#9aa0a6' },
-    { name: 'Qualified', swatch: '#8fd0e8' },
-    { name: 'Proposal', swatch: '#f5c76b' },
-    { name: 'Sold', swatch: '#FF7110' },
-    { name: 'Installed', swatch: '#b7e06b' }
-];
+// The pipeline is the one shared list the Dashboard and the map's sales-stage chips read, so
+// the funnel here always matches them. A lead whose stored stage is gone falls to the first step.
+const LEAD_STAGES = src_app_inquiry_store__WEBPACK_IMPORTED_MODULE_0__.PIPELINE_STAGES;
+const SOLD_STAGES = ['Install ready', 'Install scheduled', 'PTO pending', 'RTS'];
+const PROPOSAL_STAGES = ['Approvals pending'].concat(SOLD_STAGES);
+// Stages the old five-step pipeline stored in localStorage, mapped onto the current ones.
+const LEGACY_STAGES = {
+    New: 'Site survey pending',
+    Qualified: 'Site survey pending',
+    Proposal: 'Approvals pending',
+    Sold: 'Install ready',
+    Installed: 'RTS'
+};
 
 const QUAL_FIELDS = [
     { key: 'homeowner', label: 'Homeowner', options: ['Owner', 'Renter', 'Unknown'] },
@@ -165,16 +171,7 @@ const initialsOf = (name) => String(name || '')
 
 const stageFor = (note) => {
     const pipeline = note.pipelineStage;
-    if (pipeline === 'Closed won') {
-        return 'Sold';
-    }
-    if (pipeline === 'Proposal sent' || pipeline === 'Negotiation') {
-        return 'Proposal';
-    }
-    if (pipeline === 'Site survey' || pipeline === 'Contacted') {
-        return 'Qualified';
-    }
-    return 'New';
+    return LEAD_STAGES.filter(stage => stage.name === pipeline).length ? pipeline : LEAD_STAGES[0].name;
 };
 
 // What the notes already say about the homeowner, the roof, the utility and the credit check.
@@ -200,7 +197,7 @@ const activitiesFor = (note) => {
             at: note.visitDate
         });
     }
-    if (note.pipelineStage === 'Proposal sent' || note.pipelineStage === 'Negotiation' || note.pipelineStage === 'Closed won') {
+    if (PROPOSAL_STAGES.indexOf(note.pipelineStage) >= 0) {
         activities.push({
             type: 'Proposal',
             text: 'Proposal sent to the customer',
@@ -367,7 +364,7 @@ const template = `<ion-header>
                 <h3>Sales pipeline</h3>
                 <span class="count_pill">{{ stageNames.length }} stages</span>
             </div>
-            <p class="pipeline_hint">New &#8594; Qualified &#8594; Proposal &#8594; Sold &#8594; Installed</p>
+            <p class="pipeline_hint">Site survey pending &#8594; Approvals pending &#8594; Install ready &#8594; Install scheduled &#8594; PTO pending &#8594; RTS</p>
             <div class="pipe_row" *ngFor="let stage of stages">
                 <div class="pipe_head d-flex">
                     <span class="pipe_name">{{ stage.name }}</span>
@@ -1296,7 +1293,11 @@ let LeadsPage = class LeadsPage {
         this.records = {};
         data.inquiries.forEach(inquiry => {
             const note = data.notes[inquiry.id] || {};
-            this.records[inquiry.id] = Object.assign({}, seedRecord(note), stored[inquiry.id] || {});
+            const record = Object.assign({}, seedRecord(note), stored[inquiry.id] || {});
+            if (LEGACY_STAGES[record.stage]) {
+                record.stage = LEGACY_STAGES[record.stage];
+            }
+            this.records[inquiry.id] = record;
         });
         this.build();
         this.persist();
@@ -1391,7 +1392,7 @@ let LeadsPage = class LeadsPage {
             return { name: stage.name, swatch: stage.swatch, count: count, width: Math.round(count / total * 100) };
         });
         const booked = this.leads.filter(lead => lead.consultation).length;
-        const sold = this.leads.filter(lead => lead.stage === 'Sold' || lead.stage === 'Installed').length;
+        const sold = this.leads.filter(lead => SOLD_STAGES.indexOf(lead.stage) >= 0).length;
         this.openLabel = booked + ' consultations booked \u00b7 ' + sold + ' sold or installed';
     }
     swatchFor(stage) {

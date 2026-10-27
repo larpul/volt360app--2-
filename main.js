@@ -1259,17 +1259,16 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 // One shared record of the solar inquiries: the Home map seeds and publishes it, the
 // Dashboard reads it back, so both pages always describe the same houses.
-// The solar sales pipeline: a per-prospect stage that is tracked separately from the
-// install status, so a house can still be "In Progress" on the roof while its sale is
-// already "Closed won" (and a cancelled job can sit at "Closed lost").
+// The solar sales pipeline: the project stages a customer moves through once the sale is in,
+// from the site survey to permission to operate and the final RTS (ready to switch on).
+// It is tracked separately from the canvassing disposition on the same house.
 const PIPELINE_STAGES = [
-    { name: 'Lead', swatch: '#f5f5f5' },
-    { name: 'Contacted', swatch: '#dcdcdc' },
-    { name: 'Site survey', swatch: '#b7e06b' },
-    { name: 'Proposal sent', swatch: '#8fd0e8' },
-    { name: 'Negotiation', swatch: '#f5c76b' },
-    { name: 'Closed won', swatch: '#FF7110' },
-    { name: 'Closed lost', swatch: '#e87869' }
+    { name: 'Site survey pending', swatch: '#dcdcdc' },
+    { name: 'Approvals pending', swatch: '#8fd0e8' },
+    { name: 'Install ready', swatch: '#f5c76b' },
+    { name: 'Install scheduled', swatch: '#b7e06b' },
+    { name: 'PTO pending', swatch: '#FF7110' },
+    { name: 'RTS', swatch: '#5aa469' }
 ];
 // The canvassing statuses: one disposition per prospect, shared by the map's filter panel,
 // its pin colours and the Dashboard's status overview. `colour` is the map pin / tile palette
@@ -1297,49 +1296,49 @@ const HOUSE_SAMPLES = [
       systemSize: 'Not sized yet', technicianNotes: 'Owner asked for a site visit; driveway on the north side.',
       decisionReason: 'Wants to cut a $190/mo electric bill but is still undecided; waiting on the quote.',
       electricBills: [],
-      appointmentInDays: 2, appointmentTime: '09:30', visitInDays: null, visitMinutes: null, pipelineStage: 'Site survey' },
+      appointmentInDays: 2, appointmentTime: '09:30', visitInDays: null, visitMinutes: null, pipelineStage: 'Site survey pending' },
     { lat: 39.319387, lng: -84.312587, top: 43.1, left: 57.7, status: 'Sat (sale)', colour: 'green',
       customerName: 'Mason Montgomery Rd Residence', ownerName: 'Priya Raman', phone: '+1 513-555-0164', email: 'priya.raman@outlook.com', locationAddress: '8250 Mason Montgomery Rd, Mason, OH 45040',
       systemSize: '5.2 kW - 13 panels', technicianNotes: 'South-facing roof mount; last inspection passed.',
       decisionReason: 'Decided to go solar to wipe out a $240/mo bill and lock in the 25-year panel warranty.',
       electricBills: [{ name: 'electric-bill-jul.pdf', url: '', usageKwh: 1060, amountDue: 240 }, { name: 'electric-bill-aug.pdf', url: '', usageKwh: 1120, amountDue: 252 }],
-      appointmentInDays: -6, appointmentTime: '14:00', visitInDays: -12, visitTime: '09:15', visitMinutes: 75, pipelineStage: 'Closed won' },
+      appointmentInDays: -6, appointmentTime: '14:00', visitInDays: -12, visitTime: '09:15', visitMinutes: 75, pipelineStage: 'RTS' },
     { lat: 39.345865, lng: -84.328393, top: 36.9, left: 52.5, status: 'Sat (sale)', colour: 'green',
       customerName: 'Snider Rd Residence', ownerName: 'Marcus Bell', phone: '+1 513-555-0129', email: 'marcus.bell@yahoo.com', locationAddress: '640 Snider Rd, Mason, OH 45040',
       systemSize: '4.4 kW - 11 panels', technicianNotes: 'Rails set; panels arrive next week.',
       decisionReason: 'Going solar for the 30% tax credit and to offset charging an EV at home.',
       electricBills: [{ name: 'electric-bill-jun.pdf', url: '', usageKwh: 940, amountDue: 205 }, { name: 'electric-bill-jul.pdf', url: '', usageKwh: 975, amountDue: 214 }],
-      appointmentInDays: 0, appointmentTime: '08:00', visitInDays: -20, visitTime: '13:40', visitMinutes: 45, pipelineStage: 'Closed won' },
+      appointmentInDays: 0, appointmentTime: '08:00', visitInDays: -20, visitTime: '13:40', visitMinutes: 45, pipelineStage: 'Install scheduled' },
     { lat: 39.33759, lng: -84.338855, top: 38.8, left: 49.1, status: 'Not answered', colour: 'gray',
       customerName: 'Western Row Rd Residence', ownerName: 'Angela Torres', phone: '+1 513-555-0187', email: 'atorres.home@gmail.com', locationAddress: '1120 Western Row Rd, Mason, OH 45040',
       systemSize: 'Not sized yet', technicianNotes: 'Two visits, nobody home. Card left in the mailbox.',
       decisionReason: 'No one was home to discuss it; a neighbour says the family is still undecided.',
       electricBills: [],
-      appointmentInDays: 1, appointmentTime: '16:30', visitInDays: -3, visitTime: '17:05', visitMinutes: 10, pipelineStage: 'Contacted' },
+      appointmentInDays: 1, appointmentTime: '16:30', visitInDays: -3, visitTime: '17:05', visitMinutes: 10, pipelineStage: 'Site survey pending' },
     { lat: 39.328727, lng: -84.318121, top: 40.9, left: 55.9, status: 'Follow up', colour: 'blue',
       customerName: 'Cedar Village Residence', ownerName: 'Kevin O’Donnell', phone: '+1 513-555-0148', email: 'kevin.odonnell@gmail.com', locationAddress: '305 Cedar Village Dr, Mason, OH 45040',
       systemSize: 'Not sized yet', technicianNotes: 'Interested in solar plus an EV charger.',
       decisionReason: 'Interested but undecided; comparing two quotes while waiting on the HOA.',
       electricBills: [],
-      appointmentInDays: 4, appointmentTime: '11:00', visitInDays: null, visitMinutes: null, pipelineStage: 'Proposal sent' },
+      appointmentInDays: 4, appointmentTime: '11:00', visitInDays: null, visitMinutes: null, pipelineStage: 'Approvals pending' },
     { lat: 39.235612, lng: -84.348908, top: 62.8, left: 45.7, status: 'Sat (sale)', colour: 'green',
       customerName: 'Montgomery Rd Residence', ownerName: 'Sandra Whitlock', phone: '+1 513-555-0192', email: 's.whitlock@icloud.com', locationAddress: '9876 Montgomery Rd, Cincinnati, OH 45242',
       systemSize: '6.0 kW - 15 panels', technicianNotes: 'Ground mount at the back of the lot.',
       decisionReason: 'Went solar after the new roof to offset a $310/mo summer bill.',
       electricBills: [{ name: 'electric-bill-may.pdf', url: '', usageKwh: 1210, amountDue: 268 }, { name: 'electric-bill-aug.pdf', url: '', usageKwh: 1430, amountDue: 318 }],
-      appointmentInDays: 9, appointmentTime: '13:15', visitInDays: -30, visitTime: '11:20', visitMinutes: 120, pipelineStage: 'Closed won' },
+      appointmentInDays: 9, appointmentTime: '13:15', visitInDays: -30, visitTime: '11:20', visitMinutes: 120, pipelineStage: 'RTS' },
     { lat: 39.249048, lng: -84.34482, top: 59.6, left: 47.1, status: 'Renters', colour: 'violet',
       customerName: 'Pfeiffer Rd Residence', ownerName: 'Jordan Meyers', phone: '+1 513-555-0175', email: 'jordan.meyers@gmail.com', locationAddress: '10450 Pfeiffer Rd, Montgomery, OH 45242',
       systemSize: 'Not sized yet', technicianNotes: 'Renting; needs landlord approval before quoting.',
       decisionReason: "Not going solar now — they rent the house and need the landlord's approval first.",
       electricBills: [{ name: 'electric-bill-jul.pdf', url: '', usageKwh: 790, amountDue: 168 }],
-      appointmentInDays: -2, appointmentTime: '10:45', visitInDays: -5, visitTime: '10:05', visitMinutes: 30, pipelineStage: 'Lead' },
+      appointmentInDays: -2, appointmentTime: '10:45', visitInDays: -5, visitTime: '10:05', visitMinutes: 30, pipelineStage: 'Site survey pending' },
     { lat: 39.227911, lng: -84.359584, top: 64.6, left: 42.2, status: 'Sat (no sale)', colour: 'red',
       customerName: 'Cooper Rd Residence', ownerName: 'Terrence Boyd', phone: '+1 513-555-0156', email: 'tboyd.family@gmail.com', locationAddress: '7700 Cooper Rd, Montgomery, OH 45242',
       systemSize: 'Not sized yet', technicianNotes: 'Credit check failed; re-check in six months.',
       decisionReason: 'Decided not to go solar for now — the credit check failed; re-check in six months.',
       electricBills: [{ name: 'electric-bill-jun.pdf', url: '', usageKwh: 705, amountDue: 152 }],
-      appointmentInDays: 15, appointmentTime: '15:30', visitInDays: -45, visitTime: '15:45', visitMinutes: 20, pipelineStage: 'Closed lost' }
+      appointmentInDays: 15, appointmentTime: '15:30', visitInDays: -45, visitTime: '15:45', visitMinutes: 20, pipelineStage: 'Approvals pending' }
 ];
 
 // Appointment and visit dates are stored as day offsets so the demo always has events

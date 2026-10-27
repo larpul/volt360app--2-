@@ -409,7 +409,7 @@ let DashboardPage = class DashboardPage {
     }
     stageOf(data, inquiryId) {
         const note = data.notes[inquiryId] || {};
-        return note.pipelineStage || 'Lead';
+        return note.pipelineStage || src_app_inquiry_store__WEBPACK_IMPORTED_MODULE_5__.PIPELINE_STAGES[0].name;
     }
     statusOf(data, inquiryId) {
         const note = data.notes[inquiryId];

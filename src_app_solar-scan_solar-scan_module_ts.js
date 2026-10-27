@@ -121,15 +121,15 @@ const template = `<ion-header>
 <ion-content class="bg_color" fullscreen>
     <div class="scan_wrap">
         <div class="scan_hero animate__animated animate__fadeInUp">
-            <h2>Houses without solar</h2>
-            <p class="hero_text">Every prospect on the map is checked against Google's roof data and an AI look at the satellite image.</p>
+            <h2>Houses with solar</h2>
+            <p class="hero_text">Every prospect on the map is checked against Google's roof data and an AI look at the satellite image. The houses that already have panels are the ones flagged here.</p>
             <div class="hero_actions">
                 <ion-button class="scan_btn" [disabled]="scanning" (click)="runScan()">
                     <ion-icon slot="start" class="zmdi zmdi-sun"></ion-icon>
                     <span *ngIf="!scanning">Scan houses</span>
                     <span *ngIf="scanning">Scanning</span>
                 </ion-button>
-                <strong class="hero_count" *ngIf="scannedCount()">{{ noSolarCount() }} of {{ scannedCount() }} have no solar</strong>
+                <strong class="hero_count" *ngIf="scannedCount()">{{ hasSolarCount() }} of {{ scannedCount() }} have solar</strong>
             </div>
             <div class="scan_progress" *ngIf="scanning">
                 <div class="progress_track">
@@ -148,7 +148,7 @@ const template = `<ion-header>
                 <h3>{{ group.title }}</h3>
                 <strong class="end">{{ group.rows.length }}</strong>
             </div>
-            <div class="house_row" *ngFor="let row of group.rows" [class.no_solar]="row.verdict === 'none'">
+            <div class="house_row" *ngFor="let row of group.rows" [class.has_solar]="row.verdict === 'installed'">
                 <div class="house_top d-flex">
                     <div class="text_box">
                         <h4>{{ row.name }}</h4>
@@ -164,20 +164,39 @@ const template = `<ion-header>
                     <span class="roof_chip" *ngIf="row.roof.sunshineHours">{{ row.roof.sunshineHours }} sun hours a year</span>
                 </div>
                 <p class="row_reason" *ngIf="row.reason">{{ row.reason }}</p>
-                <div class="book_block">
-                    <ion-button size="small" fill="outline" color="primary" (click)="openBooking(row)">Book site visit</ion-button>
-                    <div class="book_form" *ngIf="bookingId === row.id">
-                        <input class="book_input" type="date" [(ngModel)]="bookDate">
-                        <input class="book_input" type="time" [(ngModel)]="bookTime">
-                        <ion-button size="small" color="primary" (click)="bookVisit(row)">Confirm</ion-button>
-                        <ion-button size="small" fill="clear" (click)="closeBooking()">Cancel</ion-button>
-                    </div>
-                    <p class="booked_line" *ngIf="row.appointment">Site visit booked for {{ row.appointment }}</p>
+                <div class="map_block">
+                    <ion-button size="small" fill="outline" color="primary" (click)="showOnMap(row)">
+                        <ion-icon slot="start" class="zmdi zmdi-map"></ion-icon>
+                        Show me on the map
+                    </ion-button>
                 </div>
             </div>
         </div>
     </div>
-</ion-content>`;
+</ion-content>
+
+<div class="sheet_backdrop" *ngIf="mapOpen" (click)="closeMap()"></div>
+<div class="map_sheet" *ngIf="mapOpen">
+    <div class="map_sheet_head d-flex">
+        <div class="map_sheet_text">
+            <h3>{{ mapName }}</h3>
+            <p>{{ mapAddress }}</p>
+        </div>
+        <ion-icon class="map_sheet_close zmdi zmdi-close" (click)="closeMap()"></ion-icon>
+    </div>
+    <div class="radius_row d-flex">
+        <span class="radius_label">Map radius</span>
+        <span class="radius_chip" [class.active]="radiusMiles === 0.25" (click)="setRadius(0.25)">1/4 mile</span>
+        <span class="radius_chip" [class.active]="radiusMiles === 0.5" (click)="setRadius(0.5)">1/2 mile</span>
+    </div>
+    <div class="map_box" id="solar_nb_map"></div>
+    <div class="map_stats d-flex">
+        <span class="map_stat"><span class="map_dot has"></span>{{ mapStats.hasSolar }} with solar</span>
+        <span class="map_stat"><span class="map_dot none"></span>{{ mapStats.noSolar }} without</span>
+        <span class="map_stat muted">{{ mapStats.pending }} not scanned</span>
+    </div>
+    <p class="map_note" *ngIf="mapNote">{{ mapNote }}</p>
+</div>`;
 
 const styles = `.scan_wrap {
   padding: 16px;
@@ -275,9 +294,9 @@ const styles = `.scan_wrap {
 .house_row:last-child {
   border-bottom: 0;
 }
-.house_row.no_solar {
-  background: rgba(183, 224, 107, 0.14);
-  border-left: 3px solid #b7e06b;
+.house_row.has_solar {
+  background: rgba(255, 113, 16, 0.1);
+  border-left: 3px solid var(--primary);
   padding-left: 10px;
   border-radius: 8px;
 }
@@ -334,38 +353,120 @@ const styles = `.scan_wrap {
   color: var(--text-light2);
   font-size: 0.76rem;
 }
-.book_block {
+.map_block {
   margin-top: 10px;
 }
-.book_form {
-  display: flex;
-  flex-wrap: wrap;
+.sheet_backdrop {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1200;
+  background: rgba(20, 20, 24, 0.4);
+}
+/* Docked above the floating tab bar: the bar lives in the shell, so the sheet is offset
+   instead of relying on a higher z-index inside the page. */
+.map_sheet {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: calc(76px + env(safe-area-inset-bottom));
+  z-index: 1201;
+  padding: 14px;
+  border-radius: 16px;
+  background: var(--bg-white);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.3);
+}
+.map_sheet_head {
+  align-items: flex-start;
+  justify-content: space-between;
+}
+.map_sheet_text h3 {
+  margin: 0 0 2px 0;
+  color: var(--text-dark);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+.map_sheet_text p {
+  margin: 0;
+  color: var(--text-light2);
+  font-size: 0.78rem;
+}
+.map_sheet_close {
+  padding: 4px;
+  color: var(--text-light2);
+  font-size: 1.2rem;
+}
+.radius_row {
   align-items: center;
   margin-top: 10px;
 }
-.book_input {
-  margin: 0 8px 8px 0;
-  padding: 8px;
-  border: 1px solid var(--border-line-color);
-  border-radius: 8px;
-  background: var(--bg-white);
-  color: var(--text-dark);
-  font-size: 0.8rem;
+.radius_label {
+  margin-right: 8px;
+  color: var(--text-light2);
+  font-size: 0.75rem;
+  font-weight: 600;
 }
-.booked_line {
-  margin: 8px 0 0 0;
+.radius_chip {
+  margin-right: 8px;
+  padding: 4px 12px;
+  border: 1px solid var(--border-line-color);
+  border-radius: 20px;
+  color: var(--text-light2);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.radius_chip.active {
+  border-color: var(--primary);
+  background: rgba(255, 113, 16, 0.12);
   color: var(--primary);
-  font-size: 0.78rem;
+}
+.map_box {
+  height: 210px;
+  margin-top: 10px;
+  border-radius: 12px;
+  background: var(--border-line-color);
+  overflow: hidden;
+}
+.map_stats {
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+.map_stat {
+  display: flex;
+  align-items: center;
+  margin-right: 12px;
+  color: var(--text-dark);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.map_stat.muted {
+  color: var(--text-light2);
+  font-weight: 500;
+}
+.map_dot {
+  width: 9px;
+  height: 9px;
+  margin-right: 5px;
+  border-radius: 50%;
+}
+.map_dot.has {
+  background: #FF7110;
+}
+.map_dot.none {
+  background: #9aa0a6;
+}
+.map_note {
+  margin: 8px 0 0 0;
+  color: var(--text-light2);
+  font-size: 0.75rem;
 }`;
 
-// A booked date is stored as a day offset, the same way the seeded records store theirs,
-// so a booking made here survives the Home page re-seeding the map from HOUSE_SAMPLES.
-const daysFromToday = (iso) => {
-    const target = new Date(iso + 'T12:00:00');
-    const today = new Date();
-    today.setHours(12, 0, 0, 0);
-    return Math.round((target.getTime() - today.getTime()) / 86400000);
-};
+// The map's radius around the tapped house, the way Project Sunroof frames a neighbourhood.
+const MILES_TO_METERS = 1609.34;
+const EARTH_RADIUS_MILES = 3958.8;
+const RADIUS_CHOICES = [0.25, 0.5];
 
 let SolarScanPage = class SolarScanPage {
     constructor() {
@@ -377,10 +478,18 @@ let SolarScanPage = class SolarScanPage {
         this.total = 0;
         this.errorMessage = '';
         this.notice = '';
-        this.bookingId = '';
-        this.bookDate = '';
-        this.bookTime = '09:00';
         this.status = null;
+        this.radiusMiles = RADIUS_CHOICES[0];
+        this.mapOpen = false;
+        this.mapName = '';
+        this.mapAddress = '';
+        this.mapCenter = null;
+        this.mapStats = { hasSolar: 0, noSolar: 0, pending: 0 };
+        this.mapNote = '';
+        this.mapsPromise = null;
+        this.nbMap = null;
+        this.radiusCircle = null;
+        this.nbMarkers = [];
     }
     ngOnInit() {
         const store = src_app_inquiry_store__WEBPACK_IMPORTED_MODULE_0__;
@@ -401,8 +510,7 @@ let SolarScanPage = class SolarScanPage {
                 roof: null,
                 reason: '',
                 scanned: false,
-                busy: false,
-                appointment: note.appointmentDate ? note.appointmentDate + ' at ' + (note.appointmentTime || '') : ''
+                busy: false
             };
             // A scan already run in this session is still on the shared record.
             if (sample && (sample.hasSolar === true || sample.hasSolar === false)) {
@@ -420,25 +528,29 @@ let SolarScanPage = class SolarScanPage {
             .catch(() => { this.status = { solarConfigured: false, aiConfigured: false }; });
     }
     rebuild() {
-        const noSolar = this.rows.filter(row => row.scanned && row.verdict === NO_SOLAR);
+        // The houses that already have panels lead the list: they are what this scan looks for.
         const installed = this.rows.filter(row => row.scanned && row.verdict === HAS_SOLAR);
+        const noSolar = this.rows.filter(row => row.scanned && row.verdict === NO_SOLAR);
         const pending = this.rows.filter(row => !row.scanned);
         this.groups = [];
+        if (installed.length) {
+            this.groups.push({ key: HAS_SOLAR, title: 'Solar already installed', rows: installed });
+        }
         if (noSolar.length) {
             this.groups.push({ key: NO_SOLAR, title: 'No solar yet', rows: noSolar });
         }
         if (pending.length) {
             this.groups.push({ key: UNKNOWN, title: 'Not scanned yet', rows: pending });
         }
-        if (installed.length) {
-            this.groups.push({ key: HAS_SOLAR, title: 'Solar already installed', rows: installed });
+        if (this.mapOpen) {
+            this.drawNeighbourhood();
         }
     }
     scannedCount() {
         return this.rows.filter(row => row.scanned).length;
     }
-    noSolarCount() {
-        return this.rows.filter(row => row.scanned && row.verdict === NO_SOLAR).length;
+    hasSolarCount() {
+        return this.rows.filter(row => row.scanned && row.verdict === HAS_SOLAR).length;
     }
     progressPercent() {
         return this.total ? Math.round(this.progress / this.total * 100) : 0;
@@ -471,7 +583,7 @@ let SolarScanPage = class SolarScanPage {
                 this.scanning = false;
                 this.publishResults();
                 this.rebuild();
-                this.notice = 'Scan finished: ' + this.noSolarCount() + ' of ' + queue.length + ' houses have no solar yet.';
+                this.notice = 'Scan finished: ' + this.hasSolarCount() + ' of ' + queue.length + ' houses already have solar.';
                 return;
             }
             const row = queue[index];
@@ -525,38 +637,191 @@ let SolarScanPage = class SolarScanPage {
         });
         store.InquiryStore.publish(this.data.inquiries, this.data.notes);
     }
-    openBooking(row) {
-        const note = this.data.notes[row.id] || {};
-        this.bookingId = row.id;
-        this.bookDate = note.appointmentDate || src_app_inquiry_store__WEBPACK_IMPORTED_MODULE_0__.offsetDateISO(1);
-        this.bookTime = note.appointmentTime || '09:00';
-        this.errorMessage = '';
-        this.notice = '';
+    // --- neighbourhood map ---------------------------------------------------
+    // Instead of booking a site visit, the house is shown on a satellite map inside a
+    // 1/4 or 1/2 mile ring, with every scanned prospect around it flagged by verdict.
+    showOnMap(row) {
+        this.mapName = row.name;
+        this.mapAddress = row.address || '';
+        this.mapCenter = { lat: Number(row.lat), lng: Number(row.lng) };
+        this.mapNote = '';
+        this.mapOpen = true;
+        this.loadMaps().then(ready => {
+            if (ready && this.mapOpen) {
+                this.drawNeighbourhood(0);
+            }
+        });
     }
-    closeBooking() {
-        this.bookingId = '';
+    closeMap() {
+        this.mapOpen = false;
+        this.nbMarkers.forEach(marker => marker.setMap(null));
+        this.nbMarkers = [];
+        this.radiusCircle = null;
+        this.nbMap = null;
     }
-    bookVisit(row) {
-        if (!this.bookDate || !this.bookTime) {
-            this.errorMessage = 'Pick both a date and a time for the site visit.';
+    setRadius(miles) {
+        if (this.radiusMiles === miles) {
             return;
         }
-        const note = this.data.notes[row.id];
-        if (!note) {
+        this.radiusMiles = miles;
+        this.drawNeighbourhood(0);
+    }
+    // Google Maps is loaded once, the first time a house is shown on the map.
+    loadMaps() {
+        if (this.mapsPromise) {
+            return this.mapsPromise;
+        }
+        this.mapsPromise = fetch('/api/config')
+            .then(response => response.ok ? response.json() : {})
+            .then(config => {
+                const key = (config && config.googleMapsApiKey) || '';
+                if (!key) {
+                    this.mapNote = 'Add a Google Maps key to draw the radius map.';
+                    return false;
+                }
+                if (window.google && window.google.maps) {
+                    return true;
+                }
+                return new Promise(resolve => {
+                    const script = document.createElement('script');
+                    script.src = 'https://maps.googleapis.com/maps/api/js?key=' + encodeURIComponent(key) + '&v=weekly';
+                    script.async = true;
+                    script.onload = () => resolve(true);
+                    script.onerror = () => {
+                        this.mapNote = 'The map could not load.';
+                        resolve(false);
+                    };
+                    document.head.appendChild(script);
+                });
+            })
+            .catch(() => {
+                this.mapNote = 'The map could not load.';
+                return false;
+            });
+        return this.mapsPromise;
+    }
+    drawNeighbourhood(attempt) {
+        if (!this.mapOpen || !this.mapCenter) {
             return;
         }
-        note.appointmentDate = this.bookDate;
-        note.appointmentTime = this.bookTime;
-        if (row.sample) {
-            row.sample.appointmentInDays = daysFromToday(this.bookDate);
-            row.sample.appointmentTime = this.bookTime;
+        const host = document.getElementById('solar_nb_map');
+        if (!host) {
+            return;
         }
-        src_app_inquiry_store__WEBPACK_IMPORTED_MODULE_0__.InquiryStore.publish(this.data.inquiries, this.data.notes);
-        row.appointment = this.bookDate + ' at ' + this.bookTime;
-        this.bookingId = '';
-        this.errorMessage = '';
-        this.notice = 'Site visit booked for ' + row.name + ' on ' + row.appointment + '. It now shows on the Dashboard calendar.';
-        this.rebuild();
+        // The sheet is rendered by Angular after the click, so wait for the box to have a size.
+        if (!host.getBoundingClientRect().height) {
+            if ((attempt || 0) < 20) {
+                setTimeout(() => this.drawNeighbourhood((attempt || 0) + 1), 60);
+            }
+            return;
+        }
+        if (!(window.google && window.google.maps)) {
+            return;
+        }
+        if (!this.nbMap) {
+            this.nbMap = new window.google.maps.Map(host, {
+                center: this.mapCenter,
+                zoom: 16,
+                mapTypeId: 'hybrid',
+                disableDefaultUI: true,
+                gestureHandling: 'greedy',
+                clickableIcons: false
+            });
+        }
+        this.nbMap.setCenter(this.mapCenter);
+        this.nbMap.setZoom(this.radiusZoom(host));
+        this.drawRadius();
+        this.drawMarkers();
+    }
+    radiusMeters() {
+        return this.radiusMiles * MILES_TO_METERS;
+    }
+    // Frame the ring so it fills most of the map box, the way Project Sunroof frames a neighbourhood.
+    radiusZoom(host) {
+        const box = host.getBoundingClientRect();
+        const span = Math.max(120, Math.min(box.width, box.height) * 0.82);
+        const metersPerPixel = (this.radiusMeters() * 2) / span;
+        const lat = this.mapCenter ? this.mapCenter.lat : 0;
+        const zoom = Math.log(156543.03392 * Math.cos(lat * Math.PI / 180) / metersPerPixel) / Math.LN2;
+        return Math.max(12, Math.min(20, Math.round(zoom * 100) / 100));
+    }
+    drawRadius() {
+        if (!this.nbMap) {
+            return;
+        }
+        if (!this.radiusCircle) {
+            this.radiusCircle = new window.google.maps.Circle({
+                map: this.nbMap,
+                center: this.mapCenter,
+                radius: this.radiusMeters(),
+                strokeColor: '#FF7110',
+                strokeOpacity: 0.9,
+                strokeWeight: 2,
+                fillColor: '#FF7110',
+                fillOpacity: 0.12,
+                clickable: false
+            });
+        }
+        this.radiusCircle.setCenter(this.mapCenter);
+        this.radiusCircle.setRadius(this.radiusMeters());
+    }
+    drawMarkers() {
+        if (!this.nbMap) {
+            return;
+        }
+        this.nbMarkers.forEach(marker => marker.setMap(null));
+        this.nbMarkers = [];
+        const stats = { hasSolar: 0, noSolar: 0, pending: 0 };
+        this.rows.forEach(row => {
+            const lat = Number(row.lat);
+            const lng = Number(row.lng);
+            if (!lat || !lng) {
+                return;
+            }
+            const inside = this.distanceMiles(this.mapCenter, { lat: lat, lng: lng }) <= this.radiusMiles;
+            if (inside) {
+                if (row.verdict === HAS_SOLAR) {
+                    stats.hasSolar += 1;
+                }
+                else if (row.verdict === NO_SOLAR) {
+                    stats.noSolar += 1;
+                }
+                else {
+                    stats.pending += 1;
+                }
+            }
+            // Solar houses carry the brand colour; everything else stays grey so the panels stand out.
+            let colour = '#c9ccd1';
+            if (row.verdict === HAS_SOLAR) {
+                colour = '#FF7110';
+            }
+            else if (row.verdict === NO_SOLAR) {
+                colour = '#9aa0a6';
+            }
+            this.nbMarkers.push(new window.google.maps.Marker({
+                map: this.nbMap,
+                position: { lat: lat, lng: lng },
+                title: row.name + (row.verdict === HAS_SOLAR ? ' - solar installed' : ''),
+                icon: {
+                    path: window.google.maps.SymbolPath.CIRCLE,
+                    scale: inside ? 7 : 4,
+                    fillColor: colour,
+                    fillOpacity: inside ? 1 : 0.45,
+                    strokeColor: '#ffffff',
+                    strokeWeight: inside ? 2 : 1
+                },
+                zIndex: inside ? 2 : 1
+            }));
+        });
+        this.mapStats = stats;
+    }
+    distanceMiles(from, to) {
+        const rad = (degrees) => degrees * Math.PI / 180;
+        const dLat = rad(to.lat - from.lat);
+        const dLng = rad(to.lng - from.lng);
+        const a = Math.pow(Math.sin(dLat / 2), 2)
+            + Math.cos(rad(from.lat)) * Math.cos(rad(to.lat)) * Math.pow(Math.sin(dLng / 2), 2);
+        return 2 * EARTH_RADIUS_MILES * Math.asin(Math.min(1, Math.sqrt(a)));
     }
 };
 SolarScanPage = (0,tslib__WEBPACK_IMPORTED_MODULE_2__.__decorate)([

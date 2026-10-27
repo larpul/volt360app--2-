@@ -1456,7 +1456,7 @@ let HomePage = class HomePage {
             files: [],
             visits: [],
             history: [],
-            pipelineStage: 'Lead', isNew: true
+            pipelineStage: src_app_inquiry_store__WEBPACK_IMPORTED_MODULE_5__.PIPELINE_STAGES[0].name, isNew: true
         };
         const percent = this.percentIn(this.screenPoint(latLng, this.liveView() || this.defaultView()), area);
         this.addedInquiries.push({
