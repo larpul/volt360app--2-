@@ -175,3 +175,23 @@ with the Volt360 sidebar and sign-in form.
   `STATUS_TILES` name). `CONVERTED_STATUSES` (`Appt set`, `Sat (sale)`) is what
   the conversion rate counts over, and the daily average divides by `WEEK_DAYS`
   (7).
+- The **Knocks counter** sits at the top of the same page (search `knock_card`
+  for the markup, `buildKnock()` for the numbers). It is a door-knock session,
+  not a disposition roll-up: `KNOCK_OUTCOMES` holds the six outcomes (No answer,
+  Not interested, Interested / qualified lead, Follow-up requested, Appointment
+  booked, Do not knock again) with `contacted` / `lead` / `appointment` flags,
+  and a knock is one logged attempt. The knock counts the attempt, a contact
+  counts the conversation, and leads and appointments come from the outcome
+  picked - so `contactRate` is contacts over knocks, never knocks over doors.
+  **Add knock** opens the `sheet === 'knock'` sheet, `saveKnock()` appends to
+  the session, and the session lives in localStorage under `solar360_knocks` as
+  `{date, entries}`, reset by `dayKey()` when the date changes (no history is
+  kept). The card lists the five newest entries with their time.
+- The page's bottom sheets (`.lead_sheet`: qualification, consultation, activity,
+  knock) dock above the floating tab bar at
+  `bottom: calc(76px + env(safe-area-inset-bottom))` with 12px side insets -
+  docked at `bottom: 0` the tab bar covered their Cancel/Save row and nothing
+  could be tapped. The floating assistant buttons (`solar360-assist.js`,
+  `.assist_dock` in `styles.css`) are hidden while one of these sheets is open
+  (`body:has(.sheet_backdrop)`), because the chat bubble sat on top of the Save
+  button and swallowed the tap.

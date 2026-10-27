@@ -2326,6 +2326,12 @@ ion-toast::part(button) {
   display: none;
 }
 
+/* A page sheet (Leads) covers the bottom of the screen with its own backdrop; the floating
+   assistant buttons would sit on top of its action row and swallow the Save tap. */
+body:has(.sheet_backdrop) .assist_dock {
+  display: none;
+}
+
 .assist_root [hidden] {
   display: none !important;
 }

@@ -131,6 +131,49 @@ const LEAD_KEY = 'solar360_leads';
 const CONVERTED_STATUSES = ['Appt set', 'Sat (sale)'];
 const WEEK_DAYS = 7;
 
+// Door-knock session: one tap per attempted door, then how it went. A knock counts the attempt,
+// a contact counts an actual conversation, and a lead / appointment is counted off the outcome -
+// so the conversion numbers stay honest. Today's session outlives a reload in localStorage.
+const KNOCK_KEY = 'solar360_knocks';
+const KNOCK_OUTCOMES = [
+    { key: 'no_answer', label: 'No answer', swatch: '#9aa0a6', contacted: false },
+    { key: 'not_interested', label: 'Not interested', swatch: '#ef6b6b', contacted: true },
+    { key: 'interested', label: 'Interested / qualified lead', swatch: '#7ec850', contacted: true, lead: true },
+    { key: 'follow_up', label: 'Follow-up requested', swatch: '#5b9bd5', contacted: true, lead: true },
+    { key: 'appointment', label: 'Appointment booked', swatch: '#FF7110', contacted: true, lead: true, appointment: true },
+    { key: 'do_not_knock', label: 'Do not knock again', swatch: '#9b7fd4', contacted: true }
+];
+
+const dayKey = () => {
+    const now = new Date();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return now.getFullYear() + '-' + month + '-' + day;
+};
+
+const readKnocks = () => {
+    try {
+        const stored = JSON.parse(window.localStorage.getItem(KNOCK_KEY) || 'null');
+        return stored && stored.date === dayKey() && Array.isArray(stored.entries) ? stored.entries : [];
+    }
+    catch (e) {
+        return [];
+    }
+};
+
+const writeKnocks = (entries) => {
+    try {
+        window.localStorage.setItem(KNOCK_KEY, JSON.stringify({ date: dayKey(), entries: entries }));
+    }
+    catch (e) {
+    }
+};
+
+const clockOf = (at) => {
+    const time = new Date(at);
+    return isNaN(time.getTime()) ? '' : String(time.getHours()).padStart(2, '0') + ':' + String(time.getMinutes()).padStart(2, '0');
+};
+
 const whenLabel = (at) => {
     const iso = String(at || '');
     const month = parseInt(iso.slice(5, 7), 10);
@@ -240,6 +283,48 @@ const template = `<ion-header>
             <h2>{{ leads.length }}</h2>
             <span>prospects tracked</span>
             <p>{{ openLabel }}</p>
+        </div>
+
+        <div class="leads_card knock_card">
+            <div class="card_head d-flex">
+                <h3>Knocks counter</h3>
+                <span class="count_pill">Today</span>
+            </div>
+            <div class="knock_main d-flex">
+                <div class="knock_total">
+                    <strong>{{ knock.total }}</strong>
+                    <span>Knocks today</span>
+                </div>
+                <div class="knock_rate">
+                    <strong>{{ knock.contactRate }}%</strong>
+                    <span>Contact rate</span>
+                </div>
+            </div>
+            <div class="knock_stats d-flex">
+                <div class="knock_stat">
+                    <strong>{{ knock.contacts }}</strong>
+                    <span>Contacts</span>
+                </div>
+                <div class="knock_stat">
+                    <strong>{{ knock.leads }}</strong>
+                    <span>Leads</span>
+                </div>
+                <div class="knock_stat">
+                    <strong>{{ knock.appointments }}</strong>
+                    <span>Appointments</span>
+                </div>
+            </div>
+            <button class="knock_add" (click)="openKnockSheet()">
+                <ion-icon class="zmdi zmdi-plus"></ion-icon>Add knock
+            </button>
+            <div class="knock_log" *ngIf="knock.entries.length">
+                <div class="knock_row d-flex" *ngFor="let entry of knock.entries">
+                    <span class="knock_dot" [style.background]="entry.swatch"></span>
+                    <span class="knock_name">{{ entry.label }}</span>
+                    <span class="knock_time">{{ entry.time }}</span>
+                </div>
+            </div>
+            <p class="empty_note" *ngIf="!knock.entries.length">No knocks logged today. Tap Add knock at each door.</p>
         </div>
 
         <div class="leads_card activity_card">
@@ -434,6 +519,18 @@ const template = `<ion-header>
     <div class="sheet_actions d-flex">
         <button class="ghost_btn" (click)="closeSheet()">Cancel</button>
         <button class="primary_btn" (click)="saveActivity()">Log activity</button>
+    </div>
+</div>
+
+<div class="lead_sheet" *ngIf="sheet === 'knock'">
+    <h3>Log door knock</h3>
+    <p class="sheet_sub">How did the door go?</p>
+    <div class="knock_outcomes">
+        <span class="outcome_chip" *ngFor="let outcome of knockOutcomes" [class.active]="knockDraft === outcome.key" (click)="knockDraft = outcome.key">{{ outcome.label }}</span>
+    </div>
+    <div class="sheet_actions d-flex">
+        <button class="ghost_btn" (click)="closeSheet()">Cancel</button>
+        <button class="primary_btn" (click)="saveKnock()">Save knock</button>
     </div>
 </div>`;
 
@@ -797,12 +894,14 @@ ion-header ion-toolbar ion-title {
 }
 .lead_sheet {
   position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  left: 12px;
+  right: 12px;
+  bottom: calc(76px + env(safe-area-inset-bottom));
   z-index: 100;
+  max-height: calc(100vh - 150px);
+  overflow-y: auto;
   padding: 20px;
-  border-radius: 20px 20px 0 0;
+  border-radius: 20px;
   background: var(--bg-white);
   box-shadow: 0 -12px 24px rgba(0, 0, 0, 0.2);
 }
@@ -929,6 +1028,125 @@ ion-header ion-toolbar ion-title {
   color: var(--primary);
   font-size: 0.9rem !important;
   font-weight: 700;
+}
+.knock_main {
+  margin-top: 12px;
+}
+.knock_total,
+.knock_rate {
+  flex: 1 1 0;
+}
+.knock_rate {
+  text-align: right;
+}
+.knock_total strong,
+.knock_rate strong {
+  display: block;
+  color: var(--text-dark);
+  font-size: 1.8rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.knock_rate strong {
+  color: var(--primary);
+}
+.knock_total span,
+.knock_rate span {
+  display: block;
+  margin-top: 4px;
+  color: var(--text-light2);
+  font-size: 0.8rem !important;
+  font-weight: 600;
+}
+.knock_stats {
+  margin-top: 12px;
+  gap: 10px;
+}
+.knock_stat {
+  flex: 1 1 0;
+  padding: 10px 8px;
+  border: 1px solid var(--border-line-color);
+  border-radius: 12px;
+  text-align: center;
+}
+.knock_stat strong {
+  display: block;
+  color: var(--text-dark);
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+.knock_stat span {
+  display: block;
+  margin-top: 3px;
+  color: var(--text-light2);
+  font-size: 0.78rem !important;
+  font-weight: 600;
+}
+.knock_add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-top: 12px;
+  padding: 13px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--primary);
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 1rem !important;
+  font-weight: 700;
+}
+.knock_add ion-icon {
+  margin-right: 6px;
+  font-size: 1.2rem;
+}
+.knock_log {
+  margin-top: 12px;
+  padding-top: 4px;
+  border-top: 1px solid var(--border-line-color);
+}
+.knock_row {
+  align-items: center;
+  padding: 7px 0;
+}
+.knock_dot {
+  flex: 0 0 auto;
+  width: 9px;
+  height: 9px;
+  margin-right: 8px;
+  border-radius: 50%;
+  background: #9aa0a6;
+}
+.knock_name {
+  width: 100%;
+  color: var(--text-dark);
+  font-size: 0.88rem !important;
+  font-weight: 600;
+}
+.knock_time {
+  color: var(--text-light2);
+  font-size: 0.82rem !important;
+  font-weight: 600;
+}
+.knock_outcomes {
+  display: flex;
+  flex-wrap: wrap;
+}
+.outcome_chip {
+  margin: 0 8px 8px 0;
+  padding: 8px 13px;
+  border: 1px solid var(--border-line-color);
+  border-radius: 20px;
+  color: var(--text-light2);
+  font-size: 0.85rem !important;
+  font-weight: 600;
+}
+.outcome_chip.active {
+  border-color: var(--primary);
+  background: rgba(255, 113, 16, 0.12);
+  color: var(--primary);
 }`;
 
 let LeadsPage = class LeadsPage {
@@ -949,11 +1167,16 @@ let LeadsPage = class LeadsPage {
         this.openLabel = '';
         this.records = {};
         this.activity = { knocks: 0, avgPerDay: '0.0', converted: 0, conversionRate: 0, statusRows: [] };
+        this.knockOutcomes = KNOCK_OUTCOMES;
+        this.knockDraft = KNOCK_OUTCOMES[0].key;
+        this.knockEntries = [];
+        this.knock = { total: 0, contacts: 0, leads: 0, appointments: 0, contactRate: 0, entries: [] };
     }
     ngOnInit() {
         const data = src_app_inquiry_store__WEBPACK_IMPORTED_MODULE_0__.InquiryStore.snapshot();
         const stored = readLedger();
         this.data = data;
+        this.knockEntries = readKnocks();
         this.records = {};
         data.inquiries.forEach(inquiry => {
             const note = data.notes[inquiry.id] || {};
@@ -992,6 +1215,32 @@ let LeadsPage = class LeadsPage {
         this.filtered = this.stageFilter ? this.leads.filter(lead => lead.stage === this.stageFilter) : this.leads;
         this.buildPipeline();
         this.buildActivity();
+        this.buildKnock();
+    }
+    // Today's door-knocking session, read off the logged outcomes: knocks are attempts, contacts
+    // are conversations, leads and appointments come from the outcome that was picked.
+    buildKnock() {
+        const outcomeFor = (entry) => KNOCK_OUTCOMES.filter(item => item.key === entry.outcome)[0];
+        const count = (flag) => this.knockEntries.filter(entry => {
+            const outcome = outcomeFor(entry);
+            return !!(outcome && outcome[flag]);
+        }).length;
+        const contacts = count('contacted');
+        this.knock = {
+            total: this.knockEntries.length,
+            contacts: contacts,
+            leads: count('lead'),
+            appointments: count('appointment'),
+            contactRate: this.knockEntries.length ? Math.round(contacts / this.knockEntries.length * 100) : 0,
+            entries: this.knockEntries
+                .slice()
+                .reverse()
+                .slice(0, 5)
+                .map(entry => {
+                    const outcome = outcomeFor(entry) || KNOCK_OUTCOMES[0];
+                    return { label: outcome.label, swatch: outcome.swatch, time: clockOf(entry.at) };
+                })
+        };
     }
     // The week's canvassing: one knock per prospect's disposition, counted by status so the
     // summary equals the knock total, plus the daily average and the conversion rate.
@@ -1095,6 +1344,16 @@ let LeadsPage = class LeadsPage {
         }]);
         this.persist();
         this.closeSheetAndRefresh();
+    }
+    openKnockSheet() {
+        this.knockDraft = KNOCK_OUTCOMES[0].key;
+        this.sheet = 'knock';
+    }
+    saveKnock() {
+        this.knockEntries = this.knockEntries.concat([{ outcome: this.knockDraft, at: new Date().toISOString() }]);
+        writeKnocks(this.knockEntries);
+        this.closeSheet();
+        this.buildKnock();
     }
     closeSheet() {
         this.sheet = '';
