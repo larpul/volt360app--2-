@@ -133,8 +133,8 @@ const WEEK_DAYS = 7;
 
 // Door-knock session: one tap per attempted door, then how it went. A knock counts the attempt,
 // a contact counts an actual conversation, and a lead / appointment is counted off the outcome -
-// so the conversion numbers stay honest. Today's session outlives a reload in localStorage.
-const KNOCK_KEY = 'solar360_knocks';
+// so the conversion numbers stay honest. The session itself lives in the shared KnockLog
+// (inquiry-store), because the Home map's check-in logs knocks into the same session.
 const KNOCK_OUTCOMES = [
     { key: 'no_answer', label: 'No answer', swatch: '#9aa0a6', contacted: false },
     { key: 'not_interested', label: 'Not interested', swatch: '#ef6b6b', contacted: true },
@@ -143,53 +143,6 @@ const KNOCK_OUTCOMES = [
     { key: 'appointment', label: 'Appointment booked', swatch: '#FF7110', contacted: true, lead: true, appointment: true },
     { key: 'do_not_knock', label: 'Do not knock again', swatch: '#9b7fd4', contacted: true }
 ];
-
-const dayKey = () => {
-    const now = new Date();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    return now.getFullYear() + '-' + month + '-' + day;
-};
-
-const readKnocks = () => {
-    try {
-        const stored = JSON.parse(window.localStorage.getItem(KNOCK_KEY) || 'null');
-        return stored && stored.date === dayKey() && Array.isArray(stored.entries) ? stored.entries : [];
-    }
-    catch (e) {
-        return [];
-    }
-};
-
-const writeKnocks = (entries) => {
-    try {
-        window.localStorage.setItem(KNOCK_KEY, JSON.stringify({ date: dayKey(), entries: entries }));
-    }
-    catch (e) {
-    }
-};
-
-// Team leaderboard: every logged knock is also posted to the backend under the rep's
-// name, so this page can rank the whole team's week instead of one phone's session.
-// The name belongs to the device it was set on.
-const REP_KEY = 'solar360_rep_name';
-
-const readRepName = () => {
-    try {
-        return String(window.localStorage.getItem(REP_KEY) || '').trim();
-    }
-    catch (e) {
-        return '';
-    }
-};
-
-const writeRepName = (name) => {
-    try {
-        window.localStorage.setItem(REP_KEY, name);
-    }
-    catch (e) {
-    }
-};
 
 const clockOf = (at) => {
     const time = new Date(at);
@@ -1333,7 +1286,7 @@ let LeadsPage = class LeadsPage {
         const data = src_app_inquiry_store__WEBPACK_IMPORTED_MODULE_0__.InquiryStore.snapshot();
         const stored = readLedger();
         this.data = data;
-        this.knockEntries = readKnocks();
+        this.knockEntries = src_app_inquiry_store__WEBPACK_IMPORTED_MODULE_0__.KnockLog.entries();
         this.records = {};
         data.inquiries.forEach(inquiry => {
             const note = data.notes[inquiry.id] || {};
@@ -1341,7 +1294,7 @@ let LeadsPage = class LeadsPage {
         });
         this.build();
         this.persist();
-        this.repName = readRepName();
+        this.repName = src_app_inquiry_store__WEBPACK_IMPORTED_MODULE_0__.KnockLog.repName();
         this.syncKnocks();
     }
     // Rebuild the rows the template renders from the ledger. Display-only additions (initials,
@@ -1397,7 +1350,8 @@ let LeadsPage = class LeadsPage {
                 .slice(0, 5)
                 .map(entry => {
                     const outcome = outcomeFor(entry) || KNOCK_OUTCOMES[0];
-                    return { label: outcome.label, swatch: outcome.swatch, time: clockOf(entry.at) };
+                    // A knock logged from a map check-in carries the status the rep picked.
+                    return { label: entry.label || outcome.label, swatch: outcome.swatch, time: clockOf(entry.at) };
                 })
         };
     }
@@ -1509,8 +1463,8 @@ let LeadsPage = class LeadsPage {
         this.sheet = 'knock';
     }
     saveKnock() {
-        this.knockEntries = this.knockEntries.concat([{ outcome: this.knockDraft, at: new Date().toISOString() }]);
-        writeKnocks(this.knockEntries);
+        src_app_inquiry_store__WEBPACK_IMPORTED_MODULE_0__.KnockLog.add(this.knockDraft);
+        this.knockEntries = src_app_inquiry_store__WEBPACK_IMPORTED_MODULE_0__.KnockLog.entries();
         this.closeSheet();
         this.buildKnock();
         this.syncKnocks();
@@ -1545,26 +1499,13 @@ let LeadsPage = class LeadsPage {
                 });
             });
     }
-    // Post the session's knocks that have not reached the server yet (a knock logged
+    // Send the session's knocks that have not reached the server yet (a knock logged
     // before a name was set counts once the rep joins), then refresh the board.
     syncKnocks() {
-        const pending = this.repName ? this.knockEntries.filter(entry => !entry.posted) : [];
-        const posts = pending.map(entry => this.postKnock(entry)
-            .then(() => { entry.posted = true; })
-            .catch(() => null));
-        Promise.all(posts).then(() => {
-            if (pending.length) {
-                writeKnocks(this.knockEntries);
-            }
+        src_app_inquiry_store__WEBPACK_IMPORTED_MODULE_0__.KnockLog.sync().then(() => {
+            this.knockEntries = src_app_inquiry_store__WEBPACK_IMPORTED_MODULE_0__.KnockLog.entries();
             this.loadLeaderboard();
         });
-    }
-    postKnock(entry) {
-        return fetch('/api/knocks', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ rep: this.repName, outcome: entry.outcome, at: entry.at })
-        }).then(response => response.json());
     }
     openRepSheet() {
         this.repDraft = this.repName;
@@ -1576,7 +1517,7 @@ let LeadsPage = class LeadsPage {
             return;
         }
         this.repName = name;
-        writeRepName(name);
+        src_app_inquiry_store__WEBPACK_IMPORTED_MODULE_0__.KnockLog.setRepName(name);
         this.closeSheet();
         this.syncKnocks();
     }

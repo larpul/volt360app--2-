@@ -104,6 +104,28 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+// A map check-in is a door knock: it is logged into the shared door-knock session (the same one
+// the Follow-ups knocks counter and the team leaderboard read), with the house's status as its
+// outcome, so walking up to a pin counts without logging the door again on the counter.
+const KNOCK_OUTCOME_BY_STATUS = {
+    'Not answered': 'no_answer',
+    'DNS': 'no_answer',
+    'Not interested (No pitch)': 'not_interested',
+    'Not interested (pitch)': 'not_interested',
+    'House for sale': 'not_interested',
+    'Renters': 'not_interested',
+    'Other': 'not_interested',
+    'Sat (credit fail)': 'not_interested',
+    'Sat (no sale)': 'not_interested',
+    'Follow up': 'follow_up',
+    'Reschedule': 'follow_up',
+    'Sat (follow up)': 'follow_up',
+    'Appt set': 'appointment',
+    'Sat (sale)': 'appointment'
+};
+
+const knockOutcomeFor = (status) => KNOCK_OUTCOME_BY_STATUS[status] || 'not_interested';
+
 let HomePage = class HomePage {
     constructor(route) {
         this.route = route;
@@ -1243,6 +1265,12 @@ let HomePage = class HomePage {
         this.checkInTimeLabel = this.timeLabel(this.selectedNote.checkInAt);
         this.startCheckInTimer();
         this.logHistory(this.selectedNote, 'Arrived on site', this.checkInTimeLabel);
+        // Checking in at the door is the knock: it goes into the shared session the Follow-ups
+        // counter and team leaderboard read, so the rep never logs the same door twice.
+        this.selectedNote.knockId = src_app_inquiry_store__WEBPACK_IMPORTED_MODULE_5__.KnockLog.add(
+            knockOutcomeFor(this.selectedNote.status),
+            this.selectedNote.status
+        ).id;
         // Stamp the location straight away from the house pin, then replace it with the device's own
         // coordinates as soon as the browser answers. A denied or unsupported location leaves the
         // house pin as the stamp, so the sheet always shows where the visit was recorded.
@@ -1298,6 +1326,11 @@ let HomePage = class HomePage {
             notes: note.technicianNotes || ''
         }]);
         this.logHistory(note, 'Site visit ended', minutes + ' min \u00b7 ' + note.status);
+        // The disposition the visit ended on is that knock's outcome - updated in place, so the
+        // door is counted once.
+        if (note.knockId) {
+            src_app_inquiry_store__WEBPACK_IMPORTED_MODULE_5__.KnockLog.setOutcome(note.knockId, knockOutcomeFor(note.status), note.status);
+        }
         // Keep the Dashboard's copy of the visits in step with the map.
         src_app_inquiry_store__WEBPACK_IMPORTED_MODULE_5__.InquiryStore.publish(this.addedInquiries, this.installationNotes);
         // ...and log it for the Site visits page. That log is the one visit record that outlives

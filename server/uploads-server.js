@@ -750,11 +750,15 @@ const server = http.createServer((req, res) => {
             // never accept one outside the retention window.
             var cut = Date.now() - KNOCK_RETENTION_DAYS * DAY_MS;
             var at = Date.parse(body && body.at);
+            var id = String((body && body.id) || '').slice(0, 60);
+            // A knock keeps its id, so re-posting one (a check-in whose disposition then
+            // changes its outcome) updates that door instead of counting it twice.
             var entries = readJsonFile(KNOCKS_FILE, []).filter(function (entry) {
                 var when = Date.parse(entry && entry.at);
-                return isFinite(when) && when >= cut;
+                return isFinite(when) && when >= cut && !(id && entry.id === id);
             });
             entries.push({
+                id: id || 'knock_' + Date.now().toString(36),
                 rep: rep,
                 outcome: String((body && body.outcome) || '').slice(0, 40),
                 at: new Date(isFinite(at) && at >= cut && at <= Date.now() ? at : Date.now()).toISOString()

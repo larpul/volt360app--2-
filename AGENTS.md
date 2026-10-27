@@ -183,10 +183,31 @@ with the Volt360 sidebar and sign-in form.
   and a knock is one logged attempt. The knock counts the attempt, a contact
   counts the conversation, and leads and appointments come from the outcome
   picked - so `contactRate` is contacts over knocks, never knocks over doors.
-  **Add knock** opens the `sheet === 'knock'` sheet, `saveKnock()` appends to
-  the session, and the session lives in localStorage under `solar360_knocks` as
-  `{date, entries}`, reset by `dayKey()` when the date changes (no history is
-  kept). The card lists the five newest entries with their time.
+  **Add knock** opens the `sheet === 'knock'` sheet and `saveKnock()` appends to
+  the session through `KnockLog` (below). The card lists the five newest
+  entries with their time, preferring the entry's own `label` (the status a map
+  check-in recorded) over the outcome's generic name.
+- The session itself is the shared `KnockLog` in `main.js` (webpack module
+  `./src/app/inquiry-store.ts`, exported next to `VisitLog`), because two pages
+  write to it: the Follow-ups counter and the Home map's check-in. It keeps
+  `{date, entries}` in localStorage under `solar360_knocks` (each entry
+  `{id, outcome, at, label?, posted?}`, reset when `knockDayKey()` changes -
+  no history is kept) plus the device's rep name under `solar360_rep_name`.
+  `add(outcome, label)` logs a knock and posts it, `setOutcome(id, outcome,
+  label)` rewrites one entry in place, `post()` sends `{id, rep, outcome, at}`
+  to `/api/knocks` once the rep name is set (an `knockPosting` map stops the
+  same entry being posted twice) and marks it `posted`, and `sync()` posts
+  everything still unposted. Re-posting an id updates that knock server-side
+  instead of appending a second one.
+- A **map check-in is a knock**: `checkIn()` (the sheet's green **Arrived**
+  button) calls `KnockLog.add(knockOutcomeFor(note.status), note.status)` and
+  keeps the entry's id on the note as `knockId`; `checkOut()` (run by
+  **Disposition**) then calls `KnockLog.setOutcome(...)` with the status the
+  visit ended on, so one door is counted once and its outcome follows the
+  disposition. `KNOCK_OUTCOME_BY_STATUS` in `src_app_home_home_module_ts.js`
+  maps the 14 prospect statuses onto the knock outcomes (Appt set / Sat (sale)
+  → `appointment`, Follow up / Reschedule / Sat (follow up) → `follow_up`,
+  Not answered / DNS → `no_answer`, the rest → `not_interested`).
 - The **Team leaderboard** card on the same page ranks every rep's knocks over
   the last 7 days. Knocks are shared through the backend:
   `GET /api/knocks` returns `{days, reps: [{name, knocks}], total}` and

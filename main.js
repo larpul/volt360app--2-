@@ -1254,6 +1254,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "STATUS_TILES": () => (/* binding */ STATUS_TILES),
 /* harmony export */   "offsetDateISO": () => (/* binding */ offsetDateISO),
 /* harmony export */   "InquiryStore": () => (/* binding */ InquiryStore),
+/* harmony export */   "KnockLog": () => (/* binding */ KnockLog),
 /* harmony export */   "VisitLog": () => (/* binding */ VisitLog)
 /* harmony export */ });
 // One shared record of the solar inquiries: the Home map seeds and publishes it, the
@@ -1444,6 +1445,125 @@ const VisitLog = {
         }
         catch (e) {
         }
+    }
+};
+
+// The door-knock session: one entry per attempted door today, shared by the Follow-ups knocks
+// counter and the Home map's check-in, so arriving at a pin counts as a knock. It lives in
+// localStorage (the session resets on a new day) and is posted to the backend under the rep's
+// name, which is what the team leaderboard ranks.
+const KNOCK_KEY = 'solar360_knocks';
+const KNOCK_REP_KEY = 'solar360_rep_name';
+
+// One POST per entry at a time: a knock added while a sync runs must not be posted twice.
+const knockPosting = {};
+
+const knockDayKey = () => {
+    const now = new Date();
+    return now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+};
+
+const readKnockSession = () => {
+    try {
+        const stored = JSON.parse(window.localStorage.getItem(KNOCK_KEY) || 'null');
+        if (!stored || stored.date !== knockDayKey() || !Array.isArray(stored.entries)) {
+            return [];
+        }
+        // Entries logged before ids were stored get one, so a posted knock is never posted twice.
+        return stored.entries.map((entry, index) => entry.id ? entry : Object.assign({}, entry, { id: 'knock_old_' + index }));
+    }
+    catch (e) {
+        return [];
+    }
+};
+
+const writeKnockSession = (entries) => {
+    try {
+        window.localStorage.setItem(KNOCK_KEY, JSON.stringify({ date: knockDayKey(), entries: entries }));
+    }
+    catch (e) {
+    }
+};
+
+const KnockLog = {
+    // Today's session: the knocks logged on this device so far.
+    entries() {
+        return readKnockSession();
+    },
+    // The name this device's knocks are posted under (set on the Follow-ups leaderboard).
+    repName() {
+        try {
+            return String(window.localStorage.getItem(KNOCK_REP_KEY) || '').trim();
+        }
+        catch (e) {
+            return '';
+        }
+    },
+    setRepName(name) {
+        try {
+            window.localStorage.setItem(KNOCK_REP_KEY, name);
+        }
+        catch (e) {
+        }
+    },
+    // One knock for one attempted door. `label` keeps the status the rep actually picked, so the
+    // counter lists the real disposition rather than the outcome's generic name.
+    add(outcome, label) {
+        const entry = { id: 'knock_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), outcome: outcome, at: new Date().toISOString() };
+        if (label) {
+            entry.label = label;
+        }
+        writeKnockSession(readKnockSession().concat([entry]));
+        KnockLog.post(entry);
+        return entry;
+    },
+    // A disposition is the knock's outcome: updating the check-in's entry keeps the session at one
+    // knock per door instead of counting the arrival and its outcome as two.
+    setOutcome(id, outcome, label) {
+        const entries = readKnockSession().map(entry => entry.id === id
+            ? Object.assign({}, entry, { outcome: outcome, label: label || '', posted: false })
+            : entry);
+        const changed = entries.filter(entry => entry.id === id)[0];
+        if (!changed) {
+            return null;
+        }
+        writeKnockSession(entries);
+        KnockLog.post(changed);
+        return changed;
+    },
+    // Send one knock to the team leaderboard, then remember it so a sync never counts it twice.
+    post(entry) {
+        const rep = KnockLog.repName();
+        if (!rep) {
+            return Promise.resolve(false);
+        }
+        if (knockPosting[entry.id]) {
+            return knockPosting[entry.id];
+        }
+        knockPosting[entry.id] = fetch('/api/knocks', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: entry.id, rep: rep, outcome: entry.outcome, at: entry.at })
+        })
+            .then(response => response.json())
+            .then(() => {
+                writeKnockSession(readKnockSession().map(item => item.id === entry.id
+                    ? Object.assign({}, item, { posted: true })
+                    : item));
+                delete knockPosting[entry.id];
+                return true;
+            })
+            .catch(() => {
+                delete knockPosting[entry.id];
+                return false;
+            });
+        return knockPosting[entry.id];
+    },
+    // Post what is still unposted: a knock logged before the rep set a name, or one logged while
+    // the connection was down. Resolves once every pending knock has been sent.
+    sync() {
+        const pending = KnockLog.repName() ? readKnockSession().filter(entry => !entry.posted) : [];
+        return Promise.all(pending.map(entry => KnockLog.post(entry))).then(() => pending.length);
     }
 };
 
