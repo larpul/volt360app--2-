@@ -36,6 +36,36 @@ const scanCache = new Map();
 const CARD_FILE = path.join(path.dirname(DATA_DIR), 'card.json');
 const SCANS_FILE = path.join(path.dirname(DATA_DIR), 'scans.json');
 
+// ---- Team knocks: the shared door-knock log behind the Follow-ups leaderboard ----
+// Every rep's device posts its knocks here, so the list ranks the whole team's week
+// instead of one phone's session. Old entries are pruned on write.
+const KNOCKS_FILE = path.join(path.dirname(DATA_DIR), 'knocks.json');
+const KNOCK_WEEK_DAYS = 7;
+const KNOCK_RETENTION_DAYS = 70;
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+// Knocks per rep over the last KNOCK_WEEK_DAYS days, largest first.
+function knockLeaderboard() {
+    const since = Date.now() - KNOCK_WEEK_DAYS * DAY_MS;
+    const totals = {};
+    readJsonFile(KNOCKS_FILE, []).forEach(function (entry) {
+        const rep = String((entry && entry.rep) || '').trim();
+        const at = Date.parse(entry && entry.at);
+        if (!rep || !isFinite(at) || at < since) { return; }
+        totals[rep] = (totals[rep] || 0) + 1;
+    });
+    const reps = Object.keys(totals).map(function (rep) {
+        return { name: rep, knocks: totals[rep] };
+    }).sort(function (a, b) {
+        return b.knocks - a.knocks || a.name.localeCompare(b.name);
+    });
+    return {
+        days: KNOCK_WEEK_DAYS,
+        reps: reps,
+        total: reps.reduce(function (sum, rep) { return sum + rep.knocks; }, 0)
+    };
+}
+
 // Google Sheets integration — each QR scan is logged as a new spreadsheet row.
 const sheets = require('./google-sheets');
 const email = require('./email');
@@ -700,6 +730,38 @@ const server = http.createServer((req, res) => {
     }
     if (req.method === 'GET' && url.pathname.startsWith('/uploads/')) {
         serveFile(res, decodeURIComponent(url.pathname.slice('/uploads/'.length)));
+        return;
+    }
+    // ---- Team knocks (Follow-ups leaderboard) ----
+    // This week's knocks per rep, ranked.
+    if (req.method === 'GET' && url.pathname === '/api/knocks') {
+        sendJson(res, 200, knockLeaderboard());
+        return;
+    }
+    // Log one knock for a rep, then answer with the refreshed leaderboard.
+    if (req.method === 'POST' && url.pathname === '/api/knocks') {
+        readJsonBody(req, 8 * 1024).then(function (body) {
+            var rep = String((body && body.rep) || '').trim().slice(0, 60);
+            if (!rep) {
+                sendJson(res, 400, { ok: false, message: 'A rep name is required.' });
+                return;
+            }
+            // Keep the device's own time (a knock queued offline keeps its hour), but
+            // never accept one outside the retention window.
+            var cut = Date.now() - KNOCK_RETENTION_DAYS * DAY_MS;
+            var at = Date.parse(body && body.at);
+            var entries = readJsonFile(KNOCKS_FILE, []).filter(function (entry) {
+                var when = Date.parse(entry && entry.at);
+                return isFinite(when) && when >= cut;
+            });
+            entries.push({
+                rep: rep,
+                outcome: String((body && body.outcome) || '').slice(0, 40),
+                at: new Date(isFinite(at) && at >= cut && at <= Date.now() ? at : Date.now()).toISOString()
+            });
+            writeJsonFile(KNOCKS_FILE, entries);
+            sendJson(res, 200, Object.assign({ ok: true }, knockLeaderboard()));
+        });
         return;
     }
     // ---- Digital Business Card ----

@@ -169,6 +169,28 @@ const writeKnocks = (entries) => {
     }
 };
 
+// Team leaderboard: every logged knock is also posted to the backend under the rep's
+// name, so this page can rank the whole team's week instead of one phone's session.
+// The name belongs to the device it was set on.
+const REP_KEY = 'solar360_rep_name';
+
+const readRepName = () => {
+    try {
+        return String(window.localStorage.getItem(REP_KEY) || '').trim();
+    }
+    catch (e) {
+        return '';
+    }
+};
+
+const writeRepName = (name) => {
+    try {
+        window.localStorage.setItem(REP_KEY, name);
+    }
+    catch (e) {
+    }
+};
+
 const clockOf = (at) => {
     const time = new Date(at);
     return isNaN(time.getTime()) ? '' : String(time.getHours()).padStart(2, '0') + ':' + String(time.getMinutes()).padStart(2, '0');
@@ -325,6 +347,35 @@ const template = `<ion-header>
                 </div>
             </div>
             <p class="empty_note" *ngIf="!knock.entries.length">No knocks logged today. Tap Add knock at each door.</p>
+        </div>
+
+        <div class="leads_card leaderboard_card">
+            <div class="card_head d-flex">
+                <h3>Team leaderboard</h3>
+                <span class="count_pill">This week</span>
+            </div>
+            <div class="lb_me d-flex" *ngIf="repName">
+                <span>You are <strong>{{ repName }}</strong></span>
+                <span class="mini_btn" (click)="openRepSheet()">Change</span>
+            </div>
+            <div class="lb_rows" *ngIf="leaderboard.reps.length">
+                <div class="lb_row d-flex" *ngFor="let rep of leaderboard.reps" [class.lb_you]="rep.you">
+                    <span class="lb_rank">{{ rep.rank }}</span>
+                    <span class="lb_avatar">{{ rep.initials }}</span>
+                    <div class="lb_body">
+                        <div class="lb_head d-flex">
+                            <span class="lb_name">{{ rep.name }}</span>
+                            <span class="lb_count">{{ rep.knocks }}</span>
+                        </div>
+                        <div class="lb_track"><span class="lb_bar" [style.width.%]="rep.width"></span></div>
+                    </div>
+                </div>
+                <p class="lb_note">{{ leaderboard.total }} knocks across {{ leaderboard.reps.length }} reps in the last 7 days</p>
+            </div>
+            <p class="empty_note" *ngIf="!leaderboard.reps.length && leaderboard.loading">Loading the team's knocks&hellip;</p>
+            <p class="empty_note" *ngIf="!leaderboard.reps.length && !leaderboard.loading && leaderboard.error">{{ leaderboard.error }}</p>
+            <p class="empty_note" *ngIf="!leaderboard.reps.length && !leaderboard.loading && !leaderboard.error">No knocks this week yet. Add a knock and it lands on the board.</p>
+            <button class="lb_join" *ngIf="!repName" (click)="openRepSheet()">Set your name to join</button>
         </div>
 
         <div class="leads_card activity_card">
@@ -531,6 +582,19 @@ const template = `<ion-header>
     <div class="sheet_actions d-flex">
         <button class="ghost_btn" (click)="closeSheet()">Cancel</button>
         <button class="primary_btn" (click)="saveKnock()">Save knock</button>
+    </div>
+</div>
+
+<div class="lead_sheet" *ngIf="sheet === 'rep'">
+    <h3>Who's knocking?</h3>
+    <p class="sheet_sub">Your name is how the team leaderboard counts your week.</p>
+    <div class="qual_field">
+        <label>Your name</label>
+        <input class="field" type="text" placeholder="e.g. Jordan Reyes" [(ngModel)]="repDraft">
+    </div>
+    <div class="sheet_actions d-flex">
+        <button class="ghost_btn" (click)="closeSheet()">Cancel</button>
+        <button class="primary_btn" (click)="saveRep()">Save name</button>
     </div>
 </div>`;
 
@@ -1130,6 +1194,96 @@ ion-header ion-toolbar ion-title {
   font-size: 0.82rem !important;
   font-weight: 600;
 }
+.lb_me {
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 10px;
+  color: var(--text-light2);
+  font-size: 0.82rem !important;
+  font-weight: 600;
+}
+.lb_me strong {
+  color: var(--text-dark);
+  font-weight: 700;
+}
+.lb_rows {
+  margin-top: 12px;
+}
+.lb_row {
+  align-items: center;
+  padding: 8px 0;
+  border-top: 1px solid var(--border-line-color);
+}
+.lb_row.lb_you .lb_name {
+  color: var(--primary);
+}
+.lb_rank {
+  flex: 0 0 18px;
+  color: var(--text-light2);
+  font-size: 0.82rem !important;
+  font-weight: 700;
+}
+.lb_avatar {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  margin-right: 9px;
+  border-radius: 50%;
+  background: rgba(255, 113, 16, 0.14);
+  color: var(--primary);
+  font-size: 0.78rem !important;
+  font-weight: 700;
+  line-height: 28px;
+  text-align: center;
+}
+.lb_body {
+  width: 100%;
+}
+.lb_head {
+  align-items: center;
+  justify-content: space-between;
+}
+.lb_name {
+  color: var(--text-dark);
+  font-size: 0.88rem !important;
+  font-weight: 600;
+}
+.lb_count {
+  color: var(--text-dark);
+  font-size: 0.9rem !important;
+  font-weight: 700;
+}
+.lb_track {
+  height: 5px;
+  margin-top: 6px;
+  border-radius: 3px;
+  background: var(--border-line-color);
+  overflow: hidden;
+}
+.lb_bar {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: var(--primary);
+}
+.lb_note {
+  margin: 10px 0 0 0;
+  color: var(--text-light2);
+  font-size: 0.82rem !important;
+  font-weight: 600;
+}
+.lb_join {
+  width: 100%;
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px dashed var(--primary);
+  border-radius: 12px;
+  background: rgba(255, 113, 16, 0.08);
+  color: var(--primary);
+  font-family: inherit;
+  font-size: 0.95rem !important;
+  font-weight: 700;
+}
 .knock_outcomes {
   display: flex;
   flex-wrap: wrap;
@@ -1171,6 +1325,9 @@ let LeadsPage = class LeadsPage {
         this.knockDraft = KNOCK_OUTCOMES[0].key;
         this.knockEntries = [];
         this.knock = { total: 0, contacts: 0, leads: 0, appointments: 0, contactRate: 0, entries: [] };
+        this.repName = '';
+        this.repDraft = '';
+        this.leaderboard = { reps: [], total: 0, loading: false, error: '' };
     }
     ngOnInit() {
         const data = src_app_inquiry_store__WEBPACK_IMPORTED_MODULE_0__.InquiryStore.snapshot();
@@ -1184,6 +1341,8 @@ let LeadsPage = class LeadsPage {
         });
         this.build();
         this.persist();
+        this.repName = readRepName();
+        this.syncKnocks();
     }
     // Rebuild the rows the template renders from the ledger. Display-only additions (initials,
     // swatches, formatted dates, activity order) live here, never in the stored record.
@@ -1354,6 +1513,72 @@ let LeadsPage = class LeadsPage {
         writeKnocks(this.knockEntries);
         this.closeSheet();
         this.buildKnock();
+        this.syncKnocks();
+    }
+    // The team's week: every rep's knocks over the last 7 days, ranked, with this
+    // device's rep highlighted so a rep can find themselves in the list.
+    loadLeaderboard() {
+        this.leaderboard = Object.assign({}, this.leaderboard, { loading: !this.leaderboard.reps.length, error: '' });
+        fetch('/api/knocks')
+            .then(response => response.json())
+            .then(payload => {
+                const reps = payload && Array.isArray(payload.reps) ? payload.reps : [];
+                const top = reps.length ? reps[0].knocks : 0;
+                this.leaderboard = {
+                    total: (payload && payload.total) || 0,
+                    loading: false,
+                    error: '',
+                    reps: reps.map((rep, index) => ({
+                        rank: index + 1,
+                        name: rep.name,
+                        knocks: rep.knocks,
+                        initials: initialsOf(rep.name),
+                        you: !!this.repName && rep.name.toLowerCase() === this.repName.toLowerCase(),
+                        width: top ? Math.max(8, Math.round(rep.knocks / top * 100)) : 0
+                    }))
+                };
+            })
+            .catch(() => {
+                this.leaderboard = Object.assign({}, this.leaderboard, {
+                    loading: false,
+                    error: 'The team leaderboard could not load. Check the connection and try again.'
+                });
+            });
+    }
+    // Post the session's knocks that have not reached the server yet (a knock logged
+    // before a name was set counts once the rep joins), then refresh the board.
+    syncKnocks() {
+        const pending = this.repName ? this.knockEntries.filter(entry => !entry.posted) : [];
+        const posts = pending.map(entry => this.postKnock(entry)
+            .then(() => { entry.posted = true; })
+            .catch(() => null));
+        Promise.all(posts).then(() => {
+            if (pending.length) {
+                writeKnocks(this.knockEntries);
+            }
+            this.loadLeaderboard();
+        });
+    }
+    postKnock(entry) {
+        return fetch('/api/knocks', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ rep: this.repName, outcome: entry.outcome, at: entry.at })
+        }).then(response => response.json());
+    }
+    openRepSheet() {
+        this.repDraft = this.repName;
+        this.sheet = 'rep';
+    }
+    saveRep() {
+        const name = String(this.repDraft || '').trim();
+        if (!name) {
+            return;
+        }
+        this.repName = name;
+        writeRepName(name);
+        this.closeSheet();
+        this.syncKnocks();
     }
     closeSheet() {
         this.sheet = '';

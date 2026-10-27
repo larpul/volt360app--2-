@@ -187,6 +187,20 @@ with the Volt360 sidebar and sign-in form.
   the session, and the session lives in localStorage under `solar360_knocks` as
   `{date, entries}`, reset by `dayKey()` when the date changes (no history is
   kept). The card lists the five newest entries with their time.
+- The **Team leaderboard** card on the same page ranks every rep's knocks over
+  the last 7 days. Knocks are shared through the backend:
+  `GET /api/knocks` returns `{days, reps: [{name, knocks}], total}` and
+  `POST /api/knocks` with `{rep, outcome, at}` logs one knock and answers with
+  the refreshed board (`server/uploads-server.js`, `knockLeaderboard()`, entries
+  in `knocks.json` next to `card.json`, pruned after 70 days). The rep's name is
+  per device in localStorage under `solar360_rep_name` (set through the
+  `sheet === 'rep'` sheet, **Set your name to join** / **Change**), so each
+  phone posts under its own name and the board ranks the whole team.
+  `syncKnocks()` posts every session entry not yet marked `posted` (a knock
+  logged before a name was set counts once the rep joins) and then reloads the
+  board; the row matching the device's name carries `lb_you` for the highlight.
+  Without a reachable API the card shows its own "could not load" note and the
+  local knocks counter keeps working.
 - The page's bottom sheets (`.lead_sheet`: qualification, consultation, activity,
   knock) dock above the floating tab bar at
   `bottom: calc(76px + env(safe-area-inset-bottom))` with 12px side insets -
