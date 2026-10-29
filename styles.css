@@ -2875,6 +2875,60 @@ body:has(.sheet_backdrop) .assist_dock {
 
 /* Form */
 .card_form { padding-bottom: 20px; }
+.card_photo_field {
+  margin-bottom: 16px;
+  text-align: center;
+}
+.card_photo_preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 90px;
+  height: 90px;
+  margin: 0 auto;
+  border-radius: 50%;
+  border: 2px dashed #d5d0cc;
+  cursor: pointer;
+  overflow: hidden;
+  position: relative;
+  background: #f9f6f3;
+  transition: border-color 0.2s;
+}
+.card_photo_preview:hover {
+  border-color: var(--primary);
+}
+.card_photo_preview i {
+  font-size: 1.6rem;
+  color: var(--text-light2);
+}
+.card_photo_preview span {
+  font-size: 0.65rem;
+  color: var(--text-light2);
+  text-align: center;
+  padding: 0 4px;
+}
+.card_photo_preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+.card_photo_change {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0,0,0,0.55);
+  color: #fff !important;
+  padding: 3px 0;
+  font-size: 0.6rem !important;
+}
+.card_photo_uploading {
+  font-size: 0.72rem;
+  color: var(--text-light2);
+}
 .card_field {
   margin-bottom: 14px;
 }

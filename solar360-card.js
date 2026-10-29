@@ -27,6 +27,7 @@
     var scanTotalEl = null;
     var scanListEl = null;
     var saved = false;
+    var pendingPhoto = null;  // uploaded photo URL awaiting save
 
     var TEMPLATE = ''
         + '<div class="card_dock" hidden>'
@@ -48,6 +49,13 @@
         +       '<p class="card_qr_nosave" id="card_qr_nosave">Fill in your details and tap Save to generate your QR code.</p>'
         +     '</div>'
         +     '<div class="card_form" id="card_form">'
+        +       '<div class="card_photo_field">'
+        +         '<div class="card_photo_preview" id="card_photo_preview">'
+        +           '<i class="zmdi zmdi-camera"></i>'
+        +           '<span>Tap to upload photo</span>'
+        +         '</div>'
+        +         '<input type="file" id="card_photo_input" accept="image/*" hidden>'
+        +       '</div>'
         +       '<div class="card_field">'
         +         '<label>Full Name</label>'
         +         '<input type="text" data-field="name" placeholder="Your name">'
@@ -172,6 +180,44 @@
             var input = root.querySelector('[data-field="' + FIELDS[i] + '"]');
             if (input) input.value = base[FIELDS[i]] || '';
         }
+        updatePhotoPreview(base.photo || '');
+    }
+
+    function updatePhotoPreview(url) {
+        var preview = root.querySelector('#card_photo_preview');
+        if (!preview) return;
+        var photoUrl = url || (cardData && cardData.photo) || '';
+        if (photoUrl) {
+            preview.innerHTML = '<img src="' + escapeHtml(photoUrl) + '" alt="Profile photo"><span class="card_photo_change">Tap to change</span>';
+        } else {
+            preview.innerHTML = '<i class="zmdi zmdi-camera"></i><span>Tap to upload photo</span>';
+        }
+    }
+
+    function uploadPhoto(file) {
+        if (!file || !file.type || file.type.indexOf('image/') !== 0) {
+            flashStatus('Please choose an image file.');
+            return;
+        }
+        var preview = root.querySelector('#card_photo_preview');
+        preview.innerHTML = '<span class="card_photo_uploading">Uploading…</span>';
+        var formData = new FormData();
+        formData.append('file', file);
+        fetch('/api/uploads?name=' + encodeURIComponent(file.name), {
+            method: 'POST',
+            body: formData
+        }).then(function (r) { return r.json(); }).then(function (res) {
+            if (res && res.url) {
+                pendingPhoto = window.location.origin + res.url;
+                updatePhotoPreview(pendingPhoto);
+            } else {
+                flashStatus('Photo upload failed. Please try again.');
+                updatePhotoPreview('');
+            }
+        }).catch(function () {
+            flashStatus('Photo upload failed. Please try again.');
+            updatePhotoPreview('');
+        });
     }
 
     function collectForm() {
@@ -180,7 +226,7 @@
             var input = root.querySelector('[data-field="' + FIELDS[i] + '"]');
             if (input) data[FIELDS[i]] = input.value.trim();
         }
-        data.photo = (cardData && cardData.photo) || (window.location.origin + '/assets/images/profile.png?v=4');
+        data.photo = pendingPhoto || (cardData && cardData.photo) || (window.location.origin + '/assets/images/profile.png?v=4');
         return data;
     }
 
@@ -202,6 +248,7 @@
             btn.textContent = 'Save & Generate QR';
             if (res && res.ok) {
                 cardData = res.card;
+                pendingPhoto = null;
                 saved = true;
                 populateForm();
                 updateQrSection();
@@ -365,6 +412,20 @@
         else if (action === 'share') shareLink();
         else if (action === 'copy') copyLink();
         else if (action === 'vcard') downloadVCard();
+    });
+
+    // Photo upload: tapping the preview opens the file picker
+    root.addEventListener('click', function (event) {
+        var preview = event.target.closest ? event.target.closest('#card_photo_preview') : null;
+        if (!preview) return;
+        var input = root.querySelector('#card_photo_input');
+        if (input) input.click();
+    });
+    root.addEventListener('change', function (event) {
+        var input = event.target.closest ? event.target.closest('#card_photo_input') : null;
+        if (!input || !input.files || !input.files.length) return;
+        uploadPhoto(input.files[0]);
+        input.value = '';
     });
 
     document.addEventListener('keydown', function (event) {
