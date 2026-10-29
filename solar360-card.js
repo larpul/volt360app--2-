@@ -174,7 +174,7 @@
             base.name = profile.name;
             base.phone = profile.phone;
             base.email = profile.email;
-            base.photo = window.location.origin + '/assets/images/profile.png?v=4';
+            base.photo = '/assets/images/profile.png?v=4';
         }
         for (var i = 0; i < FIELDS.length; i++) {
             var input = root.querySelector('[data-field="' + FIELDS[i] + '"]');
@@ -207,7 +207,7 @@
             body: file
         }).then(function (r) { return r.json(); }).then(function (res) {
             if (res && res.url) {
-                pendingPhoto = window.location.origin + res.url;
+                pendingPhoto = res.url;
                 updatePhotoPreview(pendingPhoto);
             } else {
                 flashStatus('Photo upload failed. Please try again.');
@@ -225,7 +225,7 @@
             var input = root.querySelector('[data-field="' + FIELDS[i] + '"]');
             if (input) data[FIELDS[i]] = input.value.trim();
         }
-        data.photo = pendingPhoto || (cardData && cardData.photo) || (window.location.origin + '/assets/images/profile.png?v=4');
+        data.photo = pendingPhoto || (cardData && cardData.photo) || '/assets/images/profile.png?v=4';
         return data;
     }
 
@@ -371,7 +371,7 @@
             + (cardData.phone ? 'TEL;TYPE=CELL:' + cardData.phone + '\n' : '')
             + (cardData.email ? 'EMAIL:' + cardData.email + '\n' : '')
             + (cardData.website ? 'URL:' + cardData.website + '\n' : '')
-            + (cardData.photo ? 'PHOTO;VALUE=URL:' + cardData.photo + '\n' : '')
+            + (cardData.photo ? 'PHOTO;VALUE=URL:' + (cardData.photo.indexOf('http') === 0 ? cardData.photo : window.location.origin + cardData.photo) + '\n' : '')
             + 'END:VCARD';
         var blob = new Blob([vcf], { type: 'text/vcard' });
         var a = document.createElement('a');

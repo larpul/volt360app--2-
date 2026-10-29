@@ -86,6 +86,27 @@ body{
   object-position:center top;
 }
 
+/* ===== Owner-only photo upload (manage mode) ===== */
+.manage-photo{
+  display:flex;
+  justify-content:center;
+  margin:16px auto 0;
+}
+.manage-photo-btn{
+  border:1px solid var(--accent);
+  background:var(--white);
+  color:var(--accent);
+  font-family:'Space Grotesk',sans-serif;
+  font-size:13px;
+  font-weight:500;
+  padding:10px 22px;
+  border-radius:24px;
+  cursor:pointer;
+  transition:background .2s ease,color .2s ease;
+}
+.manage-photo-btn:hover{background:var(--accent);color:var(--white)}
+.manage-photo-btn:disabled{opacity:.6;cursor:default}
+
 /* ===== Card Content ===== */
 .card-content{
   padding:0 32px 48px;
@@ -443,6 +464,10 @@ a:focus-visible,button:focus-visible,input:focus-visible{
   var path=window.location.pathname;
   var cardId=path.indexOf('/card/')===0?decodeURIComponent(path.slice(6)):'';
   if(!cardId){cardId=new URLSearchParams(window.location.search).get('id')||'';}
+  // Owner-only manage mode: ?manage=1 shows the photo upload button. The QR code
+  // encodes the plain /card/{id} URL, so scanners never see it.
+  var manage=new URLSearchParams(window.location.search).get('manage')==='1';
+  var loadedCard=null;
 
   var DEMO={
     name:'Alex Morgan',title:'Architect of Ideas',company:'Studio Ephemeral',
@@ -475,7 +500,8 @@ a:focus-visible,button:focus-visible,input:focus-visible{
       '<div class="card-wrap">'+
 
         '<img class="card-logo" src="/assets/images/card/logo-mwap.png?v=2" alt="Midwest American Power">'+
-        '<div class="hero-photo">'+photoHtml+'</div>'+
+        '<div class="hero-photo" id="heroPhoto">'+photoHtml+'</div>'+
+        (manage?'<div class="manage-photo"><input type="file" id="managePhotoInput" accept="image/*" hidden><button type="button" class="manage-photo-btn" id="managePhotoBtn">Change photo</button></div>':'')+
 
         '<div class="card-content">'+
           '<div class="card-eyebrow reveal" style="margin-top:20px"><span>Digital Business Card</span></div>'+
@@ -561,6 +587,39 @@ a:focus-visible,button:focus-visible,input:focus-visible{
       a.click();
       URL.revokeObjectURL(a.href);
     });
+
+    // --- Owner-only photo upload (manage mode) ---
+    if(manage){
+      var mpBtn=document.getElementById('managePhotoBtn');
+      var mpInput=document.getElementById('managePhotoInput');
+      if(mpBtn&&mpInput){
+        mpBtn.addEventListener('click',function(){mpInput.click();});
+        mpInput.addEventListener('change',function(){
+          if(!mpInput.files||!mpInput.files.length)return;
+          var file=mpInput.files[0];
+          if(!file.type||file.type.indexOf('image/')!==0){alert('Please choose an image file.');return;}
+          mpBtn.disabled=true;mpBtn.textContent='Uploading…';
+          var photoUrl='';
+          fetch('/api/uploads?name='+encodeURIComponent(file.name),{method:'POST',headers:{'Content-Type':file.type||'application/octet-stream'},body:file})
+            .then(function(r){return r.json()})
+            .then(function(res){
+              if(!res||!res.url)throw new Error('upload failed');
+              photoUrl=res.url;
+              loadedCard.photo=photoUrl;
+              return fetch('/api/card',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(loadedCard)}).then(function(r){return r.json();});
+            })
+            .then(function(){
+              mpBtn.disabled=false;mpBtn.textContent='Change photo';
+              var hp=document.getElementById('heroPhoto');
+              if(hp)hp.innerHTML='<img src="'+esc(photoUrl)+'" alt="Portrait of '+esc(name)+'">';
+            })
+            .catch(function(){
+              mpBtn.disabled=false;mpBtn.textContent='Change photo';
+              alert('Photo upload failed. Please try again.');
+            });
+        });
+      }
+    }
 
     // --- Share ---
     var shareBtn=document.getElementById('shareBtn');
@@ -682,12 +741,15 @@ a:focus-visible,button:focus-visible,input:focus-visible{
     document.querySelectorAll('.reveal').forEach(function(el){observer.observe(el);});
   }
 
-  // Fetch card data or fall back to demo
+  // Fetch card data or fall back to demo. In manage mode use the public GET
+  // endpoint so the owner's own view isn't counted as a QR scan.
   if(cardId){
-    fetch('/api/card/scan/'+encodeURIComponent(cardId),{method:'POST'})
+    var dataUrl=manage?('/api/card/public/'+encodeURIComponent(cardId)):('/api/card/scan/'+encodeURIComponent(cardId));
+    var dataOpts=manage?{}:{method:'POST'};
+    fetch(dataUrl,dataOpts)
       .then(function(r){return r.json()})
       .then(function(d){
-        if(d&&d.ok){render(d);}
+        if(d&&d.ok){loadedCard=d;render(d);}
         else{render(DEMO);}
       })
       .catch(function(){render(DEMO);});
