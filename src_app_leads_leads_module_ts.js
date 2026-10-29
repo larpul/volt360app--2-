@@ -377,6 +377,7 @@ const template = `<ion-header>
         </div>
 
         <div class="stage_filter d-flex">
+            <span class="filter_chip" [class.active]="!stageFilter" (click)="setStageFilter('')">All</span>
             <span class="filter_chip" *ngFor="let name of stageNames" [class.active]="stageFilter === name" (click)="setStageFilter(name)">{{ name }}</span>
         </div>
 
@@ -1266,7 +1267,7 @@ let LeadsPage = class LeadsPage {
         this.qualFields = QUAL_FIELDS;
         this.activityTypes = ACTIVITY_TYPES;
         this.consultTypes = CONSULT_TYPES;
-        this.stageFilter = this.stageNames[0] || '';
+        this.stageFilter = '';
         this.openLeadId = '';
         this.sheet = '';
         this.activeLead = null;
