@@ -819,6 +819,8 @@ const server = http.createServer((req, res) => {
         return;
     }
     // Record a scan and return card data for the public page to display.
+    // The body may optionally carry the visitor's name, phone and address so the
+    // owner knows who scanned, not just where and when.
     if (req.method === 'POST' && url.pathname.startsWith('/api/card/scan/')) {
         var cardId = decodeURIComponent(url.pathname.slice('/api/card/scan/'.length));
         var card = readJsonFile(CARD_FILE, null);
@@ -826,50 +828,62 @@ const server = http.createServer((req, res) => {
             sendJson(res, 404, { ok: false, message: 'Card not found.' });
             return;
         }
-        var scanRecord = {
-            cardId: cardId,
-            at: new Date().toISOString(),
-            ua: String(req.headers['user-agent'] || '').slice(0, 300),
-            ref: String(req.headers.referer || '').slice(0, 300),
-            ip: clientIp(req),
-            location: ''
-        };
-        var scans = readJsonFile(SCANS_FILE, []);
-        scans.push(scanRecord);
-        if (scans.length > 1000) scans.splice(0, scans.length - 1000);
-        writeJsonFile(SCANS_FILE, scans);
-        // Fire-and-forget: look up the visitor's location from their IP, then log to Sheets.
-        if (sheets.isConfigured()) {
+        readJsonBody(req, 4096).then(function (body) {
+            var scanName = String((body && body.name) || '').slice(0, 120);
+            var scanPhone = String((body && body.phone) || '').slice(0, 40);
+            var scanAddress = String((body && body.address) || '').slice(0, 300);
+            var scanRecord = {
+                cardId: cardId,
+                at: new Date().toISOString(),
+                name: scanName,
+                phone: scanPhone,
+                address: scanAddress,
+                ua: String(req.headers['user-agent'] || '').slice(0, 300),
+                ref: String(req.headers.referer || '').slice(0, 300),
+                ip: clientIp(req),
+                location: ''
+            };
+            var scans = readJsonFile(SCANS_FILE, []);
+            scans.push(scanRecord);
+            if (scans.length > 1000) scans.splice(0, scans.length - 1000);
+            writeJsonFile(SCANS_FILE, scans);
+            // Fire-and-forget: look up the visitor's location from their IP, then log to Sheets.
+            if (sheets.isConfigured()) {
+                ipLocation(scanRecord.ip).then(function (loc) {
+                    if (loc) {
+                        scanRecord.location = loc;
+                        var fresh = readJsonFile(SCANS_FILE, []);
+                        var idx = fresh.length - 1;
+                        if (idx >= 0 && fresh[idx].at === scanRecord.at) { fresh[idx].location = loc; writeJsonFile(SCANS_FILE, fresh); }
+                    }
+                    sheets.logScan(scanRecord);
+                }).catch(function () { sheets.logScan(scanRecord); });
+            }
+            // Notify the owner (email + in-app bell) that the QR card was scanned.
+            // Include who (name, phone, address, device, IP, location) and when (timestamp).
+            var uaInfo = sheets.parseUserAgent(scanRecord.ua);
+            var deviceDesc = uaInfo.device + ' · ' + uaInfo.os + ' · ' + uaInfo.browser;
+            var who = scanName || 'Someone';
+            function scanMsg(where) {
+                var msg = who + ' scanned your QR business card' + (where ? ' from ' + where : '') + ' on ' + deviceDesc + ' at ' + scanRecord.at + '.';
+                if (scanPhone) { msg += ' Phone: ' + scanPhone + '.'; }
+                if (scanAddress) { msg += ' Address: ' + scanAddress + '.'; }
+                return msg;
+            }
+            var scanMeta = { name: scanName, phone: scanPhone, address: scanAddress, location: '', device: deviceDesc, ip: scanRecord.ip, scannedAt: scanRecord.at };
             ipLocation(scanRecord.ip).then(function (loc) {
-                if (loc) {
-                    scanRecord.location = loc;
-                    // Update the stored record in place.
-                    var fresh = readJsonFile(SCANS_FILE, []);
-                    var idx = fresh.length - 1;
-                    if (idx >= 0 && fresh[idx].at === scanRecord.at) { fresh[idx].location = loc; writeJsonFile(SCANS_FILE, fresh); }
-                }
-                sheets.logScan(scanRecord);
-            }).catch(function () { sheets.logScan(scanRecord); });
-        }
-        // Notify the owner (email + in-app bell) that the QR card was scanned.
-        // Include who (device, OS, browser, IP, location) and when (timestamp).
-        var uaInfo = sheets.parseUserAgent(scanRecord.ua);
-        var deviceDesc = uaInfo.device + ' · ' + uaInfo.os + ' · ' + uaInfo.browser;
-        ipLocation(scanRecord.ip).then(function (loc) {
-            var where = loc || 'Unknown location';
-            notifications.add('card_scan', 'Business card scanned',
-                'Someone scanned your QR business card from ' + where + ' on ' + deviceDesc + ' at ' + scanRecord.at + '.',
-                { location: where, device: deviceDesc, ip: scanRecord.ip, scannedAt: scanRecord.at });
-        }).catch(function () {
-            notifications.add('card_scan', 'Business card scanned',
-                'Someone scanned your QR business card on ' + deviceDesc + ' at ' + scanRecord.at + '.',
-                { device: deviceDesc, ip: scanRecord.ip, scannedAt: scanRecord.at });
-        });
-        sendJson(res, 200, {
-            ok: true,
-            name: card.name || '', title: card.title || '', phone: card.phone || '',
-            email: card.email || '', website: card.website || '', company: card.company || '',
-            tagline: card.tagline || '', photo: card.photo || '', updatedAt: card.updatedAt || ''
+                var where = loc || 'Unknown location';
+                scanMeta.location = where;
+                notifications.add('card_scan', 'Business card scanned', scanMsg(where), scanMeta);
+            }).catch(function () {
+                notifications.add('card_scan', 'Business card scanned', scanMsg(''), scanMeta);
+            });
+            sendJson(res, 200, {
+                ok: true,
+                name: card.name || '', title: card.title || '', phone: card.phone || '',
+                email: card.email || '', website: card.website || '', company: card.company || '',
+                tagline: card.tagline || '', photo: card.photo || '', updatedAt: card.updatedAt || ''
+            });
         });
         return;
     }
@@ -984,12 +998,14 @@ const server = http.createServer((req, res) => {
         readJsonBody(req, 4096).then(function (body) {
             var phone = String((body && body.phone) || '').slice(0, 40);
             var name = String((body && body.name) || '').slice(0, 120);
+            var address = String((body && body.address) || '').slice(0, 300);
             var contactRecord = {
                 cardId: cardId,
                 at: new Date().toISOString(),
                 type: 'contact',
                 phone: phone,
                 name: name,
+                address: address,
                 ua: String(req.headers['user-agent'] || '').slice(0, 300),
                 ref: String(req.headers.referer || '').slice(0, 300),
                 ip: clientIp(req),
@@ -1007,9 +1023,10 @@ const server = http.createServer((req, res) => {
                 }).catch(function () { sheets.logContact(contactRecord); });
             }
             // Notify the owner of the callback request.
-            notifications.add('card_callback', 'Callback requested',
-                (contactRecord.name || 'Someone') + ' requested a callback' + (contactRecord.phone ? ' at ' + contactRecord.phone : '') + '.',
-                { name: contactRecord.name || '', phone: contactRecord.phone || '' });
+            var cbMsg = (contactRecord.name || 'Someone') + ' requested a callback' + (contactRecord.phone ? ' at ' + contactRecord.phone : '') + '.';
+            if (address) { cbMsg += ' Address: ' + address + '.'; }
+            notifications.add('card_callback', 'Callback requested', cbMsg,
+                { name: contactRecord.name || '', phone: contactRecord.phone || '', address: address });
             sendJson(res, 200, { ok: true });
         });
         return;

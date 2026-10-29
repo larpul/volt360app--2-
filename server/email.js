@@ -86,6 +86,15 @@ function esc(s) {
     });
 }
 
+// Human-readable labels for the metadata keys that appear in activity emails,
+// so the owner reads "Phone" instead of "phone" in the details table.
+var META_LABELS = {
+    name: 'Name', phone: 'Phone', address: 'Address', location: 'Location',
+    device: 'Device', ip: 'IP address', scannedAt: 'Scanned at', sharedAt: 'Shared at',
+    method: 'Share method', rep: 'Rep', outcome: 'Outcome', email: 'Email',
+    date: 'Date', time: 'Time'
+};
+
 // Send a generic activity alert (card scan, knock, new lead, status change, …).
 // Same non-blocking contract as sendBookingNotification: a bad key or outage is
 // logged and never thrown, so an event is never lost because the email failed.
@@ -94,8 +103,8 @@ async function sendActivityEmail(notif) {
 
     var subject = notif.title || 'New activity on your Solar360 app';
     var meta = notif.meta || {};
-    var metaLines = Object.keys(meta).filter(function (k) { return meta[k] !== '' && meta[k] != null; })
-        .map(function (k) { return k + ': ' + meta[k]; });
+    var metaKeys = Object.keys(meta).filter(function (k) { return meta[k] !== '' && meta[k] != null; });
+    var metaLines = metaKeys.map(function (k) { return (META_LABELS[k] || k) + ': ' + meta[k]; });
 
     var textLines = [
         notif.title || '',
@@ -116,7 +125,7 @@ async function sendActivityEmail(notif) {
         Object.keys(meta).forEach(function (k) {
             var v = meta[k];
             if (v === '' || v == null) return;
-            htmlLines.push('<tr><td style="padding:4px 16px 4px 0;color:#999">' + esc(k) + '</td><td style="font-weight:600">' + esc(v) + '</td></tr>');
+            htmlLines.push('<tr><td style="padding:4px 16px 4px 0;color:#999">' + esc(META_LABELS[k] || k) + '</td><td style="font-weight:600">' + esc(v) + '</td></tr>');
         });
         htmlLines.push('</table>');
     }
