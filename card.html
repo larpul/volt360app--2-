@@ -62,7 +62,11 @@ body{
   background:var(--bg);
   min-height:100vh;
   position:relative;
+  padding-top:64px;
 }
+
+/* ===== Logo (top left) ===== */
+.card-logo{position:absolute;top:18px;left:20px;width:108px;height:auto;display:block;z-index:2}
 
 /* ===== Hero Photo — Circular ===== */
 .hero-photo{
@@ -70,7 +74,7 @@ body{
   height:170px;
   border-radius:50%;
   overflow:hidden;
-  margin:28px auto 0;
+  margin:0 auto;
   border:4px solid var(--accent);
   background:linear-gradient(135deg,#1e1e1e,#3a3a3a);
   box-shadow:0 4px 20px rgba(0,0,0,.08);
@@ -470,6 +474,7 @@ a:focus-visible,button:focus-visible,input:focus-visible{
 
       '<div class="card-wrap">'+
 
+        '<img class="card-logo" src="/assets/images/card/logo-mwap.png?v=2" alt="Midwest American Power">'+
         '<div class="hero-photo">'+photoHtml+'</div>'+
 
         '<div class="card-content">'+
