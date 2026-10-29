@@ -234,3 +234,25 @@ with the Volt360 sidebar and sign-in form.
   `.assist_dock` in `styles.css`) are hidden while one of these sheets is open
   (`body:has(.sheet_backdrop)`), because the chat bubble sat on top of the Save
   button and swallowed the tap.
+- **Activity notifications** (email + in-app bell) cover every notable event: a
+  QR card scan, a card share, a callback request, a meeting booking, a door-knock,
+  a new lead saved, and a status/pipeline-stage change. The store is
+  `server/notifications.js` writing `notifications.json` next to `card.json`; it
+  calls `email.sendActivityEmail` (Resend, same `RESEND_API_KEY` / `NOTIFICATION_EMAIL`
+  as bookings) unless an event passes `{email:false}` — only the booking handler
+  does, because it already sends its own booking email and just records the
+  in-app entry. Backend endpoints: `GET /api/notifications` (`{items, unread}`),
+  `POST /api/notifications` (create — used by the app for lead/status events the
+  client sees), `POST /api/notifications/read-all` (the bell marks everything
+  read on open). Server-side events (scan/share/callback/booking/knock) call
+  `notifications.add(...)` directly inside `server/uploads-server.js`; client-side
+  events (new lead, status/stage change) call `window.solar360Notify(type, title,
+  message, meta)` defined in `solar360-assist.js`, which POSTs the same endpoint.
+  The in-app bell is the existing `assist_fab_bell` in `solar360-assist.js`; its
+  panel now merges backend "Activity" items (icon per type) with the "Assistant"
+  chat messages, the badge sums both unread counts, and it polls
+  `GET /api/notifications` every 30s. `window.solar360Notify` is wired into the
+  home module's `saveInquiry` (a first save = new lead), `setInquiryStatus` and
+  `setInquiryStage`, and the leads module's `setStage`. Email alerts only fire
+  when `RESEND_API_KEY` and `NOTIFICATION_EMAIL` are set; without them the in-app
+  bell still works.

@@ -2606,6 +2606,22 @@ body:has(.sheet_backdrop) .assist_dock {
   background: var(--bg-color);
 }
 
+.assist_notif_group {
+  margin: 14px 2px 4px;
+  padding-top: 10px;
+  color: var(--text-light2);
+  font-size: 0.62rem !important;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+.assist_notif_group:first-child {
+  margin-top: 2px;
+  border-top: none;
+  padding-top: 0;
+}
+
 .assist_notif {
   display: flex;
   align-items: flex-start;

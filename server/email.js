@@ -86,4 +86,64 @@ function esc(s) {
     });
 }
 
-module.exports = { isConfigured, sendBookingNotification };
+// Send a generic activity alert (card scan, knock, new lead, status change, …).
+// Same non-blocking contract as sendBookingNotification: a bad key or outage is
+// logged and never thrown, so an event is never lost because the email failed.
+async function sendActivityEmail(notif) {
+    if (!isConfigured()) return;
+
+    var subject = notif.title || 'New activity on your Solar360 app';
+    var meta = notif.meta || {};
+    var metaLines = Object.keys(meta).filter(function (k) { return meta[k] !== '' && meta[k] != null; })
+        .map(function (k) { return k + ': ' + meta[k]; });
+
+    var textLines = [
+        notif.title || '',
+        '',
+        notif.message || '',
+        '',
+        'When: ' + (notif.at || new Date().toISOString())
+    ].concat(metaLines.length ? [''].concat(metaLines) : []);
+
+    var htmlLines = [
+        '<div style="font-family:monospace;font-size:14px;max-width:480px">',
+        '<h2 style="margin:0 0 16px">' + esc(notif.title) + '</h2>',
+        '<p style="margin:0 0 16px">' + esc(notif.message) + '</p>',
+        '<p style="color:#999;font-size:12px;margin:0">When: ' + esc(notif.at) + '</p>'
+    ];
+    if (metaLines.length) {
+        htmlLines.push('<table style="border-collapse:collapse;font-size:13px;margin-top:12px">');
+        Object.keys(meta).forEach(function (k) {
+            var v = meta[k];
+            if (v === '' || v == null) return;
+            htmlLines.push('<tr><td style="padding:4px 16px 4px 0;color:#999">' + esc(k) + '</td><td style="font-weight:600">' + esc(v) + '</td></tr>');
+        });
+        htmlLines.push('</table>');
+    }
+    htmlLines.push('</div>');
+
+    try {
+        var resp = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + RESEND_API_KEY,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                from: FROM_EMAIL,
+                to: [NOTIFICATION_EMAIL],
+                subject: subject,
+                text: textLines.join('\n'),
+                html: htmlLines.join('\n')
+            })
+        });
+        if (!resp.ok) {
+            var err = await resp.text();
+            console.error('Activity email failed:', resp.status, err.slice(0, 300));
+        }
+    } catch (err) {
+        console.error('Activity email error:', String((err && err.message) || err));
+    }
+}
+
+module.exports = { isConfigured, sendBookingNotification, sendActivityEmail };

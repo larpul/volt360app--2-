@@ -1474,8 +1474,13 @@ let HomePage = class HomePage {
         this.spotsSliderClass = true;
     }
     setInquiryStage(stage) {
-        if (this.selectedNote) {
+        if (this.selectedNote && this.selectedNote.pipelineStage !== stage) {
             this.selectedNote.pipelineStage = stage;
+            if (!this.selectedNote.isNew && window.solar360Notify) {
+                window.solar360Notify('status_change', 'Pipeline stage changed',
+                    (this.selectedNote.customerName || 'Lead') + ' moved to ' + stage + '.',
+                    { name: this.selectedNote.customerName || '', stage: stage });
+            }
         }
     }
     setInquiryStatus(status) {
@@ -1492,12 +1497,18 @@ let HomePage = class HomePage {
         // a pin that has not been saved yet, whose name and address are still blank.
         if (!this.selectedNote.isNew) {
             src_app_inquiry_store__WEBPACK_IMPORTED_MODULE_5__.InquiryStore.publish(this.addedInquiries, this.installationNotes);
+            if (window.solar360Notify) {
+                window.solar360Notify('status_change', 'Status changed',
+                    (this.selectedNote.customerName || 'Lead') + ' is now "' + status + '".',
+                    { name: this.selectedNote.customerName || '', status: status });
+            }
         }
     }
     saveInquiry() {
         if (!this.selectedNote) {
             return;
         }
+        var wasNew = this.selectedNote.isNew;
         if (!this.selectedNote.customerName) this.selectedNote.customerName = 'New inquiry';
         if (!this.selectedNote.locationAddress) this.selectedNote.locationAddress = 'Location not set';
         if (!this.selectedNote.systemSize) this.selectedNote.systemSize = 'Not sized yet';
@@ -1507,6 +1518,12 @@ let HomePage = class HomePage {
         this.noteExpanded = false;
         // Keep the Dashboard's copy of the inquiries in step with the map.
         src_app_inquiry_store__WEBPACK_IMPORTED_MODULE_5__.InquiryStore.publish(this.addedInquiries, this.installationNotes);
+        // A first save is a new lead — alert the owner.
+        if (wasNew && window.solar360Notify) {
+            window.solar360Notify('lead_new', 'New lead added',
+                (this.selectedNote.customerName || 'New inquiry') + (this.selectedNote.locationAddress ? ' — ' + this.selectedNote.locationAddress : ''),
+                { name: this.selectedNote.customerName || '', address: this.selectedNote.locationAddress || '' });
+        }
     }
     onInquiryFiles(event) {
         const files = event.target.files || [];

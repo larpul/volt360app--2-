@@ -69,6 +69,7 @@ function knockLeaderboard() {
 // Google Sheets integration — each QR scan is logged as a new spreadsheet row.
 const sheets = require('./google-sheets');
 const email = require('./email');
+const notifications = require('./notifications');
 
 function readJsonFile(filePath, fallback) {
     try { return JSON.parse(fs.readFileSync(filePath, 'utf8')); }
@@ -764,6 +765,10 @@ const server = http.createServer((req, res) => {
                 at: new Date(isFinite(at) && at >= cut && at <= Date.now() ? at : Date.now()).toISOString()
             });
             writeJsonFile(KNOCKS_FILE, entries);
+            // Alert the team owner that a rep logged a door-knock.
+            notifications.add('knock', 'New door-knock logged',
+                rep + ' logged a knock (' + String((body && body.outcome) || '') + ').',
+                { rep: rep, outcome: String((body && body.outcome) || '') });
             sendJson(res, 200, Object.assign({ ok: true }, knockLeaderboard()));
         });
         return;
@@ -846,6 +851,14 @@ const server = http.createServer((req, res) => {
                 sheets.logScan(scanRecord);
             }).catch(function () { sheets.logScan(scanRecord); });
         }
+        // Notify the owner (email + in-app bell) that the QR card was scanned.
+        ipLocation(scanRecord.ip).then(function (loc) {
+            notifications.add('card_scan', 'Business card scanned',
+                'Someone scanned your QR business card' + (loc ? ' from ' + loc : '') + '.',
+                { location: loc || '' });
+        }).catch(function () {
+            notifications.add('card_scan', 'Business card scanned', 'Someone scanned your QR business card.', {});
+        });
         sendJson(res, 200, {
             ok: true,
             name: card.name || '', title: card.title || '', phone: card.phone || '',
@@ -889,6 +902,14 @@ const server = http.createServer((req, res) => {
                     sheets.logShare(shareRecord);
                 }).catch(function () { sheets.logShare(shareRecord); });
             }
+            // Notify the owner that a visitor shared the card.
+            ipLocation(shareRecord.ip).then(function (loc) {
+                notifications.add('card_share', 'Card shared',
+                    'Someone shared your digital business card' + (loc ? ' from ' + loc : '') + '.',
+                    { method: shareRecord.method || '', location: loc || '' });
+            }).catch(function () {
+                notifications.add('card_share', 'Card shared', 'Someone shared your digital business card.', { method: shareRecord.method || '' });
+            });
             sendJson(res, 200, { ok: true });
         });
         return;
@@ -931,6 +952,11 @@ const server = http.createServer((req, res) => {
                     email.sendBookingNotification(booking, card.name);
                 }).catch(function () { email.sendBookingNotification(booking, card.name); });
             }
+            // Show the booking in the in-app bell too (the email alert was already sent above).
+            notifications.add('card_booking', 'New meeting booking',
+                (booking.name || 'Someone') + ' booked ' + (booking.date || '') + ' at ' + (booking.time || '') + '.',
+                { name: booking.name || '', email: booking.email || '', date: booking.date || '', time: booking.time || '' },
+                { email: false });
             sendJson(res, 200, { ok: true });
         });
         return;
@@ -968,6 +994,10 @@ const server = http.createServer((req, res) => {
                     sheets.logContact(contactRecord);
                 }).catch(function () { sheets.logContact(contactRecord); });
             }
+            // Notify the owner of the callback request.
+            notifications.add('card_callback', 'Callback requested',
+                (contactRecord.name || 'Someone') + ' requested a callback' + (contactRecord.phone ? ' at ' + contactRecord.phone : '') + '.',
+                { name: contactRecord.name || '', phone: contactRecord.phone || '' });
             sendJson(res, 200, { ok: true });
         });
         return;
@@ -1032,6 +1062,35 @@ const server = http.createServer((req, res) => {
             shares: shareCount,
             scans: myScans.slice(-50).reverse()
         });
+        return;
+    }
+
+    // ---- Activity notifications (the in-app bell) ----
+    // List notifications newest-first with the unread count for the badge.
+    if (req.method === 'GET' && url.pathname === '/api/notifications') {
+        sendJson(res, 200, notifications.list());
+        return;
+    }
+    // Create a notification from the app (a new lead or a status/stage change that
+    // only the client sees). Also fires the email alert.
+    if (req.method === 'POST' && url.pathname === '/api/notifications') {
+        readJsonBody(req, 16 * 1024).then(function (body) {
+            if (!body) { sendJson(res, 400, { ok: false, message: 'Invalid notification.' }); return; }
+            var notif = notifications.add(
+                String(body.type || 'activity').slice(0, 40),
+                String(body.title || 'Notification').slice(0, 200),
+                String(body.message || '').slice(0, 1000),
+                body.meta && typeof body.meta === 'object' ? body.meta : {},
+                { email: body.email === false ? false : true }
+            );
+            sendJson(res, 200, { ok: true, notification: notif });
+        });
+        return;
+    }
+    // Mark every notification as read (the bell calls this when opened).
+    if (req.method === 'POST' && url.pathname === '/api/notifications/read-all') {
+        notifications.markAllRead();
+        sendJson(res, 200, { ok: true, unread: 0 });
         return;
     }
 

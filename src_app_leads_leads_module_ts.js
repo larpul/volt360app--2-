@@ -1410,9 +1410,17 @@ let LeadsPage = class LeadsPage {
         this.openLeadId = this.openLeadId === lead.id ? '' : lead.id;
     }
     setStage(lead, stage) {
+        if (this.records[lead.id].stage === stage) {
+            return;
+        }
         this.records[lead.id].stage = stage;
         this.persist();
         this.build();
+        if (window.solar360Notify) {
+            window.solar360Notify('status_change', 'Pipeline stage changed',
+                (lead.name || 'Lead') + ' moved to ' + stage + '.',
+                { name: lead.name || '', stage: stage });
+        }
     }
     openQualSheet(lead) {
         this.activeLead = lead;
