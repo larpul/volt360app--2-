@@ -383,7 +383,7 @@ const template = `<ion-header>
 
         <div class="leads_card">
             <div class="card_head d-flex">
-                <h3>Prospects</h3>
+                <h3>Leads</h3>
                 <span class="count_pill">{{ filtered.length }}</span>
             </div>
             <p class="empty_note" *ngIf="!filtered.length">No leads at this stage yet.</p>
