@@ -201,11 +201,10 @@
         }
         var preview = root.querySelector('#card_photo_preview');
         preview.innerHTML = '<span class="card_photo_uploading">Uploading…</span>';
-        var formData = new FormData();
-        formData.append('file', file);
         fetch('/api/uploads?name=' + encodeURIComponent(file.name), {
             method: 'POST',
-            body: formData
+            headers: { 'Content-Type': file.type || 'application/octet-stream' },
+            body: file
         }).then(function (r) { return r.json(); }).then(function (res) {
             if (res && res.url) {
                 pendingPhoto = window.location.origin + res.url;
