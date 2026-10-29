@@ -852,12 +852,18 @@ const server = http.createServer((req, res) => {
             }).catch(function () { sheets.logScan(scanRecord); });
         }
         // Notify the owner (email + in-app bell) that the QR card was scanned.
+        // Include who (device, OS, browser, IP, location) and when (timestamp).
+        var uaInfo = sheets.parseUserAgent(scanRecord.ua);
+        var deviceDesc = uaInfo.device + ' · ' + uaInfo.os + ' · ' + uaInfo.browser;
         ipLocation(scanRecord.ip).then(function (loc) {
+            var where = loc || 'Unknown location';
             notifications.add('card_scan', 'Business card scanned',
-                'Someone scanned your QR business card' + (loc ? ' from ' + loc : '') + '.',
-                { location: loc || '' });
+                'Someone scanned your QR business card from ' + where + ' on ' + deviceDesc + ' at ' + scanRecord.at + '.',
+                { location: where, device: deviceDesc, ip: scanRecord.ip, scannedAt: scanRecord.at });
         }).catch(function () {
-            notifications.add('card_scan', 'Business card scanned', 'Someone scanned your QR business card.', {});
+            notifications.add('card_scan', 'Business card scanned',
+                'Someone scanned your QR business card on ' + deviceDesc + ' at ' + scanRecord.at + '.',
+                { device: deviceDesc, ip: scanRecord.ip, scannedAt: scanRecord.at });
         });
         sendJson(res, 200, {
             ok: true,
@@ -903,12 +909,18 @@ const server = http.createServer((req, res) => {
                 }).catch(function () { sheets.logShare(shareRecord); });
             }
             // Notify the owner that a visitor shared the card.
+            // Include who (device, OS, browser, IP, location) and when (timestamp).
+            var uaInfo = sheets.parseUserAgent(shareRecord.ua);
+            var deviceDesc = uaInfo.device + ' · ' + uaInfo.os + ' · ' + uaInfo.browser;
             ipLocation(shareRecord.ip).then(function (loc) {
+                var where = loc || 'Unknown location';
                 notifications.add('card_share', 'Card shared',
-                    'Someone shared your digital business card' + (loc ? ' from ' + loc : '') + '.',
-                    { method: shareRecord.method || '', location: loc || '' });
+                    'Someone shared your digital business card from ' + where + ' on ' + deviceDesc + ' at ' + shareRecord.at + '.',
+                    { method: shareRecord.method || '', location: where, device: deviceDesc, ip: shareRecord.ip, sharedAt: shareRecord.at });
             }).catch(function () {
-                notifications.add('card_share', 'Card shared', 'Someone shared your digital business card.', { method: shareRecord.method || '' });
+                notifications.add('card_share', 'Card shared',
+                    'Someone shared your digital business card on ' + deviceDesc + ' at ' + shareRecord.at + '.',
+                    { method: shareRecord.method || '', device: deviceDesc, ip: shareRecord.ip, sharedAt: shareRecord.at });
             });
             sendJson(res, 200, { ok: true });
         });
