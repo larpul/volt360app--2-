@@ -2305,8 +2305,8 @@ ion-toast::part(button) {
 /* Volt 360 AI Assistant: the floating AI helper and its new-message bell, on every page.
    solar360-assist.js builds this markup outside the Angular app (appended to <body>),
    so it is present whatever route is showing; the colours follow the app's theme
-   variables, so the dark theme keeps working. It is docked above the Home map's pin
-   legend, which sits along the bottom of that page. */
+   variables, so the dark theme keeps working. It sits at the bottom of the Home map,
+   clear of the status legend docked on the map's left side. */
 .assist_root {
   position: relative;
   z-index: 9500;
@@ -2323,6 +2323,12 @@ ion-toast::part(button) {
 }
 
 .assist_root.assist_open .assist_dock {
+  display: none;
+}
+
+/* A page sheet (Leads) covers the bottom of the screen with its own backdrop; the floating
+   assistant buttons would sit on top of its action row and swallow the Save tap. */
+body:has(.sheet_backdrop) .assist_dock {
   display: none;
 }
 
@@ -2600,6 +2606,22 @@ ion-toast::part(button) {
   background: var(--bg-color);
 }
 
+.assist_notif_group {
+  margin: 14px 2px 4px;
+  padding-top: 10px;
+  color: var(--text-light2);
+  font-size: 0.62rem !important;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+.assist_notif_group:first-child {
+  margin-top: 2px;
+  border-top: none;
+  padding-top: 0;
+}
+
 .assist_notif {
   display: flex;
   align-items: flex-start;
@@ -2853,6 +2875,60 @@ ion-toast::part(button) {
 
 /* Form */
 .card_form { padding-bottom: 20px; }
+.card_photo_field {
+  margin-bottom: 16px;
+  text-align: center;
+}
+.card_photo_preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 90px;
+  height: 90px;
+  margin: 0 auto;
+  border-radius: 50%;
+  border: 2px dashed #d5d0cc;
+  cursor: pointer;
+  overflow: hidden;
+  position: relative;
+  background: #f9f6f3;
+  transition: border-color 0.2s;
+}
+.card_photo_preview:hover {
+  border-color: var(--primary);
+}
+.card_photo_preview i {
+  font-size: 1.6rem;
+  color: var(--text-light2);
+}
+.card_photo_preview span {
+  font-size: 0.65rem;
+  color: var(--text-light2);
+  text-align: center;
+  padding: 0 4px;
+}
+.card_photo_preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+.card_photo_change {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0,0,0,0.55);
+  color: #fff !important;
+  padding: 3px 0;
+  font-size: 0.6rem !important;
+}
+.card_photo_uploading {
+  font-size: 0.72rem;
+  color: var(--text-light2);
+}
 .card_field {
   margin-bottom: 14px;
 }
@@ -2972,3 +3048,178 @@ ion-toast::part(button) {
 .card_scan_time { font-size: 0.75rem; color: var(--text-light); }
 
 /*# sourceMappingURL=styles.css.map*/
+/* Bottom tab bar (app shell) — floating dark pill with a white pill for the
+   active tab; inactive tabs show their icon only. */
+.app-tab-bar {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px;
+  background: #1e1c25;
+  border-radius: 999px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.3);
+}
+.app-tab-bar .tab_item {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 44px;
+  border-radius: 999px;
+  cursor: pointer;
+  color: #5f5d68;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+.app-tab-bar .tab_item i {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+.app-tab-bar .tab_item h2 {
+  display: none;
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  color: inherit;
+}
+.app-tab-bar .tab_item.active {
+  flex: 0 0 auto;
+  padding: 0 18px;
+  background: #fff;
+  color: #1e1c25;
+}
+.app-tab-bar .tab_item.active h2 {
+  display: block;
+}
+
+/* Keep the tab bar inside the content area while the side menu is pinned open.
+   ion-split-pane shows its side pane from 992px up, at max(270px, 28%) wide. */
+@media (min-width: 992px) {
+  .app-tab-bar {
+    left: max(282px, calc(28% + 12px));
+  }
+}
+
+/* Regrid parcel layer on the map: the layer toggle sits above the tab bar,
+   and each parcel marker opens an info card with the Regrid record. */
+.parcel_toggle {
+  position: fixed;
+  left: 14px;
+  bottom: 84px;
+  z-index: 9998;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 15px;
+  border: 0;
+  border-radius: 999px;
+  background: #1e1c25;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 600;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+}
+.parcel_toggle ion-icon {
+  font-size: 1rem;
+}
+.parcel_toggle.on {
+  background: var(--primary);
+}
+.parcel_status {
+  position: fixed;
+  left: 14px;
+  bottom: 124px;
+  z-index: 9998;
+  max-width: 230px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: rgba(30, 28, 37, 0.94);
+  color: #fff;
+  font-size: 0.66rem;
+  line-height: 1.35;
+}
+.parcel_list {
+  position: fixed;
+  left: 14px;
+  bottom: 124px;
+  z-index: 9998;
+  width: min(300px, calc(100% - 28px));
+  max-height: 32vh;
+  overflow-y: auto;
+  padding: 8px 6px 6px;
+  border-radius: 14px;
+  background: rgba(30, 28, 37, 0.95);
+  color: #fff;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.28);
+}
+.parcel_list h4 {
+  margin: 2px 8px 6px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: #b9b5c4;
+}
+.parcel_list_item {
+  padding: 7px 8px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.parcel_list_item + .parcel_list_item {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+.parcel_list_item strong {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.parcel_list_item span {
+  display: block;
+  font-size: 0.6rem;
+  color: #b9b5c2;
+}
+.parcel_card {
+  min-width: 200px;
+  max-width: 250px;
+  padding: 2px 2px 0;
+  font-family: inherit;
+  color: #1e1c25;
+}
+.parcel_card h3 {
+  margin: 0 0 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--primary);
+}
+.parcel_card .parcel_row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 3px 0;
+  border-bottom: 1px solid #f0eef2;
+  font-size: 0.68rem;
+  line-height: 1.3;
+}
+.parcel_card .parcel_row span {
+  color: #6b6873;
+}
+.parcel_card .parcel_row strong {
+  font-weight: 600;
+  text-align: right;
+}
+.parcel_card .parcel_source {
+  margin: 8px 0 0;
+  font-size: 0.6rem;
+  color: #9a97a1;
+}

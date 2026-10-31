@@ -110,7 +110,7 @@ let VerificationPage = class VerificationPage {
     ngOnInit() {
     }
     continue() {
-        this.navCtrl.navigateRoot(['./home']);
+        this.navCtrl.navigateRoot(['./dashboard']);
     }
 };
 VerificationPage.ctorParameters = () => [

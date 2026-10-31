@@ -6,6 +6,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 
 const PORT = Number(process.env.PORT || 4000);
 const DATA_DIR = process.env.DATA_DIR || '/data/uploads';
@@ -35,9 +36,40 @@ const scanCache = new Map();
 const CARD_FILE = path.join(path.dirname(DATA_DIR), 'card.json');
 const SCANS_FILE = path.join(path.dirname(DATA_DIR), 'scans.json');
 
+// ---- Team knocks: the shared door-knock log behind the Follow-ups leaderboard ----
+// Every rep's device posts its knocks here, so the list ranks the whole team's week
+// instead of one phone's session. Old entries are pruned on write.
+const KNOCKS_FILE = path.join(path.dirname(DATA_DIR), 'knocks.json');
+const KNOCK_WEEK_DAYS = 7;
+const KNOCK_RETENTION_DAYS = 70;
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+// Knocks per rep over the last KNOCK_WEEK_DAYS days, largest first.
+function knockLeaderboard() {
+    const since = Date.now() - KNOCK_WEEK_DAYS * DAY_MS;
+    const totals = {};
+    readJsonFile(KNOCKS_FILE, []).forEach(function (entry) {
+        const rep = String((entry && entry.rep) || '').trim();
+        const at = Date.parse(entry && entry.at);
+        if (!rep || !isFinite(at) || at < since) { return; }
+        totals[rep] = (totals[rep] || 0) + 1;
+    });
+    const reps = Object.keys(totals).map(function (rep) {
+        return { name: rep, knocks: totals[rep] };
+    }).sort(function (a, b) {
+        return b.knocks - a.knocks || a.name.localeCompare(b.name);
+    });
+    return {
+        days: KNOCK_WEEK_DAYS,
+        reps: reps,
+        total: reps.reduce(function (sum, rep) { return sum + rep.knocks; }, 0)
+    };
+}
+
 // Google Sheets integration — each QR scan is logged as a new spreadsheet row.
 const sheets = require('./google-sheets');
 const email = require('./email');
+const notifications = require('./notifications');
 
 function readJsonFile(filePath, fallback) {
     try { return JSON.parse(fs.readFileSync(filePath, 'utf8')); }
@@ -356,6 +388,179 @@ async function ipLocation(ip) {
     return '';
 }
 
+// ---- Regrid parcels: nationwide parcel, owner and zoning data for the map ----
+// The token is server-side only and travels as a Bearer header, never in a URL the
+// browser can see. REGRID_API_BASE exists so the endpoint can be pointed at a test
+// double (or a proxy) instead of the live Regrid service.
+const REGRID_TOKEN = process.env.REGRID_API_TOKEN || '';
+const REGRID_API_BASE = process.env.REGRID_API_BASE || 'https://app.regrid.com';
+const PARCEL_CACHE_MS = 10 * 60 * 1000;
+const parcelCache = new Map();
+
+// Regrid returns GeoJSON; the map only needs the attribute pin plus its centroid.
+function regridParcel(feature) {
+    const props = (feature && feature.properties) || {};
+    const fields = props.fields || {};
+    const lat = Number(fields.lat);
+    const lng = Number(fields.lon);
+    if (!isFinite(lat) || !isFinite(lng)) {
+        return null;
+    }
+    const acreage = Number(fields.ll_gisacre || fields.gisacre || 0);
+    return {
+        id: fields.ll_uuid || fields.path || '',
+        address: props.headline || fields.address || fields.saddno + ' ' + fields.saddstr || '',
+        owner: fields.owner || '',
+        acreage: acreage > 0 ? Number(acreage.toFixed(2)) : null,
+        parcelNumber: fields.parcelnumb || '',
+        landUse: fields.usedesc || fields.lbcs_activity_desc || '',
+        zoning: fields.zoning_description || fields.zoning || '',
+        yearBuilt: fields.yearbuilt ? Number(fields.yearbuilt) : null,
+        city: fields.scity || fields.city || '',
+        state: fields.state2 || '',
+        county: fields.county || '',
+        path: fields.path || '',
+        lat,
+        lng
+    };
+}
+
+// Which token is loaded, without exposing it: a SHA-256 prefix plus the JWT's expiry
+// and whether Regrid issued it as a sandbox token. A sandbox token ("sb" capability)
+// carries only a handful of counties - the one in use answers in Dallas County, TX
+// and nowhere else, Cincinnati / Hamilton County, OH included.
+function regridTokenInfo(token) {
+    const info = { present: !!token, length: token.length, fingerprint: '', expires: null, sandbox: false };
+    if (!token) {
+        return info;
+    }
+    info.fingerprint = crypto.createHash('sha256').update(token).digest('hex').slice(0, 12);
+    const parts = token.split('.');
+    if (parts.length === 3) {
+        try {
+            const claims = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8'));
+            if (claims.exp) {
+                info.expires = new Date(claims.exp * 1000).toISOString();
+            }
+            info.sandbox = String(claims.cap || '').split(':').indexOf('sb') !== -1;
+        } catch (error) {
+            // Opaque token - the fingerprint alone still tells us which one is loaded.
+        }
+    }
+    return info;
+}
+const REGRID_TOKEN_INFO = regridTokenInfo(REGRID_TOKEN);
+
+// Diagnostic logging for parcel lookups. Never logs the token or request headers -
+// only the query (lat/lon/radius), Regrid's status and a short body excerpt, so an
+// empty answer can be traced to "token does not cover this county" or a bad query.
+function regridLog(level, event, detail) {
+    const line = '[regrid] ' + event + (detail ? ' ' + JSON.stringify(detail) : '');
+    if (level === 'warn') {
+        console.warn(line);
+    } else {
+        console.log(line);
+    }
+}
+
+// A bounded, single-line snippet of Regrid's raw answer for the log.
+function regridSnippet(text) {
+    return String(text || '').replace(/\s+/g, ' ').slice(0, 300);
+}
+
+async function regridParcelsNear(lat, lng, radius, limit) {
+    const key = [lat.toFixed(4), lng.toFixed(4), radius, limit].join('|');
+    const cached = parcelCache.get(key);
+    if (cached && Date.now() - cached.at < PARCEL_CACHE_MS) {
+        regridLog('info', 'cache hit', {
+            lat, lng, radius, limit,
+            parcels: (cached.payload.parcels || []).length,
+            ageSeconds: Math.round((Date.now() - cached.at) / 1000)
+        });
+        return cached.payload;
+    }
+    const url = new URL('/api/v2/parcels/point', REGRID_API_BASE);
+    url.searchParams.set('lat', String(lat));
+    url.searchParams.set('lon', String(lng));
+    url.searchParams.set('radius', String(radius));
+    url.searchParams.set('limit', String(limit));
+    url.searchParams.set('return_geometry', 'false');
+    regridLog('info', 'lookup', {
+        host: url.host,
+        path: url.pathname,
+        lat,
+        lng,
+        radius,
+        limit,
+        token: REGRID_TOKEN_INFO.fingerprint,
+        sandbox: REGRID_TOKEN_INFO.sandbox,
+        tokenExpires: REGRID_TOKEN_INFO.expires
+    });
+    const startedAt = Date.now();
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 15000);
+    let response;
+    try {
+        response = await fetch(url, {
+            signal: controller.signal,
+            headers: { accept: 'application/json', authorization: 'Bearer ' + REGRID_TOKEN }
+        });
+    } catch (error) {
+        clearTimeout(timer);
+        regridLog('warn', 'request failed', {
+            lat, lng, radius, ms: Date.now() - startedAt,
+            error: String((error && error.message) || error),
+            aborted: !!(error && error.name === 'AbortError')
+        });
+        return { ok: false, message: 'Regrid did not answer the parcel lookup.' };
+    }
+    clearTimeout(timer);
+    if (response.status === 401 || response.status === 403) {
+        const rejected = regridSnippet(await response.text().catch(() => ''));
+        regridLog('warn', 'token rejected', { lat, lng, status: response.status, body: rejected });
+        return { ok: false, message: 'Regrid rejected the API token - check REGRID_API_TOKEN.' };
+    }
+    if (!response.ok) {
+        const failed = regridSnippet(await response.text().catch(() => ''));
+        regridLog('warn', 'non-ok answer', {
+            lat, lng, status: response.status, ms: Date.now() - startedAt, body: failed
+        });
+        return { ok: false, message: 'Regrid answered ' + response.status + ' for the parcel lookup.' };
+    }
+    const body = await response.json().catch(() => null);
+    const features = (body && body.parcels && body.parcels.features) || [];
+    const parcels = features.map(regridParcel).filter(Boolean);
+    const payload = { ok: true, parcels };
+    if (!parcels.length) {
+        // The interesting case: Regrid answered 200 but nothing came back. Log the
+        // shape of the answer (feature count, top-level keys, any message/meta) and
+        // the raw snippet so "no coverage" is distinguishable from "bad query".
+        const unusable = features.length - parcels.length;
+        regridLog('warn', 'empty result', {
+            lat,
+            lng,
+            radius,
+            limit,
+            status: response.status,
+            ms: Date.now() - startedAt,
+            features: features.length,
+            unusableFeatures: unusable > 0 ? unusable : undefined,
+            bodyKeys: body && typeof body === 'object' ? Object.keys(body) : null,
+            parcelsKeys: body && body.parcels && typeof body.parcels === 'object' ? Object.keys(body.parcels) : null,
+            message: body && (body.message || body.error || body.detail) || undefined,
+            meta: body && body.meta ? body.meta : undefined,
+            body: regridSnippet(JSON.stringify(body))
+        });
+    } else {
+        regridLog('info', 'result', {
+            lat, lng, radius, limit, status: response.status,
+            ms: Date.now() - startedAt, parcels: parcels.length
+        });
+    }
+    parcelCache.set(key, { at: Date.now(), payload });
+    return payload;
+}
+
 // Extract the visitor's real IP from nginx proxy headers.
 function clientIp(req) {
     return req.headers['x-real-ip'] || (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket.remoteAddress || '';
@@ -431,6 +636,54 @@ const server = http.createServer((req, res) => {
             .catch(error => sendJson(res, 500, { ok: false, code: 'scan_failed', message: String((error && error.message) || error) }));
         return;
     }
+    // Whether the map can show Regrid parcel pins.
+    if (req.method === 'GET' && url.pathname === '/api/regrid/status') {
+        sendJson(res, 200, { configured: !!REGRID_TOKEN });
+        return;
+    }
+    // Parcels around the middle of the map view, one pin per parcel.
+    if (req.method === 'GET' && url.pathname === '/api/regrid/parcels') {
+        if (!REGRID_TOKEN) {
+            sendJson(res, 200, {
+                configured: false,
+                parcels: [],
+                message: 'Regrid isn\'t connected yet - add your Regrid API token to show parcel pins.'
+            });
+            return;
+        }
+        const lat = Number(url.searchParams.get('lat'));
+        const lng = Number(url.searchParams.get('lng'));
+        if (!isFinite(lat) || !isFinite(lng)) {
+            sendJson(res, 400, { configured: true, parcels: [], message: 'lat and lng are required.' });
+            return;
+        }
+        // Regrid rejects a lookup whose search area is over 386 square miles, so the
+        // radius is capped at 16 km (radius ~ 310 sq mi) to keep wide map views valid.
+        const radius = Math.min(Math.max(Math.round(Number(url.searchParams.get('radius')) || 800), 50), 16000);
+        const limit = Math.min(Math.max(Math.round(Number(url.searchParams.get('limit')) || 50), 1), 200);
+        regridParcelsNear(lat, lng, radius, limit)
+            .then(payload => {
+                // Always 200: the map reads the body, and a non-2xx would make the
+                // browser client report a generic "could not reach" instead of this message.
+                const parcels = payload.parcels || [];
+                sendJson(res, 200, {
+                    configured: true,
+                    parcels: parcels,
+                    // An empty answer is usually a token that does not cover this county
+                    // (Regrid's trial token only covers a handful), so say that instead of
+                    // leaving the map with a bare "no parcels" line.
+                    message: payload.message || (parcels.length ? '' :
+                        'No Regrid parcels in this view - if this area should have parcel data, your Regrid token may not cover this county.'),
+                    count: parcels.length
+                });
+            })
+            .catch(error => sendJson(res, 500, {
+                configured: true,
+                parcels: [],
+                message: String((error && error.message) || error)
+            }));
+        return;
+    }
     // Volt 360 AI Assistant: one turn of the floating chat bubble's conversation.
     if (req.method === 'POST' && url.pathname === '/api/chat') {
         readJsonBody(req, 64 * 1024).then((body) => {
@@ -480,6 +733,46 @@ const server = http.createServer((req, res) => {
         serveFile(res, decodeURIComponent(url.pathname.slice('/uploads/'.length)));
         return;
     }
+    // ---- Team knocks (Follow-ups leaderboard) ----
+    // This week's knocks per rep, ranked.
+    if (req.method === 'GET' && url.pathname === '/api/knocks') {
+        sendJson(res, 200, knockLeaderboard());
+        return;
+    }
+    // Log one knock for a rep, then answer with the refreshed leaderboard.
+    if (req.method === 'POST' && url.pathname === '/api/knocks') {
+        readJsonBody(req, 8 * 1024).then(function (body) {
+            var rep = String((body && body.rep) || '').trim().slice(0, 60);
+            if (!rep) {
+                sendJson(res, 400, { ok: false, message: 'A rep name is required.' });
+                return;
+            }
+            // Keep the device's own time (a knock queued offline keeps its hour), but
+            // never accept one outside the retention window.
+            var cut = Date.now() - KNOCK_RETENTION_DAYS * DAY_MS;
+            var at = Date.parse(body && body.at);
+            var id = String((body && body.id) || '').slice(0, 60);
+            // A knock keeps its id, so re-posting one (a check-in whose disposition then
+            // changes its outcome) updates that door instead of counting it twice.
+            var entries = readJsonFile(KNOCKS_FILE, []).filter(function (entry) {
+                var when = Date.parse(entry && entry.at);
+                return isFinite(when) && when >= cut && !(id && entry.id === id);
+            });
+            entries.push({
+                id: id || 'knock_' + Date.now().toString(36),
+                rep: rep,
+                outcome: String((body && body.outcome) || '').slice(0, 40),
+                at: new Date(isFinite(at) && at >= cut && at <= Date.now() ? at : Date.now()).toISOString()
+            });
+            writeJsonFile(KNOCKS_FILE, entries);
+            // Alert the team owner that a rep logged a door-knock.
+            notifications.add('knock', 'New door-knock logged',
+                rep + ' logged a knock (' + String((body && body.outcome) || '') + ').',
+                { rep: rep, outcome: String((body && body.outcome) || '') });
+            sendJson(res, 200, Object.assign({ ok: true }, knockLeaderboard()));
+        });
+        return;
+    }
     // ---- Digital Business Card ----
     // Get the owner's card data.
     if (req.method === 'GET' && url.pathname === '/api/card') {
@@ -526,6 +819,8 @@ const server = http.createServer((req, res) => {
         return;
     }
     // Record a scan and return card data for the public page to display.
+    // The body may optionally carry the visitor's name, phone and address so the
+    // owner knows who scanned, not just where and when.
     if (req.method === 'POST' && url.pathname.startsWith('/api/card/scan/')) {
         var cardId = decodeURIComponent(url.pathname.slice('/api/card/scan/'.length));
         var card = readJsonFile(CARD_FILE, null);
@@ -533,36 +828,62 @@ const server = http.createServer((req, res) => {
             sendJson(res, 404, { ok: false, message: 'Card not found.' });
             return;
         }
-        var scanRecord = {
-            cardId: cardId,
-            at: new Date().toISOString(),
-            ua: String(req.headers['user-agent'] || '').slice(0, 300),
-            ref: String(req.headers.referer || '').slice(0, 300),
-            ip: clientIp(req),
-            location: ''
-        };
-        var scans = readJsonFile(SCANS_FILE, []);
-        scans.push(scanRecord);
-        if (scans.length > 1000) scans.splice(0, scans.length - 1000);
-        writeJsonFile(SCANS_FILE, scans);
-        // Fire-and-forget: look up the visitor's location from their IP, then log to Sheets.
-        if (sheets.isConfigured()) {
+        readJsonBody(req, 4096).then(function (body) {
+            var scanName = String((body && body.name) || '').slice(0, 120);
+            var scanPhone = String((body && body.phone) || '').slice(0, 40);
+            var scanAddress = String((body && body.address) || '').slice(0, 300);
+            var scanRecord = {
+                cardId: cardId,
+                at: new Date().toISOString(),
+                name: scanName,
+                phone: scanPhone,
+                address: scanAddress,
+                ua: String(req.headers['user-agent'] || '').slice(0, 300),
+                ref: String(req.headers.referer || '').slice(0, 300),
+                ip: clientIp(req),
+                location: ''
+            };
+            var scans = readJsonFile(SCANS_FILE, []);
+            scans.push(scanRecord);
+            if (scans.length > 1000) scans.splice(0, scans.length - 1000);
+            writeJsonFile(SCANS_FILE, scans);
+            // Fire-and-forget: look up the visitor's location from their IP, then log to Sheets.
+            if (sheets.isConfigured()) {
+                ipLocation(scanRecord.ip).then(function (loc) {
+                    if (loc) {
+                        scanRecord.location = loc;
+                        var fresh = readJsonFile(SCANS_FILE, []);
+                        var idx = fresh.length - 1;
+                        if (idx >= 0 && fresh[idx].at === scanRecord.at) { fresh[idx].location = loc; writeJsonFile(SCANS_FILE, fresh); }
+                    }
+                    sheets.logScan(scanRecord);
+                }).catch(function () { sheets.logScan(scanRecord); });
+            }
+            // Notify the owner (email + in-app bell) that the QR card was scanned.
+            // Include who (name, phone, address, device, IP, location) and when (timestamp).
+            var uaInfo = sheets.parseUserAgent(scanRecord.ua);
+            var deviceDesc = uaInfo.device + ' · ' + uaInfo.os + ' · ' + uaInfo.browser;
+            var who = scanName || 'Someone';
+            function scanMsg(where) {
+                var msg = who + ' scanned your QR business card' + (where ? ' from ' + where : '') + ' on ' + deviceDesc + ' at ' + scanRecord.at + '.';
+                if (scanPhone) { msg += ' Phone: ' + scanPhone + '.'; }
+                if (scanAddress) { msg += ' Address: ' + scanAddress + '.'; }
+                return msg;
+            }
+            var scanMeta = { name: scanName, phone: scanPhone, address: scanAddress, location: '', device: deviceDesc, ip: scanRecord.ip, scannedAt: scanRecord.at };
             ipLocation(scanRecord.ip).then(function (loc) {
-                if (loc) {
-                    scanRecord.location = loc;
-                    // Update the stored record in place.
-                    var fresh = readJsonFile(SCANS_FILE, []);
-                    var idx = fresh.length - 1;
-                    if (idx >= 0 && fresh[idx].at === scanRecord.at) { fresh[idx].location = loc; writeJsonFile(SCANS_FILE, fresh); }
-                }
-                sheets.logScan(scanRecord);
-            }).catch(function () { sheets.logScan(scanRecord); });
-        }
-        sendJson(res, 200, {
-            ok: true,
-            name: card.name || '', title: card.title || '', phone: card.phone || '',
-            email: card.email || '', website: card.website || '', company: card.company || '',
-            tagline: card.tagline || '', photo: card.photo || '', updatedAt: card.updatedAt || ''
+                var where = loc || 'Unknown location';
+                scanMeta.location = where;
+                notifications.add('card_scan', 'Business card scanned', scanMsg(where), scanMeta);
+            }).catch(function () {
+                notifications.add('card_scan', 'Business card scanned', scanMsg(''), scanMeta);
+            });
+            sendJson(res, 200, {
+                ok: true,
+                name: card.name || '', title: card.title || '', phone: card.phone || '',
+                email: card.email || '', website: card.website || '', company: card.company || '',
+                tagline: card.tagline || '', photo: card.photo || '', updatedAt: card.updatedAt || ''
+            });
         });
         return;
     }
@@ -601,6 +922,20 @@ const server = http.createServer((req, res) => {
                     sheets.logShare(shareRecord);
                 }).catch(function () { sheets.logShare(shareRecord); });
             }
+            // Notify the owner that a visitor shared the card.
+            // Include who (device, OS, browser, IP, location) and when (timestamp).
+            var uaInfo = sheets.parseUserAgent(shareRecord.ua);
+            var deviceDesc = uaInfo.device + ' · ' + uaInfo.os + ' · ' + uaInfo.browser;
+            ipLocation(shareRecord.ip).then(function (loc) {
+                var where = loc || 'Unknown location';
+                notifications.add('card_share', 'Card shared',
+                    'Someone shared your digital business card from ' + where + ' on ' + deviceDesc + ' at ' + shareRecord.at + '.',
+                    { method: shareRecord.method || '', location: where, device: deviceDesc, ip: shareRecord.ip, sharedAt: shareRecord.at });
+            }).catch(function () {
+                notifications.add('card_share', 'Card shared',
+                    'Someone shared your digital business card on ' + deviceDesc + ' at ' + shareRecord.at + '.',
+                    { method: shareRecord.method || '', device: deviceDesc, ip: shareRecord.ip, sharedAt: shareRecord.at });
+            });
             sendJson(res, 200, { ok: true });
         });
         return;
@@ -643,6 +978,11 @@ const server = http.createServer((req, res) => {
                     email.sendBookingNotification(booking, card.name);
                 }).catch(function () { email.sendBookingNotification(booking, card.name); });
             }
+            // Show the booking in the in-app bell too (the email alert was already sent above).
+            notifications.add('card_booking', 'New meeting booking',
+                (booking.name || 'Someone') + ' booked ' + (booking.date || '') + ' at ' + (booking.time || '') + '.',
+                { name: booking.name || '', email: booking.email || '', date: booking.date || '', time: booking.time || '' },
+                { email: false });
             sendJson(res, 200, { ok: true });
         });
         return;
@@ -658,12 +998,14 @@ const server = http.createServer((req, res) => {
         readJsonBody(req, 4096).then(function (body) {
             var phone = String((body && body.phone) || '').slice(0, 40);
             var name = String((body && body.name) || '').slice(0, 120);
+            var address = String((body && body.address) || '').slice(0, 300);
             var contactRecord = {
                 cardId: cardId,
                 at: new Date().toISOString(),
                 type: 'contact',
                 phone: phone,
                 name: name,
+                address: address,
                 ua: String(req.headers['user-agent'] || '').slice(0, 300),
                 ref: String(req.headers.referer || '').slice(0, 300),
                 ip: clientIp(req),
@@ -680,6 +1022,11 @@ const server = http.createServer((req, res) => {
                     sheets.logContact(contactRecord);
                 }).catch(function () { sheets.logContact(contactRecord); });
             }
+            // Notify the owner of the callback request.
+            var cbMsg = (contactRecord.name || 'Someone') + ' requested a callback' + (contactRecord.phone ? ' at ' + contactRecord.phone : '') + '.';
+            if (address) { cbMsg += ' Address: ' + address + '.'; }
+            notifications.add('card_callback', 'Callback requested', cbMsg,
+                { name: contactRecord.name || '', phone: contactRecord.phone || '', address: address });
             sendJson(res, 200, { ok: true });
         });
         return;
@@ -747,7 +1094,40 @@ const server = http.createServer((req, res) => {
         return;
     }
 
+    // ---- Activity notifications (the in-app bell) ----
+    // List notifications newest-first with the unread count for the badge.
+    if (req.method === 'GET' && url.pathname === '/api/notifications') {
+        sendJson(res, 200, notifications.list());
+        return;
+    }
+    // Create a notification from the app (a new lead or a status/stage change that
+    // only the client sees). Also fires the email alert.
+    if (req.method === 'POST' && url.pathname === '/api/notifications') {
+        readJsonBody(req, 16 * 1024).then(function (body) {
+            if (!body) { sendJson(res, 400, { ok: false, message: 'Invalid notification.' }); return; }
+            var notif = notifications.add(
+                String(body.type || 'activity').slice(0, 40),
+                String(body.title || 'Notification').slice(0, 200),
+                String(body.message || '').slice(0, 1000),
+                body.meta && typeof body.meta === 'object' ? body.meta : {},
+                { email: body.email === false ? false : true }
+            );
+            sendJson(res, 200, { ok: true, notification: notif });
+        });
+        return;
+    }
+    // Mark every notification as read (the bell calls this when opened).
+    if (req.method === 'POST' && url.pathname === '/api/notifications/read-all') {
+        notifications.markAllRead();
+        sendJson(res, 200, { ok: true, unread: 0 });
+        return;
+    }
+
     sendJson(res, 404, { error: 'not found' });
 });
+
+// Says which Regrid token this process picked up, so a replaced token is verifiable
+// from the logs (fingerprint + expiry + sandbox flag, never the token itself).
+regridLog('info', 'token loaded', REGRID_TOKEN_INFO);
 
 server.listen(PORT, '0.0.0.0', () => console.log('uploads api listening on ' + PORT));

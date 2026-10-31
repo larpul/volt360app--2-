@@ -48,7 +48,7 @@
         + '<section class="assist_panel assist_notif_panel" hidden aria-label="Notifications">'
         +   '<header class="assist_head">'
         +     '<div class="assist_head_icon"><i class="zmdi zmdi-notifications"></i></div>'
-        +     '<div class="assist_head_text"><h2>Notifications</h2><p>New messages from your assistant</p></div>'
+        +     '<div class="assist_head_text"><h2>Notifications</h2><p>Card activity, knocks & leads</p></div>'
         +     '<button type="button" class="assist_close" data-act="close" aria-label="Close"><i class="zmdi zmdi-close"></i></button>'
         +   '</header>'
         +   '<div class="assist_notif_list"></div>'
@@ -72,6 +72,37 @@
     var messages = loadMessages();
     var pending = false;
     var openPanel = null;
+
+    // Activity notifications from the backend (card scans, knocks, leads, …).
+    // Polled while the app is open so the bell badge and panel stay fresh.
+    var activity = [];
+    var activityUnread = 0;
+
+    function loadActivity() {
+        fetch('/api/notifications', { method: 'GET' })
+            .then(function (response) { return response.json(); })
+            .then(function (data) {
+                if (data && Array.isArray(data.items)) {
+                    activity = data.items;
+                    activityUnread = data.unread || 0;
+                    renderBadges();
+                    if (openPanel === 'notifications') { renderNotifications(); }
+                }
+            })
+            .catch(function () { /* the bell still shows assistant messages offline */ });
+    }
+
+    // Let the compiled app fire a notification for events only the client sees
+    // (a new lead saved, a status or stage change). Fire-and-forget.
+    window.solar360Notify = function (type, title, message, meta) {
+        try {
+            fetch('/api/notifications', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: type, title: title, message: message, meta: meta || {} })
+            }).then(function () { loadActivity(); }).catch(function () {});
+        } catch (e) { /* never block a save because the notify call failed */ }
+    };
 
     // ---- storage -----------------------------------------------------------
 
@@ -146,29 +177,63 @@
         msgBox.scrollTop = msgBox.scrollHeight;
     }
 
+    var ACTIVITY_ICONS = {
+        card_scan: 'zmdi-eye',
+        card_share: 'zmdi-share',
+        card_callback: 'zmdi-phone-in-talk',
+        card_booking: 'zmdi-calendar-check',
+        knock: 'zmdi-map',
+        lead_new: 'zmdi-plus-circle-o',
+        status_change: 'zmdi-swap-vertical'
+    };
+
+    function activityIcon(type) {
+        return ACTIVITY_ICONS[type] || 'zmdi-notifications';
+    }
+
     function renderNotifications() {
         var alerts = messages.filter(function (message) {
             return message.role === 'assistant';
         }).slice().reverse();
+        var hasActivity = activity.length > 0;
 
-        if (!alerts.length) {
-            notifList.innerHTML = '<p class="assist_empty">No messages yet. Open the assistant and ask it something.</p>';
+        if (!hasActivity && !alerts.length) {
+            notifList.innerHTML = '<p class="assist_empty">No activity yet. Card scans, knocks and leads will show here.</p>';
             return;
         }
-        notifList.innerHTML = alerts.map(function (message) {
-            return '<button type="button" class="assist_notif' + (message.read ? '' : ' new') + '" data-act="open-chat">'
-                + '<div class="assist_notif_icon"><i class="zmdi zmdi-comment-text"></i></div>'
-                + '<div class="assist_notif_body">'
-                +   '<div class="assist_notif_top"><strong>' + ASSISTANT_NAME + '</strong><span>' + timeLabel(message.at) + '</span></div>'
-                +   '<p>' + escapeHtml(message.text) + '</p>'
-                + '</div>'
-                + (message.read ? '' : '<span class="assist_notif_new">New</span>')
-                + '</button>';
-        }).join('');
+
+        var html = '';
+        if (hasActivity) {
+            html += '<div class="assist_notif_group">Activity</div>';
+            html += activity.map(function (item) {
+                return '<div class="assist_notif' + (item.read ? '' : ' new') + '">'
+                    + '<div class="assist_notif_icon"><i class="zmdi ' + activityIcon(item.type) + '"></i></div>'
+                    + '<div class="assist_notif_body">'
+                    +   '<div class="assist_notif_top"><strong>' + escapeHtml(item.title || 'Activity') + '</strong><span>' + timeLabel(Date.parse(item.at)) + '</span></div>'
+                    +   '<p>' + escapeHtml(item.message || '') + '</p>'
+                    + '</div>'
+                    + (item.read ? '' : '<span class="assist_notif_new">New</span>')
+                    + '</div>';
+            }).join('');
+        }
+        if (alerts.length) {
+            if (hasActivity) { html += '<div class="assist_notif_group">Assistant</div>'; }
+            html += alerts.map(function (message) {
+                return '<button type="button" class="assist_notif' + (message.read ? '' : ' new') + '" data-act="open-chat">'
+                    + '<div class="assist_notif_icon"><i class="zmdi zmdi-comment-text"></i></div>'
+                    + '<div class="assist_notif_body">'
+                    +   '<div class="assist_notif_top"><strong>' + ASSISTANT_NAME + '</strong><span>' + timeLabel(message.at) + '</span></div>'
+                    +   '<p>' + escapeHtml(message.text) + '</p>'
+                    + '</div>'
+                    + (message.read ? '' : '<span class="assist_notif_new">New</span>')
+                    + '</button>';
+            }).join('');
+        }
+        notifList.innerHTML = html;
     }
 
     function unreadCount() {
-        return messages.filter(function (message) {
+        return activityUnread + messages.filter(function (message) {
             return message.role === 'assistant' && !message.read;
         }).length;
     }
@@ -191,8 +256,14 @@
         });
         if (changed) {
             saveMessages();
-            renderBadges();
         }
+        // Mark backend activity notifications read too.
+        if (activityUnread > 0) {
+            activityUnread = 0;
+            activity = activity.map(function (item) { return Object.assign({}, item, { read: true }); });
+            fetch('/api/notifications/read-all', { method: 'POST' }).catch(function () {});
+        }
+        renderBadges();
     }
 
     // ---- panels ------------------------------------------------------------
@@ -320,4 +391,7 @@
     renderMessages();
     renderNotifications();
     renderBadges();
+    // Keep the bell in step with backend activity (scans, knocks, leads, …).
+    loadActivity();
+    setInterval(loadActivity, 30000);
 })();
