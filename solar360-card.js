@@ -9,7 +9,8 @@
  * share / copy / vCard-download buttons, and scan-tracking analytics.
  *
  * Card data persists on the server (PUT /api/card); the QR code encodes the public
- * URL /card/{id}. When someone scans it, card.html loads, records the scan via
+ * URL /card/{id}. Static hosting instead saves on-device and shares a contact
+ * snapshot in /card.html#card=... (no server tracking). With the API, card.html records scans via
  * POST /api/card/scan/{id}, and shows the contact info with a Save-to-Contacts button.
  *
  * Styling lives in styles.css alongside the rest of the app.
@@ -26,7 +27,8 @@
     var cardData = null;
     var scanTotalEl = null;
     var scanListEl = null;
-    var saved = false;
+    var staticMode = false;
+    var LOCAL_CARD_KEY = 'solar360_business_card';
     var pendingPhoto = null;  // uploaded photo URL awaiting save
 
     var TEMPLATE = ''
@@ -58,27 +60,27 @@
         +       '</div>'
         +       '<div class="card_field">'
         +         '<label>Full Name</label>'
-        +         '<input type="text" data-field="name" placeholder="Your name">'
+        +         '<input type="text" data-field="name" maxlength="120" placeholder="Your name">'
         +       '</div>'
         +       '<div class="card_field">'
         +         '<label>Job Title</label>'
-        +         '<input type="text" data-field="title" placeholder="e.g. Solar Sales Rep">'
+        +         '<input type="text" data-field="title" maxlength="120" placeholder="e.g. Solar Sales Rep">'
         +       '</div>'
         +       '<div class="card_field">'
         +         '<label>Phone Number</label>'
-        +         '<input type="tel" data-field="phone" placeholder="+1 555 000 0000">'
+        +         '<input type="tel" data-field="phone" maxlength="40" placeholder="+1 555 000 0000">'
         +       '</div>'
         +       '<div class="card_field">'
         +         '<label>Email</label>'
-        +         '<input type="email" data-field="email" placeholder="you@email.com">'
+        +         '<input type="email" data-field="email" maxlength="200" placeholder="you@email.com">'
         +       '</div>'
         +       '<div class="card_field">'
         +         '<label>Company Website</label>'
-        +         '<input type="url" data-field="website" placeholder="https://company.com">'
+        +         '<input type="url" data-field="website" maxlength="300" placeholder="https://company.com">'
         +       '</div>'
         +       '<div class="card_field">'
         +         '<label>Company</label>'
-        +         '<input type="text" data-field="company" placeholder="Company name">'
+        +         '<input type="text" data-field="company" maxlength="120" placeholder="Company name">'
         +       '</div>'
         +       '<button type="button" class="card_save" data-act="save">Save & Generate QR</button>'
         +     '</div>'
@@ -156,15 +158,46 @@
     // ---- data: load / save / scans -----------------------------------------
 
     function loadCard() {
-        return fetch('/api/card').then(function (r) { return r.json(); }).then(function (data) {
+        return fetch('/api/card').then(cardResponse).then(function (data) {
+            staticMode = false;
             cardData = data && data.id ? data : null;
             populateForm();
             updateQrSection();
             return data;
-        }).catch(function () {
+        }).catch(function (error) {
+            if (error.staticHosting) {
+                staticMode = true;
+                try { cardData = JSON.parse(localStorage.getItem(LOCAL_CARD_KEY)); } catch (e) { cardData = null; }
+            }
             populateForm();
             updateQrSection();
         });
+    }
+
+    function cardResponse(response) {
+        var type = response.headers.get('content-type') || '';
+        if (response.status === 404 || response.status === 405 || type.indexOf('text/html') !== -1) {
+            var error = new Error('Card API is not deployed.');
+            error.staticHosting = true;
+            throw error;
+        }
+        if (!response.ok) throw new Error('Card API request failed.');
+        return response.json();
+    }
+
+    function saveLocalCard(data) {
+        // A snapshot link works on another device without a server-side record.
+        data.id = 'local';
+        data.local = true;
+        cardData = data;
+        if (!updateQrSection()) return;
+        try {
+            localStorage.setItem(LOCAL_CARD_KEY, JSON.stringify(data));
+            flashStatus('Saved on this device. Share a new QR after editing. Scan tracking requires the server.');
+        } catch (e) {
+            flashStatus('QR ready, but this browser could not save it. Copy the link before closing.');
+        }
+        populateForm();
     }
 
     function populateForm() {
@@ -197,6 +230,10 @@
     function uploadPhoto(file) {
         if (!file || !file.type || file.type.indexOf('image/') !== 0) {
             flashStatus('Please choose an image file.');
+            return;
+        }
+        if (staticMode) {
+            flashStatus('Photo uploads require the server. Your contact QR still works.');
             return;
         }
         var preview = root.querySelector('#card_photo_preview');
@@ -235,6 +272,7 @@
             flashStatus('Enter your name first.');
             return;
         }
+        if (staticMode) { saveLocalCard(data); return; }
         var btn = root.querySelector('[data-act="save"]');
         btn.disabled = true;
         btn.textContent = 'Saving…';
@@ -242,29 +280,29 @@
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
-        }).then(function (r) { return r.json(); }).then(function (res) {
+        }).then(cardResponse).then(function (res) {
             btn.disabled = false;
             btn.textContent = 'Save & Generate QR';
             if (res && res.ok) {
                 cardData = res.card;
                 pendingPhoto = null;
-                saved = true;
                 populateForm();
-                updateQrSection();
+                if (updateQrSection()) flashStatus('Saved! QR code is ready to share.');
                 loadScans();
-                flashStatus('Saved! QR code is ready to share.');
             } else {
                 flashStatus('Could not save. Please try again.');
             }
-        }).catch(function () {
+        }).catch(function (error) {
             btn.disabled = false;
             btn.textContent = 'Save & Generate QR';
+            if (error.staticHosting) { staticMode = true; saveLocalCard(data); return; }
             flashStatus('Could not save. Please try again.');
         });
     }
 
     function loadScans() {
-        if (!cardData || !cardData.id) return;
+        root.querySelector('#card_scans').hidden = true;
+        if (!cardData || !cardData.id || cardData.local) return;
         fetch('/api/card/scans').then(function (r) { return r.json(); }).then(function (data) {
             if (!data || !data.ok) return;
             root.querySelector('#card_scans').hidden = false;
@@ -319,10 +357,21 @@
         noSaveMsg.hidden = true;
         shareSection.hidden = false;
 
-        var cardUrl = window.location.origin + '/card/' + encodeURIComponent(cardData.id);
+        root.querySelector('.card_qr_hint').textContent = cardData.local
+            ? 'Saved on this device. This link contains your contact details. Share a new QR after editing; scan tracking requires the server.'
+            : 'Scan to view my contact info';
+        var cardUrl = getCardUrl();
         qrContainer.innerHTML = '';
-        if (typeof QRCode !== 'undefined') {
+        try {
             qrInstance = new QRCode(qrContainer, { text: cardUrl, width: 180, height: 180, correctLevel: QRCode.CorrectLevel.M });
+            return true;
+        } catch (error) {
+            qrContainer.innerHTML = '';
+            shareSection.hidden = true;
+            flashStatus(typeof QRCode === 'undefined'
+                ? 'QR generator could not load. Reload the page and try again.'
+                : 'Could not generate QR. Shorten your contact details and try again.');
+            return false;
         }
     }
 
@@ -330,6 +379,11 @@
 
     function getCardUrl() {
         if (!cardData || !cardData.id) return '';
+        if (cardData.local) {
+            var contact = {};
+            FIELDS.concat(['photo']).forEach(function (field) { contact[field] = cardData[field] || ''; });
+            return window.location.origin + '/card.html#card=' + encodeURIComponent(JSON.stringify(contact));
+        }
         return window.location.origin + '/card/' + encodeURIComponent(cardData.id);
     }
 
