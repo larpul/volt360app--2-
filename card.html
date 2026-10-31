@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <meta name="theme-color" content="#f7f7f7"/>
 <title>Digital Business Card</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="/assets/Js/qrcode.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -468,6 +468,7 @@ a:focus-visible,button:focus-visible,input:focus-visible{
   // encodes the plain /card/{id} URL, so scanners never see it.
   var manage=new URLSearchParams(window.location.search).get('manage')==='1';
   var loadedCard=null;
+  var snapshot=new URLSearchParams(window.location.hash.slice(1)).get('card');
 
   var DEMO={
     name:'Alex Morgan',title:'Architect of Ideas',company:'Studio Ephemeral',
@@ -563,7 +564,7 @@ a:focus-visible,button:focus-visible,input:focus-visible{
         '<footer class="terminal reveal">'+
           '<div class="terminal-meta">'+
             '<span><span class="live-dot"></span><strong id="liveTime">\u2014</strong></span>'+
-            '<span>Location: <strong>'+(d.company||'\u2014')+'</strong></span>'+
+            '<span>Location: <strong>'+esc(d.company||'\u2014')+'</strong></span>'+
             (d.updatedAt?'<span>Updated: <strong>'+new Date(d.updatedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+'</strong></span>':'')+
           '</div>'+
           '<div id="qrcode" aria-label="QR code linking to this card"></div>'+
@@ -571,6 +572,12 @@ a:focus-visible,button:focus-visible,input:focus-visible{
         '</footer>'+
 
       '</div>';
+
+    // Snapshot cards have no backend: don't pretend to book or send callbacks.
+    if(snapshot){
+      document.getElementById('schedule').hidden=true;
+      document.getElementById('contactForm').parentElement.hidden=true;
+    }
 
     // Hide loader
     document.getElementById('loader').classList.add('hide');
@@ -718,7 +725,7 @@ a:focus-visible,button:focus-visible,input:focus-visible{
     // --- QR Code ---
     try{
       new QRCode(document.getElementById('qrcode'),{
-        text:window.location.href,width:180,height:180,
+        text:window.location.href,width:180,height:180,correctLevel:QRCode.CorrectLevel.M,
         colorDark:'#1e1e1e',colorLight:'#f7f7f7'
       });
     }catch(e){/* QR lib may not be loaded */}
@@ -741,7 +748,21 @@ a:focus-visible,button:focus-visible,input:focus-visible{
 
   // Fetch card data or fall back to demo. In manage mode use the public GET
   // endpoint so the owner's own view isn't counted as a QR scan.
-  if(cardId){
+  if(snapshot){
+    try{
+      var raw=JSON.parse(snapshot),contact={};
+      ['name','title','phone','email','website','company','photo'].forEach(function(key){
+        contact[key]=typeof raw[key]==='string'?raw[key].slice(0,500):'';
+      });
+      if(!contact.name)throw new Error('Missing name');
+      if(contact.website&&!/^https?:\/\//i.test(contact.website))contact.website='';
+      if(contact.photo&&!/^(https?:\/\/|\/assets\/|\/uploads\/)/i.test(contact.photo))contact.photo='';
+      render(contact);
+    }catch(e){
+      document.getElementById('loader').classList.add('hide');
+      root.textContent='This card link is invalid. Ask the sender for a new QR code.';
+    }
+  } else if(cardId){
     var dataUrl=manage?('/api/card/public/'+encodeURIComponent(cardId)):('/api/card/scan/'+encodeURIComponent(cardId));
     var dataOpts=manage?{}:{method:'POST'};
     fetch(dataUrl,dataOpts)
