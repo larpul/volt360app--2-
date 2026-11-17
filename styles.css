@@ -3223,3 +3223,21 @@ body:has(.sheet_backdrop) .assist_dock {
   font-size: 0.6rem;
   color: #9a97a1;
 }
+
+/* Date-range dropdown at the top of the Filters page. */
+.date_range {
+  padding-bottom: 22px;
+}
+.date_range ion-item {
+  --background: #f5faf8;
+  --border-radius: 8px;
+  --padding-start: 14px;
+  --inner-padding-end: 8px;
+  margin: 0;
+  border-radius: 8px;
+}
+.date_range ion-select {
+  width: 100%;
+  color: var(--text-black);
+  font-weight: 600;
+}
