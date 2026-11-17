@@ -68,6 +68,7 @@ function knockLeaderboard() {
 
 // Google Sheets integration — each QR scan is logged as a new spreadsheet row.
 const sheets = require('./google-sheets');
+const calendar = require('./google-calendar');
 const email = require('./email');
 const notifications = require('./notifications');
 
@@ -978,6 +979,8 @@ const server = http.createServer((req, res) => {
                     email.sendBookingNotification(booking, card.name);
                 }).catch(function () { email.sendBookingNotification(booking, card.name); });
             }
+            // Write the meeting onto the linked Google Calendar (non-blocking).
+            calendar.createEvent(booking).catch(function () {});
             // Show the booking in the in-app bell too (the email alert was already sent above).
             notifications.add('card_booking', 'New meeting booking',
                 (booking.name || 'Someone') + ' booked ' + (booking.date || '') + ' at ' + (booking.time || '') + '.',
@@ -1073,6 +1076,25 @@ const server = http.createServer((req, res) => {
     // Google Sheets connection status and direct link (for the analytics page).
     if (req.method === 'GET' && url.pathname === '/api/sheets/status') {
         sendJson(res, 200, { connected: sheets.isConfigured(), url: sheets.getSheetUrl() });
+        return;
+    }
+    // Google Calendar connection status (Settings card) — probes the calendar so
+    // a configured but unshared calendar reports Google's own reason.
+    if (req.method === 'GET' && url.pathname === '/api/calendar/status') {
+        calendar.status().then(function (state) {
+            sendJson(res, 200, state);
+        }).catch(function (err) {
+            sendJson(res, 200, { connected: false, configured: false, reason: String((err && err.message) || err) });
+        });
+        return;
+    }
+    // Upcoming events from the linked calendar (week view).
+    if (req.method === 'GET' && url.pathname === '/api/calendar/events') {
+        calendar.listUpcomingEvents(url.searchParams.get('days')).then(function (events) {
+            sendJson(res, 200, { connected: calendar.isConfigured(), events: events });
+        }).catch(function (err) {
+            sendJson(res, 200, { connected: calendar.isConfigured(), events: [], reason: String((err && err.message) || err) });
+        });
         return;
     }
     // Scan analytics for the owner: total count and recent scan details.
