@@ -1275,21 +1275,22 @@ const PIPELINE_STAGES = [
 // id (see the .map_pin and .filter_panel .status_tile rules in the Home stylesheet), `swatch`
 // is that same colour as the hex the Dashboard paints its summary tiles with.
 const STATUS_TILES = [
-    { name: 'Not answered', colour: 'gray', swatch: '#f5f5f5' },
-    { name: 'Not interested (No pitch)', colour: 'red', swatch: '#e87869' },
-    { name: 'Not interested (pitch)', colour: 'red', swatch: '#e87869' },
-    { name: 'House for sale', colour: 'yellow', swatch: '#f5f5f5' },
-    { name: 'Renters', colour: 'violet', swatch: '#f5f5f5' },
-    { name: 'DNS', colour: 'gray', swatch: '#f5f5f5' },
-    { name: 'Follow up', colour: 'blue', swatch: '#b7e06b' },
-    { name: 'Other', colour: 'yellow', swatch: '#f5f5f5' },
-    { name: 'Appt set', colour: 'green', swatch: '#FF7110' },
-    { name: 'Sat (sale)', colour: 'green', swatch: '#FF7110' },
-    { name: 'Sat (credit fail)', colour: 'red', swatch: '#e87869' },
-    { name: 'Sat (follow up)', colour: 'blue', swatch: '#b7e06b' },
-    { name: 'Sat (no sale)', colour: 'red', swatch: '#e87869' },
-    { name: 'Reschedule', colour: 'violet', swatch: '#f5f5f5' }
+    { name: 'Not answered', colour: 'c1', swatch: '#35c8e4', ink: '#12333b' },
+    { name: 'Not interested (No pitch)', colour: 'c2', swatch: '#ff8a00', ink: '#ffffff' },
+    { name: 'Not interested (pitch)', colour: 'c3', swatch: '#f0519e', ink: '#ffffff' },
+    { name: 'House for sale', colour: 'c4', swatch: '#ff1010', ink: '#ffffff' },
+    { name: 'Renters', colour: 'c5', swatch: '#56c000', ink: '#ffffff' },
+    { name: 'DNS', colour: 'c6', swatch: '#efc000', ink: '#3a2b00' },
+    { name: 'Follow up', colour: 'c7', swatch: '#9b1fc0', ink: '#ffffff' },
+    { name: 'Other', colour: 'c8', swatch: '#1670d0', ink: '#ffffff' },
+    { name: 'Appt set', colour: 'c9', swatch: '#2b2b2b', ink: '#ffffff' },
+    { name: 'Sat (sale)', colour: 'c10', swatch: '#2cbe8c', ink: '#0d2f24' },
+    { name: 'Sat (credit fail)', colour: 'c11', swatch: '#8a8cf0', ink: '#ffffff' },
+    { name: 'Sat (follow up)', colour: 'c12', swatch: '#f49a98', ink: '#3a1a19' },
+    { name: 'Sat (no sale)', colour: 'c13', swatch: '#b4b4b4', ink: '#2b2b2b' },
+    { name: 'Reschedule', colour: 'c14', swatch: '#0b6b00', ink: '#ffffff' }
 ];
+const statusMetaFor = (name) => STATUS_TILES.find(tile => tile.name === name) || STATUS_TILES[0];
 const HOUSE_SAMPLES = [
     { lat: 39.351996, lng: -84.331021, top: 35.4, left: 51.6, status: 'Appt set', colour: 'green',
       customerName: 'Tylersville Rd Residence', ownerName: 'Dawn & Eric Halstead', phone: '+1 513-555-0113', email: 'dhalstead@gmail.com', locationAddress: '1420 Tylersville Rd, Mason, OH 45040',
@@ -1373,8 +1374,8 @@ const seedSnapshot = () => {
             email: house.email || '',
             locationAddress: house.locationAddress,
             status: house.status,
-            statusClass: 'status_' + house.colour,
-            colour: house.colour,
+            statusClass: 'status_' + statusMetaFor(house.status).colour,
+            colour: statusMetaFor(house.status).colour,
             systemSize: house.systemSize,
             technicianNotes: house.technicianNotes,
             decisionReason: house.decisionReason,
