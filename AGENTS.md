@@ -114,6 +114,11 @@ with the Volt360 sidebar and sign-in form.
   module (webpack module 809 in `main.js`) redirects there, and the
   verification page's continue action also lands on it. The sign-in page is
   still reachable at `/sign-in`, it is just no longer the entry point.
+- `styles.css` forces every non-icon element to `font-size: 10pt !important`
+  ("Global type size"), so a size written in a component's own stylesheet is
+  ignored. Any element that must differ (e.g. the side menu's name and job title
+  in `ion-header .brofile_box`, module 721 of `main.js`) needs its own
+  `!important` size — higher specificity alone does not win.
 - The bottom tab bar lives in the app shell, not in the pages: its markup is
   inside the `ion-app` template string (webpack module 721 in `main.js`, search
   for `app-tab-bar`), its navigation helpers (`tabGo`, `tabActive`,
