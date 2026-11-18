@@ -286,9 +286,6 @@ const template = `<ion-header>
                     <span>Appointments</span>
                 </div>
             </div>
-            <button class="knock_add" (click)="openKnockSheet()">
-                <ion-icon class="zmdi zmdi-plus"></ion-icon>Add knock
-            </button>
             <div class="knock_log" *ngIf="knock.entries.length">
                 <div class="knock_row d-flex" *ngFor="let entry of knock.entries">
                     <span class="knock_dot" [style.background]="entry.swatch"></span>
@@ -296,7 +293,7 @@ const template = `<ion-header>
                     <span class="knock_time">{{ entry.time }}</span>
                 </div>
             </div>
-            <p class="empty_note" *ngIf="!knock.entries.length">No knocks logged today. Tap Add knock at each door.</p>
+            <p class="empty_note" *ngIf="!knock.entries.length">No knocks logged today.</p>
         </div>
 
         <div class="leads_card leaderboard_card">
